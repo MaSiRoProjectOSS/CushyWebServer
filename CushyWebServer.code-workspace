@@ -1,0 +1,80 @@
+{
+	"folders": [
+		{
+			"name": "Cushy Web Server",
+			"path": "."
+		}
+	],
+	"settings": {
+		"doxdocgen.file.copyrightTag": [
+			"@copyright Copyright (c) {year} / MaSiRo Project."
+		],
+		"doxdocgen.file.versionTag": "@version 0.0.1",
+		"cSpell.words": [
+			"endregion",
+			"APIP",
+			"GPIO",
+			"MOSI",
+			"MISO",
+			"KBPS",
+			"IRAM",
+			"fillpix",
+			"CRGB"
+		],
+		"doxdocgen.generic.useGitUserName": true,
+		"doxdocgen.generic.useGitUserEmail": true,
+		"files.associations": {
+			"functional": "cpp",
+			"*.tcc": "cpp",
+			"array": "cpp",
+			"deque": "cpp",
+			"string": "cpp",
+			"unordered_map": "cpp",
+			"unordered_set": "cpp",
+			"vector": "cpp",
+			"string_view": "cpp",
+			"initializer_list": "cpp",
+			"algorithm": "cpp",
+			"atomic": "cpp",
+			"cerrno": "cpp",
+			"cstdarg": "cpp",
+			"cstdlib": "cpp",
+			"cwchar": "cpp",
+			"map": "cpp",
+			"exception": "cpp",
+			"memory": "cpp",
+			"memory_resource": "cpp",
+			"optional": "cpp",
+			"cmath": "cpp",
+			"iterator": "cpp",
+			"numeric": "cpp",
+			"random": "cpp",
+			"fstream": "cpp",
+			"iomanip": "cpp",
+			"iosfwd": "cpp",
+			"iostream": "cpp",
+			"istream": "cpp",
+			"limits": "cpp",
+			"new": "cpp",
+			"ostream": "cpp",
+			"queue": "cpp",
+			"sstream": "cpp",
+			"stdexcept": "cpp",
+			"streambuf": "cpp",
+			"system_error": "cpp",
+			"tuple": "cpp",
+			"type_traits": "cpp",
+			"typeinfo": "cpp",
+			"utility": "cpp"
+		},
+		"files.watcherExclude": {
+			"**/.git/objects/**": true,
+			"**/.git/subtree-cache/**": true,
+			"**/node_modules/*/**": true,
+			"**/.hg/store/**": true,
+			"**/doxygen_html": true,
+			"**/.pio": true,
+			"**/Doxyfile": true
+		}
+	}
+}

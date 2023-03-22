@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='/general.css' rel='stylesheet' type='text/css' media='all'>
+    <link href='/network.css' rel='stylesheet' type='text/css' media='all'>
+    <script type='text/javascript' src='/ajax.js'></script>
+    <script type='text/javascript' src='/network.js'></script>
+    <title>Network mode</title>
+</head>
+
+<body>
+    <h1>Network Mode</h1>
+    <article>
+        <div class='article_header'><a href='/' target='_self'>TOP</a></div>
+    </article>
+    <article id='article_message' class='div_hide'>
+        <p>The system was reconfigured.<br />Please change the network connection.</p>
+    </article>
+    <article id='article_setting'>
+        <div id='network_mode_selector'>
+            <input title='-' placeholder='0' type='radio' id='mode_ap' name='network_mode' value='AP mode' onclick='JS_Network.select_mode(0);'><label for='mode_ap'>&ensp;Access Point mode</label><br />
+            <input title='-' placeholder='1' type='radio' id='mode_sta' name='network_mode' value='STA mode' onclick='JS_Network.select_mode(1);'><label for='mode_sta'>&ensp;&ensp;&ensp;Station mode&ensp;&ensp;&ensp;</label>
+        </div>
+        <div id='network_area'>
+            <label> LIST : <br /><select id='network_list' name='network_list' class='network_article' onchange='JS_Network.select_list(value);'></select></label>
+            <button type='button' id='network_scan' class='b_disabled' onclick='JS_Network.begin()'>Scan</button><br /><br />
+            <input title='-' class='input_text' id='network_ssid' name='ssid' length=32 onchange='JS_Network.on_change();' placeholder='SSID' value=''><br />
+            <input title='-' class='input_text' id='network_pass' name='pass' length=64 onchange='JS_Network.on_change();' placeholder='password' type='password'><br />
+            <br />
+            <button type='button' onclick='JS_Network.set_network()'>SAVE</button>
+        </div>
+    </article>
+</body>
+
+</html>
