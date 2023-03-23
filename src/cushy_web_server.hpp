@@ -13,6 +13,7 @@
 
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
+#include <HTTPClient.h>
 #include <Wire.h>
 #include <functional>
 #include <string.h>
@@ -37,6 +38,7 @@ public:
 
 public:
     bool begin();
+    bool post_json(String url, String payload, String *reply);
 
 public:
     void set_callback_mode(ModeFunction callback);

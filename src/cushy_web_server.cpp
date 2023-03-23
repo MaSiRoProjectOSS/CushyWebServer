@@ -209,3 +209,28 @@ UBaseType_t CushyWebServer::get_stack_high_water_mark()
 {
     return uxTaskGetStackHighWaterMark(this->_task_handle);
 }
+
+bool CushyWebServer::post_json(String url, String payload_json, String *reply)
+{
+    bool result = false;
+    HTTPClient http;
+    *reply = "";
+    if (true == http.begin(url.cstr())) {
+        http.addHeader("Content-Type", "application/json");
+        int httpCode = http.POST(payload_json.cstr());
+
+        if (httpCode > 0) {
+            // HTTP header has been send and Server response header has been handled
+            log_d("[HTTP] POST... code: %d", httpCode);
+            // file found at server
+            if (HTTP_CODE_OK == httpCode) {
+                *reply = http.getString();
+                result = true;
+            }
+        } else {
+            log_e("[HTTP] POST... failed, error: %s", http.errorToString(httpCode).c_str());
+        }
+        http.end();
+    }
+    return result;
+}
