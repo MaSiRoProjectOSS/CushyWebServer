@@ -18,7 +18,7 @@
     "platforms": "espressif32",
     "dependencies": {
         "ottowinter/ESPAsyncWebServer-esphome": "~3.0.0",
-        "esphome/AsyncTCP-esphome": "~2.0.0",
+        "ottowinter/ESPAsyncTCP-esphome": "^1.2.3",
         "ayushsharma82/AsyncElegantOTA": "~2.2.7"
     },
     "headers": "cushy_web_server.hpp",

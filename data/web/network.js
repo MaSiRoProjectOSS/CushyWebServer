@@ -3,8 +3,10 @@ if (!JS_Network) {
         default_name_ap: "",
         default_name_sta: "",
         timeoutID: null,
+        scanID: null,
         network_list: Array(),
         timerInterval: 3000,
+        scanInterval: 1500,
         on_change: function () {
             if (null != JS_Network.timeoutID) {
                 clearTimeout(JS_Network.timeoutID);
@@ -70,8 +72,8 @@ if (!JS_Network) {
                     var elm = document.getElementById("network_list");
                     JS_Network.network_list = [];
                     elm.innerHTML = "";
-                    for (var i = 0; i < data.status.data.length; i++) {
-                        var item = data.status.data[i];
+                    for (var i = 0; i < data.status.data.list.length; i++) {
+                        var item = data.status.data.list[i];
                         JS_Network.network_list.push({ index: i, name: item.name, power: item.power });
                         let opt = document.createElement("option");
                         opt.value = i;
@@ -92,8 +94,41 @@ if (!JS_Network) {
             return buf;
         },
         scan: function () {
+            JS_AJAX.get('/make/net_list').then(
+                ok => {
+                    let ret = false;
+                    if (null != ok) {
+                        if ("OK" == ok.result) {
+                            JS_Network.scanning();
+                            ret = true;
+                        }
+                    }
+                    if (false === ret) {
+                        console.error("I declined your request.")
+                    }
+                }
+                , error => console.error(error.status.messages)
+            );
+        },
+        scanning: function () {
             JS_AJAX.get('/get/net_list').then(
-                ok => JS_Network.set_list(ok)
+                ok => {
+                    let ret = false;
+                    if (null != ok) {
+                        if ("OK" == ok.result) {
+                            if (0 <= ok.status.data.ret) {
+                                JS_Network.set_list(ok);
+                                ret = true;
+                            } else if (-2 == ok.status.data.ret) {
+                                ret = true;
+                                console.error("Processing was interrupted.")
+                            }
+                        }
+                    }
+                    if (false === ret) {
+                        setTimeout(JS_Network.scanning, JS_Network.scanInterval);
+                    }
+                }
                 , error => console.error(error.status.messages)
             );
         },

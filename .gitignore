@@ -41,4 +41,5 @@
 **/.vscode/VC.DB*
 **/.vscode/pinned-files.json
 **/doxygen
+**/miniature
 data/config/info_wifi.*
