@@ -14,11 +14,13 @@
 #include "web_communication_data.hpp"
 
 #include <Arduino.h>
-#include <AsyncElegantOTA.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <SPIFFS.h>
 #include <Update.h>
+#ifndef CUSHY_WEB_SERVER_NOT_OTA
+#include <AsyncElegantOTA.h>
+#endif
 
 namespace MaSiRoProject
 {
@@ -317,7 +319,9 @@ std::string WebCommunication::template_json_result(bool result, std::string data
 WebCommunication::WebCommunication()
 {
     this->ctrl_server = new AsyncWebServer(SETTING_WIFI_PORT);
+#ifndef CUSHY_WEB_SERVER_NOT_OTA
     AsyncElegantOTA.begin(this->ctrl_server); // Start ElegantOTA
+#endif
 }
 WebCommunication::~WebCommunication()
 {
