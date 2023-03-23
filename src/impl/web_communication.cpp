@@ -18,7 +18,7 @@
 #include <ESPAsyncWebServer.h>
 #include <SPIFFS.h>
 #include <Update.h>
-#ifndef CUSHY_WEB_SERVER_NOT_OTA
+#if CUSHY_WEB_SERVER_OTA
 #include <AsyncElegantOTA.h>
 #endif
 
@@ -319,7 +319,7 @@ std::string WebCommunication::template_json_result(bool result, std::string data
 WebCommunication::WebCommunication()
 {
     this->ctrl_server = new AsyncWebServer(SETTING_WIFI_PORT);
-#ifndef CUSHY_WEB_SERVER_NOT_OTA
+#if CUSHY_WEB_SERVER_OTA
     AsyncElegantOTA.begin(this->ctrl_server); // Start ElegantOTA
 #endif
 }

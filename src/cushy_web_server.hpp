@@ -11,7 +11,9 @@
 #ifndef CUSHY_WEB_SERVER_HPP
 #define CUSHY_WEB_SERVER_HPP
 
+#include <Arduino.h>
 #include <ESPAsyncWebServer.h>
+#include <Wire.h>
 #include <functional>
 #include <string.h>
 
@@ -61,9 +63,6 @@ protected:
 
 private:
     TaskHandle_t _task_handle;
-
-private:
-    const UBaseType_t TASK_ASSIGNED_SIZE = (4096 * 2);
 };
 
 #endif

@@ -113,7 +113,7 @@ bool CushyWebServer::begin()
                     flag_thread_wifi_initialized = true;
                     xTaskCreatePinnedToCore(thread_wifi, //
                                             THREAD_NAME_WIFI,
-                                            this->TASK_ASSIGNED_SIZE,
+                                            SETTING_TASK_ASSIGNED_SIZE,
                                             NULL,
                                             SETTING_THREAD_PRIORITY,
                                             &this->_task_handle,
@@ -203,7 +203,7 @@ std::string CushyWebServer::template_json_result(bool result, std::string data, 
 /////////////////////////////////////////
 UBaseType_t CushyWebServer::get_stack_size()
 {
-    return this->TASK_ASSIGNED_SIZE;
+    return SETTING_TASK_ASSIGNED_SIZE;
 }
 UBaseType_t CushyWebServer::get_stack_high_water_mark()
 {

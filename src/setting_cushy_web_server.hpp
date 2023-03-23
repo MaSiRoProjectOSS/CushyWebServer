@@ -17,6 +17,9 @@
 #ifndef SETTING_THREAD_PRIORITY
 #define SETTING_THREAD_PRIORITY (5)
 #endif
+#ifndef SETTING_TASK_ASSIGNED_SIZE
+#define SETTING_TASK_ASSIGNED_SIZE (4096 * 2)
+#endif
 
 #ifndef SETTING_STORAGE_SPI_FS
 #define SETTING_STORAGE_SPI_FS (1)
@@ -24,6 +27,10 @@
 
 #ifndef SETTING_STORAGE_OVERRIDE
 #define SETTING_STORAGE_OVERRIDE (0)
+#endif
+
+#ifndef CUSHY_WEB_SERVER_OTA
+#define CUSHY_WEB_SERVER_OTA (1)
 #endif
 
 #ifndef SETTING_WIFI_PORT
@@ -48,7 +55,7 @@
  * when If connection is not possible for a certain period of time in STA mode.
  *
  */
-#define SETTING_WIFI_MODE_AUTO_TRANSITIONS (true)
+#define SETTING_WIFI_MODE_AUTO_TRANSITIONS (false)
 #endif
 
 #ifndef SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT
@@ -90,15 +97,5 @@
  */
 #define SETTING_WIFI_PASS_DEFAULT "password"
 #endif
-
-#ifndef SETTING_WIFI_RECONNECTION_INTERVAL
-/**
- * @brief
- *
- */
-#define SETTING_WIFI_RECONNECTION_INTERVAL (1000)
-#endif
-
-const unsigned long THREAD_WEB_RECONNECTION_INTERVAL_WIFI = SETTING_WIFI_RECONNECTION_INTERVAL;
 
 #endif
