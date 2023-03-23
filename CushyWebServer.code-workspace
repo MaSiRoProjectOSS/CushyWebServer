@@ -1,0 +1,48 @@
+{
+	"folders": [
+		{
+			"name": "Cushy Web Server",
+			"path": "."
+		}
+	],
+	"settings": {
+		"doxdocgen.file.copyrightTag": [
+			"@copyright Copyright (c) {year} / MaSiRo Project."
+		],
+		"doxdocgen.file.versionTag": "@version 0.0.1",
+		"cSpell.words": [
+			"endregion",
+			"APIP",
+			"GPIO",
+			"MOSI",
+			"MISO",
+			"KBPS",
+			"IRAM",
+			"fillpix",
+			"CRGB"
+		],
+		"doxdocgen.generic.useGitUserName": true,
+		"doxdocgen.generic.useGitUserEmail": true,
+		"files.watcherExclude": {
+			"**/.git/objects/**": true,
+			"**/.git/subtree-cache/**": true,
+			"**/node_modules/*/**": true,
+			"**/.hg/store/**": true,
+			"**/doxygen_html": true,
+			"**/.pio": true,
+			"**/Doxyfile": true
+		},
+		"search.exclude": {
+			"**/node_modules": true,
+			"**/bower_components": true,
+			"**/*.code-search": true,
+			"**/.pio": true,
+			"**/.vscode": true
+		},
+		"es6-css-minify.minifyOnSave": "yes",
+		"es6-css-minify.cssMapSource": "/miniature/css",
+		"es6-css-minify.cssMinPath": "/miniature/css",
+		"es6-css-minify.jsMinPath": "/miniature/js",
+		"es6-css-minify.jsMapSource": "/miniature/js"
+	}
+}

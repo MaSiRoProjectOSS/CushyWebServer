@@ -1,0 +1,39 @@
+{
+    "name": "CushyWebServer",
+    "version": "0.0.1",
+    "description": "Equipped with Web server related functions for ESP32",
+    "keywords": "M5Stack, M5Atom, OTA, WebServer",
+    "homepage": "https://github.com/MaSiRoProjectOSS/CushyWebServer",
+    "authors": {
+        "name": "MaSiRo Project.",
+        "email": "masiro.to.akari@gmail.com",
+        "url": "https://github.com/MaSiRoProjectOSS/CushyWebServer"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MaSiRoProjectOSS/CushyWebServer.git"
+    },
+    "license": "MIT",
+    "frameworks": "arduino",
+    "platforms": "espressif32",
+    "dependencies": {
+        "ottowinter/ESPAsyncWebServer-esphome": "~3.0.0",
+        "ottowinter/ESPAsyncTCP-esphome": "^1.2.3",
+        "ayushsharma82/AsyncElegantOTA": "~2.2.7"
+    },
+    "headers": "cushy_web_server.hpp",
+    "examples": [
+        {
+            "name": "basic",
+            "base": "examples/basic",
+            "files": [
+                "basic.ino"
+            ]
+        }
+    ],
+    "export": {
+        "exclude": [
+            "test/*"
+        ]
+    }
+}
