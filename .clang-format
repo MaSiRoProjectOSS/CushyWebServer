@@ -1,0 +1,165 @@
+# clang-format configuration file.
+#
+# For more information, see:
+#
+#   Documentation/process/clang-format.rst
+#   https://clang.llvm.org/docs/ClangFormat.html
+#   https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+#
+# clang-format version 10.0.0.4
+#  - MaSiRo Project. 1.10.0.0.8
+#
+---
+UseCRLF : false
+UseTab : Never
+
+SpaceAfterLogicalNot : false
+
+AccessModifierOffset : -4
+
+AlignAfterOpenBracket : Align
+AlignConsecutiveMacros : true
+AlignConsecutiveAssignments : true
+AlignEscapedNewlines : Right
+AlignConsecutiveDeclarations : false
+AlignTrailingComments : true
+
+AllowAllArgumentsOnNextLine : false
+AllowAllConstructorInitializersOnNextLine : true
+AllowAllParametersOfDeclarationOnNextLine : false
+AllowShortBlocksOnASingleLine : Never
+AllowShortCaseLabelsOnASingleLine : false
+AllowShortFunctionsOnASingleLine : None
+AllowShortIfStatementsOnASingleLine : false
+AllowShortLoopsOnASingleLine : false
+AllowShortLambdasOnASingleLine : Inline
+
+AlwaysBreakAfterDefinitionReturnType : None
+AlwaysBreakAfterReturnType : None
+AlwaysBreakBeforeMultilineStrings : false
+AlwaysBreakTemplateDeclarations : Yes
+
+BinPackArguments : false
+BinPackParameters : false
+BraceWrapping:
+  AfterClass : false
+  AfterControlStatement : false
+  AfterEnum : true
+  AfterFunction : true
+  AfterNamespace : true
+  AfterObjCDeclaration : false
+  AfterStruct : false
+  AfterUnion : false
+  AfterExternBlock : false
+  BeforeCatch : false
+  BeforeElse : false
+  IndentBraces : false
+  SplitEmptyFunction : true
+  SplitEmptyRecord : true
+  SplitEmptyNamespace : true
+BreakBeforeBinaryOperators : All
+BreakBeforeBraces : Custom
+BreakBeforeInheritanceComma : false
+BreakBeforeTernaryOperators : false
+BreakConstructorInitializers : BeforeComma
+BreakAfterJavaFieldAnnotations : true
+BreakStringLiterals : false
+ColumnLimit : 180
+CommentPragmas : '^ IWYU pragma:'
+CompactNamespaces : false
+ConstructorInitializerAllOnOneLineOrOnePerLine : true
+ConstructorInitializerIndentWidth : 8
+ContinuationIndentWidth : 8
+Cpp11BracedListStyle : false
+DerivePointerAlignment : false
+DisableFormat : false
+ExperimentalAutoDetectBinPacking : false
+FixNamespaceComments : true
+
+# Taken from:
+#   git grep -h '^#define [^[:space:]]*for_each[^[:space:]]*(' include/ \
+#   | sed "s,^#define \([^[:space:]]*for_each[^[:space:]]*\)(.*$,  - '\1'," \
+#   | sort | uniq
+ForEachMacros:
+  - 'for each'
+  - 'foreach'
+  - 'Q_FOREACH'
+  - 'BOOST_FOREACH'
+
+
+IncludeBlocks : Regroup
+IncludeCategories:
+  - Regex :           '^"(llvm|llvm-c|clang|clang-c)/'
+    Priority :        2
+    SortPriority :    2
+    # CaseSensitive :   true
+  - Regex :           '^(<|"(gtest|gmock|isl|json)/)'
+    Priority :        3
+  - Regex :           '<[[:alnum:].]+>'
+    Priority :        4
+  - Regex :           '.*'
+    Priority :        1
+    SortPriority :    0
+IncludeIsMainRegex : '(Test)?$'
+IndentCaseLabels : true
+IndentPPDirectives : None
+IndentWidth : 4
+IndentWrappedFunctionNames : false
+JavaScriptQuotes : Leave
+JavaScriptWrapImports : true
+KeepEmptyLinesAtTheStartOfBlocks : false
+MacroBlockBegin : ''
+MacroBlockEnd : ''
+MaxEmptyLinesToKeep : 1
+NamespaceIndentation : None
+ObjCBinPackProtocolList : Auto
+ObjCBlockIndentWidth : 8
+ObjCSpaceAfterProperty : true
+ObjCSpaceBeforeProtocolList : true
+
+# Taken from git's rules
+PenaltyBreakAssignment : 10
+PenaltyBreakBeforeFirstCallParameter : 30
+PenaltyBreakComment : 10
+PenaltyBreakFirstLessLess : 0
+PenaltyBreakString : 10
+PenaltyExcessCharacter : 100
+PenaltyReturnTypeOnItsOwnLine : 60
+
+PointerAlignment : Right
+ReflowComments : false
+SortIncludes : true
+SortUsingDeclarations : false
+SpaceAfterCStyleCast : false
+SpaceAfterTemplateKeyword : true
+SpaceBeforeAssignmentOperators : true
+SpaceBeforeCtorInitializerColon : true
+SpaceBeforeInheritanceColon : true
+SpaceBeforeParens : ControlStatements
+SpaceBeforeRangeBasedForLoopColon : true
+SpaceInEmptyParentheses : false
+SpacesBeforeTrailingComments : 1
+SpacesInAngles : false
+SpacesInContainerLiterals : false
+SpacesInCStyleCastParentheses : false
+SpacesInParentheses : false
+SpacesInSquareBrackets : false
+Standard : Cpp03
+TabWidth : 4
+
+######################
+# clang-format 11
+######################
+#AlignConsecutiveBitFields : AcrossComments
+
+######################
+# clang-format 12
+######################
+AllowShortEnumsOnASingleLine : false
+AlignOperands : AlignAfterOperator
+
+######################
+# clang-format 13
+######################
+#AlignArrayOfStructures : Right
+...
