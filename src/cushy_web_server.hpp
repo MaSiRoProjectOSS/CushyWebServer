@@ -18,6 +18,10 @@
 #include <functional>
 #include <string.h>
 
+#ifndef CALLBACK_STYLE_USING
+#define CALLBACK_STYLE_USING 0
+#endif
+
 class CushyWebServer {
 public:
     enum WEB_VIEWER_MODE
@@ -30,7 +34,13 @@ public:
         CONNECTED_AP,
     };
 
-    using ModeFunction = void (*)(WEB_VIEWER_MODE);
+#if CALLBACK_STYLE_USING
+    using ModeFunction         = void (*)(WEB_VIEWER_MODE);
+    using HandleClientFunction = void (*)();
+#else
+    typedef std::function<void(WEB_VIEWER_MODE)> ModeFunction;
+    typedef std::function<void(void)> HandleClientFunction;
+#endif
 
 public:
     CushyWebServer();
@@ -42,6 +52,7 @@ public:
 
 public:
     void set_callback_mode(ModeFunction callback);
+    void set_callback_handle_client(HandleClientFunction callback);
     WEB_VIEWER_MODE get_mode();
 
     /////////////////////////////////////////
@@ -53,6 +64,7 @@ public:
 
 protected:
     virtual bool setup_server(AsyncWebServer *server);
+    virtual void handle_favicon_ico(AsyncWebServerRequest *request);
     AsyncWebServer *get_server();
     IPAddress get_ip();
 

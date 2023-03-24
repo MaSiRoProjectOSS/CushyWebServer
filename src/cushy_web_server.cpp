@@ -14,6 +14,7 @@
 #include "setting_cushy_web_server.hpp"
 
 #include <Arduino.h>
+#include <functional>
 
 MaSiRoProject::Web::WebCommunication ctrl_web;
 
@@ -29,6 +30,14 @@ volatile bool flag_thread_wifi_initialized = false;
 volatile bool flag_thread_wifi_fin         = false;
 CushyWebServer::WEB_VIEWER_MODE _mode      = CushyWebServer::WEB_VIEWER_MODE::NOT_INITIALIZED;
 CushyWebServer::ModeFunction _callback_mode;
+CushyWebServer::HandleClientFunction _callback_handle_client;
+
+void call_handle_client()
+{
+    if (nullptr != _callback_handle_client) {
+        _callback_handle_client();
+    }
+}
 
 void set_mode(CushyWebServer::WEB_VIEWER_MODE mode)
 {
@@ -75,6 +84,7 @@ void thread_wifi(void *args)
                 if (nullptr != ctrl_web.get_server()) {
                     ctrl_web.get_server()->begin();
                     while (false == flag_thread_wifi_fin) {
+                        call_handle_client();
                         if (true != ctrl_web.is_connected()) {
                             break;
                         }
@@ -108,6 +118,7 @@ bool CushyWebServer::begin()
     try {
         ////////////////////////////////////////////////////////
         if (true == ctrl_web.setup()) {
+            ctrl_web.get_server()->on("/favicon.ico", std::bind(&CushyWebServer::handle_favicon_ico, this, std::placeholders::_1));
             if (true == this->setup_server(ctrl_web.get_server())) {
                 if (false == flag_thread_wifi_initialized) {
                     flag_thread_wifi_initialized = true;
@@ -141,10 +152,18 @@ IPAddress CushyWebServer::get_ip()
 {
     return ctrl_web.get_ip();
 }
+void CushyWebServer::handle_favicon_ico(AsyncWebServerRequest *request)
+{
+    ctrl_web.handle_favicon_ico(request);
+}
 
 void CushyWebServer::set_callback_mode(ModeFunction callback)
 {
     _callback_mode = callback;
+}
+void CushyWebServer::set_callback_handle_client(HandleClientFunction callback)
+{
+    _callback_handle_client = callback;
 }
 CushyWebServer::WEB_VIEWER_MODE CushyWebServer::get_mode()
 {
@@ -217,7 +236,7 @@ bool CushyWebServer::post_json(String url, String payload_json, String *reply)
     *reply = "";
     if (true == http.begin(url.c_str())) {
         http.addHeader("Content-Type", "application/json");
-        int httpCode = http.POST(payload_json.c_str());
+        int httpCode = http.POST(payload_json);
 
         if (httpCode > 0) {
             // HTTP header has been send and Server response header has been handled

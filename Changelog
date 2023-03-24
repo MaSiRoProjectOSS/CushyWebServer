@@ -2,6 +2,12 @@
 
 ---
 
+## Ver.0.0.2
+
+* Add function
+  * post_json()
+* faviconの呼び出しをvirtual関数に変更
+
 ## Ver.0.0.1
 
 * Publish the system

@@ -57,11 +57,15 @@ void WebCommunication::handle_not_found(AsyncWebServerRequest *request)
 }
 void WebCommunication::handle_favicon_ico(AsyncWebServerRequest *request)
 {
+#if SETTING_DEFAULT_FAVICON
     AsyncWebServerResponse *response = request->beginResponse_P(200, "image/x-icon", WEB_IMAGE_FAVICON_ICO, WEB_IMAGE_FAVICON_ICO_LEN);
     response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
+#else
+    handle_not_found(request);
+#endif
 }
 void WebCommunication::handle_js_ajax(AsyncWebServerRequest *request)
 {
@@ -226,7 +230,6 @@ bool WebCommunication::setup()
         this->ctrl_server->onNotFound(std::bind(&WebCommunication::handle_not_found, this, std::placeholders::_1));
 
         // general data
-        this->ctrl_server->on("/favicon.ico", std::bind(&WebCommunication::handle_favicon_ico, this, std::placeholders::_1));
         this->ctrl_server->on("/ajax.js", std::bind(&WebCommunication::handle_js_ajax, this, std::placeholders::_1));
         this->ctrl_server->on("/general.css", std::bind(&WebCommunication::handle_css_general, this, std::placeholders::_1));
         // change network page

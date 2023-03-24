@@ -40,10 +40,10 @@ public:
 
 public:
     String file_readString(const char *path);
+    void handle_favicon_ico(AsyncWebServerRequest *request);
 
 private:
     void handle_not_found(AsyncWebServerRequest *request);
-    void handle_favicon_ico(AsyncWebServerRequest *request);
     void handle_js_ajax(AsyncWebServerRequest *request);
     void handle_css_general(AsyncWebServerRequest *request);
 
