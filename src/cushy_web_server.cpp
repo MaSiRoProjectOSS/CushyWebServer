@@ -215,9 +215,9 @@ bool CushyWebServer::post_json(String url, String payload_json, String *reply)
     bool result = false;
     HTTPClient http;
     *reply = "";
-    if (true == http.begin(url.cstr())) {
+    if (true == http.begin(url.c_str())) {
         http.addHeader("Content-Type", "application/json");
-        int httpCode = http.POST(payload_json.cstr());
+        int httpCode = http.POST(payload_json.c_str());
 
         if (httpCode > 0) {
             // HTTP header has been send and Server response header has been handled
