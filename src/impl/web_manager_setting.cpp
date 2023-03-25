@@ -71,9 +71,9 @@ bool WebManagerSetting::save_information(std::string ssid, std::string pass, boo
 {
     bool result = false;
 #if SETTING_STORAGE_SPI_FS
-    bool force_write = false;
     if (true == this->_open_fs) {
         if (true == SPIFFS.begin()) {
+            bool force_write = false;
             if (true == SPIFFS.exists(SETTING_WIFI_SETTING_FILE)) {
                 this->_load_information();
             } else {
@@ -145,8 +145,8 @@ void WebManagerSetting::set_information(std::string ssid, std::string pass, bool
 ////////////////////////////////////////////////////
 void WebManagerSetting::_set_information(std::string ssid, std::string pass, bool ap_mode, bool auto_default)
 {
-    this->_ssid                 = ssid;
-    this->_pass                 = pass;
+    this->_ssid                 = (std::string)ssid;
+    this->_pass                 = (std::string)pass;
     this->_mode_ap              = ap_mode;
     this->_auto_default_setting = auto_default;
 }
@@ -155,15 +155,14 @@ bool WebManagerSetting::_load_information()
 {
     bool result = false;
 #if SETTING_STORAGE_SPI_FS
-    int totalBytes = 0;
-    int type       = 0;
     if (true == SPIFFS.exists(SETTING_WIFI_SETTING_FILE)) {
         File dataFile = SPIFFS.open(SETTING_WIFI_SETTING_FILE, FILE_READ);
         if (!dataFile) {
             result = false;
         } else {
-            result     = true;
-            totalBytes = dataFile.size();
+            int type = 0;
+            result   = true;
+            // int totalBytes = dataFile.size();
             while (dataFile.available()) {
                 String word = dataFile.readStringUntil('\n');
                 switch (type) {
@@ -236,7 +235,7 @@ bool WebManagerSetting::_save_information(std::string ssid, std::string pass, bo
 
 void WebManagerSetting::set_hostname(std::string hostname)
 {
-    this->_hostname = hostname;
+    this->_hostname = (std::string)hostname;
 }
 
 } // namespace Web

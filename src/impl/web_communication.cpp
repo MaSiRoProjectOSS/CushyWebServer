@@ -16,7 +16,6 @@
 #include <Arduino.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <SPIFFS.h>
 #include <Update.h>
 #if CUSHY_WEB_SERVER_OTA
 #include <AsyncElegantOTA.h>
@@ -31,20 +30,6 @@ namespace Web
 #define WEB_HEADER_CACHE_CONTROL_NO_CACHE   "no-cache"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-String WebCommunication::file_readString(const char *path)
-{
-    String word;
-    word.clear();
-    if (true == SPIFFS.begin()) {
-        File file   = SPIFFS.open(path, FILE_READ);
-        size_t size = file.size();
-        word        = file.readString();
-        file.close();
-        SPIFFS.end();
-    }
-    return word;
-}
 
 void WebCommunication::handle_not_found(AsyncWebServerRequest *request)
 {
@@ -134,7 +119,7 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
                     }
                 }
                 if (request->hasArg("auto")) {
-                    int value = this->to_int(request->arg("auto"));
+                    value     = this->to_int(request->arg("auto"));
                     auto_tran = (1 == value) ? true : false;
                     result    = true;
                 }
@@ -202,7 +187,6 @@ void WebCommunication::handle_network_get_list(AsyncWebServerRequest *request)
 }
 void WebCommunication::handle_network_get(AsyncWebServerRequest *request)
 {
-    bool result      = false;
     bool ap_mode     = this->_manager.is_ap_mode();
     std::string data = "{";
     data.append("\"default\": \"");
@@ -290,7 +274,7 @@ std::string WebCommunication::template_json_result(bool result, std::string data
     static bool flag_rand = false;
     static char key[5]    = "-1";
     if (false == flag_rand) {
-        sprintf(key, "%d", random(0, 1000));
+        sprintf(key, "%d", (int)random(0, 1000));
         flag_rand = true;
     }
     std::string json = "{";
@@ -321,7 +305,7 @@ std::string WebCommunication::template_json_result(bool result, std::string data
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 WebCommunication::WebCommunication()
 {
-    this->ctrl_server = new AsyncWebServer(SETTING_WIFI_PORT);
+    this->ctrl_server = AsyncWebServer(SETTING_WIFI_PORT);
 #if CUSHY_WEB_SERVER_OTA
     AsyncElegantOTA.begin(this->ctrl_server); // Start ElegantOTA
 #endif

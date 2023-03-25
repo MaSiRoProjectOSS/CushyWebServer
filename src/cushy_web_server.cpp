@@ -208,10 +208,6 @@ int CushyWebServer::to_int(String data)
         return 0;
     }
 }
-String CushyWebServer::file_readString(const char *path)
-{
-    return ctrl_web.file_readString(path);
-}
 std::string CushyWebServer::template_json_result(bool result, std::string data, std::string message)
 {
     return ctrl_web.template_json_result(result, data, message);

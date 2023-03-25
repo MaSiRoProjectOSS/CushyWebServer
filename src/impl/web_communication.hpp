@@ -39,7 +39,6 @@ public:
     std::string template_json_result(bool result, std::string data = "", std::string message = "");
 
 public:
-    String file_readString(const char *path);
     void handle_favicon_ico(AsyncWebServerRequest *request);
 
 private:
