@@ -234,22 +234,24 @@ bool CushyWebServer::post_json(String url, String payload_json, String *reply)
     bool result = false;
     HTTPClient http;
     *reply = "";
-    if (true == http.begin(url.c_str())) {
-        http.addHeader("Content-Type", "application/json");
-        int httpCode = http.POST(payload_json);
+    if ("" != url.c_str()) {
+        if (true == http.begin(url.c_str())) {
+            http.addHeader("Content-Type", "application/json");
+            int httpCode = http.POST(payload_json);
 
-        if (httpCode > 0) {
-            // HTTP header has been send and Server response header has been handled
-            log_d("[HTTP] POST... code: %d", httpCode);
-            // file found at server
-            if (HTTP_CODE_OK == httpCode) {
-                *reply = http.getString();
-                result = true;
+            if (httpCode > 0) {
+                // HTTP header has been send and Server response header has been handled
+                log_d("[HTTP] POST... code: %d", httpCode);
+                // file found at server
+                if (HTTP_CODE_OK == httpCode) {
+                    *reply = http.getString();
+                    result = true;
+                }
+            } else {
+                log_e("[HTTP] POST... failed, error: %s", http.errorToString(httpCode).c_str());
             }
-        } else {
-            log_e("[HTTP] POST... failed, error: %s", http.errorToString(httpCode).c_str());
+            http.end();
         }
-        http.end();
     }
     return result;
 }
