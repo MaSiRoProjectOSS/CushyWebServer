@@ -15,12 +15,17 @@ ESP32に下記の機能を持たせるためのライブラリ
 
 ## Description
 
-CushyWebServer クラスを継承する事でESP32で動作するM5Stackで動作する WebServerを容易に立てるライブラリです。
+CushyWebServer クラスを継承する事でESP32(M5Stack)で動作する WebServerを容易に立てるライブラリです。
+ページの追加方法は、[ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer) をご参照ください。
+
 関数```cushy.begin()```を実行することで、Core1にスレッドを立ててネットワーク接続まで実施する。
+
 [ayushsharma82/AsyncElegantOTA](https://github.com/ayushsharma82/AsyncElegantOTA)を使用しおりURL```http://(アドレス)/update```でバイナリの書き換えが行える。
+
 ネットワーク切り替えページ```http://(アドレス)/network```を持っており、接続先をブラウザから切り替える事ができる。
 
 このライブラリの設定は```src\setting_cushy_web_server.hpp```で管理しており、```plantformio.ini```の```build_flags```で制御することを想定している。
+
 
 接続先情報はSPIFFSに持っており、(1)SPIFFSにあるファイル(2)```src\setting_cushy_web_server.hpp```の定義の順で参照します。
 
