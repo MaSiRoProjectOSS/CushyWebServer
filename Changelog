@@ -6,7 +6,7 @@
 
 * Add function
   * post_json()
-* faviconの呼び出しをvirtual関数に変更
+* Change favicon calls to virtual functions
 
 ## Ver.0.0.1
 
