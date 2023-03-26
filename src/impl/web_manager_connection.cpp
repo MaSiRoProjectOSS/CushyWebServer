@@ -52,12 +52,13 @@ void WebManagerConnection::config_address_sta(IPAddress ip, IPAddress subnet, IP
 
 bool WebManagerConnection::make_wifi_list()
 {
-    bool result                           = false;
-    static unsigned long release_time     = 0;
-    static unsigned long RELEASE_INTERVAL = (60 * 1000);
-    unsigned long current                 = millis();
+    bool result                       = false;
+    static unsigned long release_time = 0;
+    unsigned long current             = millis();
 
     if (release_time < current) {
+        static unsigned long RELEASE_INTERVAL = (60 * 1000);
+
         this->_flag_make_net_list = false;
         release_time              = current + RELEASE_INTERVAL;
     }
@@ -84,7 +85,7 @@ std::vector<WebManagerConnection::NetworkList> WebManagerConnection::get_wifi_li
                     item.name       = name;
                     item.encryption = WiFi.encryptionType(i);
                     item.rssi       = WiFi.RSSI(i);
-                    item.rssi       = this->_get_rssi_as_quality(item.rssi);
+                    item.quality    = this->_get_rssi_as_quality(item.rssi);
                     list.push_back(item);
                 }
             }
@@ -224,7 +225,6 @@ bool WebManagerConnection::disconnect()
             delay(this->CONNECTION_TIMEOUT_INTERVAL);
             countdown -= this->CONNECTION_TIMEOUT_INTERVAL;
             if (0 >= countdown) {
-                result = false;
                 break;
             }
         }

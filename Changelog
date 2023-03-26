@@ -2,6 +2,12 @@
 
 ---
 
+## Ver.0.0.2
+
+* Add function
+  * post_json()
+* Change favicon calls to virtual functions
+
 ## Ver.0.0.1
 
 * Publish the system

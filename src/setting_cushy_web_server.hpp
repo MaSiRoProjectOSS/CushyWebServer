@@ -32,6 +32,9 @@
 #ifndef CUSHY_WEB_SERVER_OTA
 #define CUSHY_WEB_SERVER_OTA (1)
 #endif
+#ifndef SETTING_DEFAULT_FAVICON
+#define SETTING_DEFAULT_FAVICON (1)
+#endif
 
 #ifndef SETTING_WIFI_PORT
 /**

@@ -11,6 +11,8 @@
 #ifndef MASIRO_PROJECT_WEB_DEFAULT_HPP
 #define MASIRO_PROJECT_WEB_DEFAULT_HPP
 
+#include "../setting_cushy_web_server.hpp"
+
 #include <Arduino.h>
 
 namespace MaSiRoProject
@@ -28,6 +30,7 @@ const char WEB_PAGE_NETWORK_CSS[] PROGMEM
 const char WEB_PAGE_GENERAL_CSS[] PROGMEM
         = "td{text-align:center}th{background-color:#d3d3d3}table{border-collapse:collapse;border:outset}td,th{border:outset;text-align:center;padding:5px;width:3em}input{text-align:center}.td_left{text-align:left}.td_view{background-color:ivory}.td_disable{background-color:#a9a9a9}.td_type{width:6em}.article_header{text-align:right;font-size:1.2rem;line-height:2.4rem}.article_left{float:left;margin:2em}.article_right{float:right;margin:2em}.td_warning{background-color:#ff0;color:#000;font-weight:700}.td_error{background-color:#f05050;color:#fff;font-weight:700}.hr1{position:relative;overflow:visible;text-align:center;color:#ccc;border-width:0;height:8px;background-image:repeating-linear-gradient(45deg,#ccc 0,#ccc 1px,transparent 0,transparent 50%),repeating-linear-gradient(135deg,#ccc 0,#ccc 1px,transparent 0,transparent 50%);background-size:8px 8px}.hr1::after{position:absolute;top:-.6em;left:50%;display:inline-block;content:'\02663';background:#fff}.hr2{position:relative;height:3px;border-width:0;background-color:#00bcd4;background-image:-webkit-linear-gradient(135deg,#fd6585 10%,#0d25b9 100%);background-image:linear-gradient(135deg,#fd6585 10%,#0d25b9 100%)}.hr3{border-top:3px solid #000;width:80%;height:3px;border-width:0;background-color:#f3ecec;background-image:-webkit-linear-gradient(right,#ddd6d6 5px,#0bd8ab 5px);background-image:linear-gradient(-90deg,#ddd6d6 5px,#0bd8ab 5px);background-size:10px 10px}.hr4{border-top:3px solid #000;width:50%;text-align:center}.switchButton{-moz-user-select:none;-webkit-user-select:none;user-select:none;line-height:60px;letter-spacing:0;text-align:center;font-size:27px;position:relative;background:#fff;margin:0 0 .5em .5em;float:left}.switchButton input[type=checkbox]{display:none}.switchButton label{display:table;box-sizing:border-box;height:60px;border:2px solid #999;border-radius:30px;padding-right:1em;padding-left:72px}.switchButton input[type=checkbox]:checked+label{border-color:#78bd78}.switchButton label span{color:#999;padding-left:1em}.switchButton input[type=checkbox]:checked+label span{color:#78bd78}.switchButton .swImg{position:absolute;width:2em;height:2em;background:#999;top:5px;left:6px;border-radius:26px;transition:.2s}.switchButton input[type=checkbox]:checked~label .swImg{transform:translateX(50%);background:#78bd78}.switchStop{-moz-user-select:none;-webkit-user-select:none;user-select:none;line-height:60px;letter-spacing:0;text-align:center;font-size:27px;position:relative;background:#fff;margin:0 0 .5em .5em;float:left}.switchStop input[type=checkbox]{display:none}.switchStop label{display:table;box-sizing:border-box;height:60px;border:2px solid #999;border-radius:30px;padding-right:1em;padding-left:72px}.switchStop input[type=checkbox]:checked+label{border-color:#ff4500}.switchStop label span{color:#999;padding-left:1em}.switchStop input[type=checkbox]:checked+label span{color:#ff4500}.switchStop .swImg{position:absolute;width:2em;height:2em;background:#999;top:5px;left:6px;border-radius:26px;transition:.2s}.switchStop input[type=checkbox]:checked~label .swImg{transform:translateX(50%);background:#ff4500}.visibility_hidden{visibility:hidden;display:none}.visibility_table_hidden{visibility:collapse}";
 
+#if SETTING_DEFAULT_FAVICON
 #define WEB_IMAGE_FAVICON_ICO_LEN 4787
 const unsigned char WEB_IMAGE_FAVICON_ICO[] PROGMEM = {
     0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x40, 0x08, 0x06, 0x00, 0x00, 0x00,
@@ -197,6 +200,7 @@ const unsigned char WEB_IMAGE_FAVICON_ICO[] PROGMEM = {
     0x67, 0x8B, 0x7F, 0x13, 0xE0, 0x7E, 0xFD, 0x99, 0x02, 0xF8, 0x27, 0x41, 0x17, 0x37, 0x05, 0x74, 0xA6, 0x3A, 0xC4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42,
     0x60, 0x82
 };
+#endif
 } // namespace Web
 } // namespace MaSiRoProject
 
