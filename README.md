@@ -5,6 +5,7 @@ ESP32に下記の機能を持たせるためのライブラリ
 * WebServer
   * OTA(HTTP)
   * WiFi切り替えページ
+  * HttpClientによるWebAPI
 
 ## Project Status
 
@@ -26,9 +27,12 @@ CushyWebServer クラスを継承する事でESP32(M5Stack)で動作する WebSe
 
 このライブラリの設定は```src\setting_cushy_web_server.hpp```で管理しており、```plantformio.ini```の```build_flags```で制御することを想定している。
 
+接続先情報はSPIFFSに持っており以下の順番で接続を確認します。
 
-接続先情報はSPIFFSに持っており、(1)SPIFFSにあるファイル(2)```src\setting_cushy_web_server.hpp```の定義の順で参照します。
-
+1. ```SETTING_WIFI_SETTING_FILE```で定義されたファイル
+1. ```SETTING_WIFI_SETTING_LIST_FILE```で設定されたルールに従った[接続情報ファイル](#接続情報ファイルについて)
+   * データのアップロードはPlatformIOの[Uploading files to Filesystem](https://docs.platformio.org/en/latest/platforms/espressif8266.html#uploading-files-to-filesystem)を参照してださい。
+1. [Defineによる設定](#Defineによる設定)で定義した```SETTING_WIFI_SSID_DEFAULT``` / ```SETTING_WIFI_PASS_DEFAULT``` / ```SETTING_WIFI_MODE_AP``` / ```SETTING_WIFI_HOSTNAME``` に従う
 
 ## Installation
 
@@ -96,6 +100,28 @@ void loop()
 
 ## Usage
 
+### 接続情報ファイルについて
+
+設定情報は```SETTING_WIFI_SETTING_FILE```および```SETTING_WIFI_SETTING_LIST_FILE```で指定されたファイルに下記の書式で記載することで読み取り可能
+
+1. １行目：SETTING_WIFI_MODE_AP：「S」か「A」、SはSTA/AはAPで起動する
+1. ２行目：SETTING_WIFI_SSID_DEFAULT：SSID名
+1. ３行目：SETTING_WIFI_PASS_DEFAULT：パスワード
+1. ４行目：SETTING_WIFI_HOSTNAME：ホスト名を記載。空文字でもよし
+* 改行は"\n"であること
+
+
+記載例
+
+```file
+S
+CushyWebServer
+password
+esp32-CushyWebServer
+```
+
+### Defineによる設定
+
 設定ファイル```src\setting_cushy_web_server.hpp```で定義したdefineは下記の通りです。
 
 | define                                        |            デフォルト値 | 定義                                                                                                                    |
@@ -118,25 +144,6 @@ void loop()
 | SETTING_WIFI_PASS_DEFAULT                     |              "password" | パスワード<br>SPIFFSにファイルがない場合に動作する                                                                      |
 
 
-* 接続情報について
-SETTING_WIFI_SETTING_FILEで指定されたファイルパスに下記の書式で記載することも可能。
-
-１行目：SETTING_WIFI_MODE_AP：「S」か「A」、SはSTA/AはAPで起動する
-２行目：SETTING_WIFI_SSID_DEFAULT：SSID名
-３行目：SETTING_WIFI_PASS_DEFAULT：パスワード
-４行目：SETTING_WIFI_MODE_AUTO_TRANSITIONS：「Y」か「N」、Yだと指定されたWiFi機器がみつからないとAPに移行する
-５行目：SETTING_WIFI_HOSTNAME：ホスト名を記載。空文字でもよし
-
-記載例
-
-```file
-S
-CushyWebServer
-password
-N
-esp32-CushyWebServer
-```
-
 ## Requirement
 
 This system uses the following libraries.
@@ -154,6 +161,7 @@ It is listed [here](./Changelog).
 
 ## Notes
 
+* <<caution!!>> [接続情報ファイル](#接続情報ファイルについて)で設定されるファイルは暗号化されていません。
 
 ## Support
 
