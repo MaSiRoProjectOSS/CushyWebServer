@@ -8,12 +8,51 @@
  * @copyright Copyright (c) 2023 / MaSiRo Project.
  *
  */
-//#include "lib_dir.hpp"
+#include "custom_cushy_web_server.hpp"
 
 #include <Arduino.h>
 #include <M5Atom.h>
 #include <SPIFFS.h>
 #include <cushy_web_server.hpp>
+
+CustomCushyWebServer cushy;
+
+//////////////////////////////////////////////////////////////////////////////////
+
+void notify_mode(CushyWebServer::WEB_VIEWER_MODE mode)
+{
+    switch (mode) {
+        case CushyWebServer::WEB_VIEWER_MODE::NOT_INITIALIZED:
+            log_i("NOT_INITIALIZED");
+            (void)M5.dis.fillpix(CRGB::Aqua);
+            break;
+        case CushyWebServer::WEB_VIEWER_MODE::INITIALIZED:
+            log_i("INITIALIZED");
+            (void)M5.dis.fillpix(CRGB::Yellow);
+            break;
+        case CushyWebServer::WEB_VIEWER_MODE::DISCONNECTED:
+            log_i("DISCONNECTED");
+            (void)M5.dis.fillpix(CRGB::DarkRed);
+            break;
+        case CushyWebServer::WEB_VIEWER_MODE::RETRY:
+            log_i("RETRY");
+            (void)M5.dis.fillpix(CRGB::Red);
+            break;
+        case CushyWebServer::WEB_VIEWER_MODE::CONNECTED_STA:
+            log_i("CONNECTED_STA");
+            (void)M5.dis.fillpix(CRGB::Green);
+            break;
+        case CushyWebServer::WEB_VIEWER_MODE::CONNECTED_AP:
+            log_i("CONNECTED_AP");
+            (void)M5.dis.fillpix(CRGB::Blue);
+            break;
+        default:
+            (void)M5.dis.fillpix(CRGB::Black);
+            break;
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////////
 
 void readFile(fs::FS &fs, const char *path)
 {
@@ -92,25 +131,7 @@ void listDir(fs::FS &fs, const char *dirname, uint8_t levels)
     }
 }
 
-class CustomCushyWebServer : public CushyWebServer {
-public:
-    void handle_root_html(AsyncWebServerRequest *request)
-    {
-        std::string html                 = "Hello !";
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/plain; charset=utf-8", html.c_str());
-        response->addHeader("Location", String("http://") + this->get_ip().toString());
-        response->addHeader("Cache-Control", "no-cache");
-        response->addHeader("X-Content-Type-Options", "nosniff");
-        request->send(response);
-    }
-    bool setup_server(AsyncWebServer *server)
-    {
-        server->on("/", std::bind(&CustomCushyWebServer::handle_root_html, this, std::placeholders::_1));
-        return true;
-    }
-};
-
-CustomCushyWebServer cushy;
+//////////////////////////////////////////////////////////////////////////////////
 
 void setup()
 {
@@ -124,15 +145,14 @@ void setup()
             delay(1000);
         }
     } while (false == result);
-    (void)M5.dis.fillpix(CRGB::Green);
+    cushy.set_callback_mode(&notify_mode);
 }
 
 void loop()
 {
-    static int SETTING_LOOP_TIME_SLEEP_DETECT = 1;
+    static int SETTING_LOOP_TIME_SLEEP_DETECT = 100;
     (void)M5.update();
-    if (true == M5.Btn.isPressed()) {
-        (void)M5.dis.fillpix(CRGB::Yellow);
+    if (true == M5.Btn.wasPressed()) {
         Serial.println("====================================");
 #if 0
         deleteFile(SPIFFS, "/config/wifi.ini");
@@ -153,7 +173,12 @@ void loop()
 #endif
         listDir(SPIFFS, "/", 1);
         Serial.println("====================================");
-        (void)M5.dis.fillpix(CRGB::Green);
+        UBaseType_t stack_cushy = cushy.get_stack_high_water_mark();
+        UBaseType_t max_cushy   = cushy.get_stack_size();
+
+        char msg_buffer[512];
+        sprintf(msg_buffer, "STACK SIZE : %d/%d", (int)stack_cushy, (int)max_cushy);
+        log_i("%s", msg_buffer);
     }
     (void)delay(SETTING_LOOP_TIME_SLEEP_DETECT);
 }

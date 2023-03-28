@@ -65,6 +65,8 @@ public:
 protected:
     virtual bool setup_server(AsyncWebServer *server);
     virtual void handle_favicon_ico(AsyncWebServerRequest *request);
+
+protected:
     AsyncWebServer *get_server();
     IPAddress get_ip();
 

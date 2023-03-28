@@ -14,7 +14,7 @@
 
 class CustomCushyWebServer : public CushyWebServer {
 public:
-    void handle_root_html(AsyncWebServerRequest *request)
+    void handle_html_root(AsyncWebServerRequest *request)
     {
         std::string html                 = "Hello !";
         AsyncWebServerResponse *response = request->beginResponse(200, "text/plain; charset=utf-8", html.c_str());
@@ -25,7 +25,7 @@ public:
     }
     bool setup_server(AsyncWebServer *server)
     {
-        server->on("/", std::bind(&CustomCushyWebServer::handle_root_html, this, std::placeholders::_1));
+        server->on("/", std::bind(&CustomCushyWebServer::handle_html_root, this, std::placeholders::_1));
         return true;
     }
 };
