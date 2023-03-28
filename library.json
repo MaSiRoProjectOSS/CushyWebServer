@@ -27,13 +27,53 @@
             "name": "basic",
             "base": "examples/basic",
             "files": [
-                "basic.ino"
+                "basic.cpp"
+            ]
+        },
+        {
+            "name": "check_stack_size",
+            "base": "examples/check_stack_size",
+            "files": [
+                "check_stack_size.cpp"
+            ]
+        },
+        {
+            "name": "mode_notification",
+            "base": "examples/mode_notification",
+            "files": [
+                "custom_cushy_web_server.cpp",
+                "custom_cushy_web_server.hpp",
+                "mode_notification.cpp"
+            ]
+        },
+        {
+            "name": "original_favicon",
+            "base": "examples/original_favicon",
+            "files": [
+                "custom_cushy_web_server.cpp",
+                "custom_cushy_web_server.hpp",
+                "data_custom_cushy_web_server.hpp",
+                "original_favicon.cpp"
+            ]
+        },
+        {
+            "name": "post_json",
+            "base": "examples/post_json",
+            "files": [
+                "custom_cushy_web_server.cpp",
+                "custom_cushy_web_server.hpp",
+                "post_json.cpp"
             ]
         }
     ],
     "export": {
         "exclude": [
-            "test/*"
+            ".vscode/*",
+            "data/*",
+            "examples/*",
+            "test/*",
+            ".clang-format",
+            "Doxyfile"
         ]
     }
 }

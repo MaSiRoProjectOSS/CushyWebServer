@@ -14,6 +14,7 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
 #include <HTTPClient.h>
+#include <Update.h>
 #include <Wire.h>
 #include <functional>
 #include <string.h>
