@@ -13,9 +13,6 @@
 #include "impl/web_communication.hpp"
 #include "setting_cushy_web_server.hpp"
 
-#include <Arduino.h>
-#include <functional>
-
 MaSiRoProject::Web::WebCommunication ctrl_web;
 
 #pragma region thread_fuction
@@ -52,7 +49,7 @@ void set_mode(CushyWebServer::WEB_VIEWER_MODE mode)
 void thread_wifi(void *args)
 {
 #if SETTING_WIFI_MODE_AUTO_TRANSITIONS
-    unsigned long err_begin = millis() + SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT;
+    unsigned long err_begin = millis() + (1000 * SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT);
 #endif
     flag_thread_wifi_fin = false;
     set_mode(CushyWebServer::WEB_VIEWER_MODE::NOT_INITIALIZED);
@@ -72,8 +69,8 @@ void thread_wifi(void *args)
 #if SETTING_WIFI_MODE_AUTO_TRANSITIONS
                 if (true != ctrl_web.is_ap_mode()) {
                     if (err_begin < millis()) {
-                        err_begin = millis() + SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT;
-                        ctrl_web.load_default(false);
+                        err_begin = millis() + (1000 * SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT);
+                        ctrl_web.load_auto_setting(false);
                     }
                 }
 #endif
@@ -81,6 +78,8 @@ void thread_wifi(void *args)
                 set_mode((true == ctrl_web.is_ap_mode()) ? //
                                  CushyWebServer::WEB_VIEWER_MODE::CONNECTED_AP :
                                  CushyWebServer::WEB_VIEWER_MODE::CONNECTED_STA);
+                log_d("MODE[%s] SSID[%s] IP[%s] ", ((true == ctrl_web.is_ap_mode()) ? "AP" : "STA"), ctrl_web.get_ssid(), ctrl_web.get_ip().toString());
+
                 if (nullptr != ctrl_web.get_server()) {
                     ctrl_web.get_server()->begin();
                     while (false == flag_thread_wifi_fin) {

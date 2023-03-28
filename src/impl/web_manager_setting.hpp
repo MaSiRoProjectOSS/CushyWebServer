@@ -25,6 +25,7 @@ public:
     bool save_information(std::string ssid, std::string pass, bool ap_mode, bool auto_default);
     bool load_information();
     void set_hostname(std::string hostname);
+    bool load_auto_setting(bool clear);
 
 protected:
     bool _setup();
@@ -35,14 +36,16 @@ protected:
     bool _mode_ap;
     std::string _ssid;
     std::string _pass;
+    int _explored_index = 0;
 
     void set_information(std::string ssid, std::string pass, bool ap_mode, bool auto_default);
 
 private:
     bool _default_information();
     void _set_information(std::string ssid, std::string pass, bool ap_mode, bool auto_default);
-    bool _load_information();
+    bool _load_information(std::string file);
     bool _save_information(std::string ssid, std::string pass, bool ap_mode, bool auto_default);
+    bool _load_auto_setting(bool clear);
 
 private:
     bool _open_fs;

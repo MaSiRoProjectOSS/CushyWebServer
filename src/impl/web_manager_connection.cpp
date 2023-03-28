@@ -101,38 +101,39 @@ std::vector<WebManagerConnection::NetworkList> WebManagerConnection::get_wifi_li
 }
 IPAddress WebManagerConnection::get_ip()
 {
-    switch (this->_mode) {
-        case MODE_CONNECTION::MODE_CONNECTION_AP:
+    wifi_mode_t mode = WiFi.getMode();
+    switch (mode) {
+        case wifi_mode_t::WIFI_MODE_AP:
             return WiFi.softAPIP();
-        case MODE_CONNECTION::MODE_CONNECTION_STA:
+        case wifi_mode_t::WIFI_MODE_STA:
             return WiFi.localIP();
-            break;
-        case MODE_CONNECTION::MODE_CONNECTION_NONE:
+        case wifi_mode_t::WIFI_MODE_APSTA:
         default:
             return INADDR_NONE;
     }
 }
 const char *WebManagerConnection::get_ssid()
 {
-    switch (this->_mode) {
-        case MODE_CONNECTION::MODE_CONNECTION_AP:
+    wifi_mode_t mode = WiFi.getMode();
+    switch (mode) {
+        case wifi_mode_t::WIFI_MODE_AP:
             return WiFi.softAPSSID().c_str();
-        case MODE_CONNECTION::MODE_CONNECTION_STA:
+        case wifi_mode_t::WIFI_MODE_STA:
             return WiFi.SSID().c_str();
-        case MODE_CONNECTION::MODE_CONNECTION_NONE:
+        case wifi_mode_t::WIFI_MODE_APSTA:
         default:
-            return "";
+            return "--";
     }
 }
 bool WebManagerConnection::is_ap_mode()
 {
-    bool result = false;
-    switch (this->_mode) {
-        case MODE_CONNECTION::MODE_CONNECTION_AP:
+    bool result      = false;
+    wifi_mode_t mode = WiFi.getMode();
+    switch (mode) {
+        case wifi_mode_t::WIFI_MODE_AP:
+        case wifi_mode_t::WIFI_MODE_APSTA:
             result = true;
             break;
-        case MODE_CONNECTION::MODE_CONNECTION_STA:
-        case MODE_CONNECTION::MODE_CONNECTION_NONE:
         default:
             break;
     }
@@ -144,21 +145,32 @@ bool WebManagerConnection::is_connected(bool immediate)
     static unsigned long next_time = 0;
     static bool result             = false;
     if ((true == immediate) || (next_time < millis())) {
-        next_time          = millis() + this->CONNECTION_CHECK_INTERVAL;
-        wl_status_t status = WiFi.status();
-        switch (status) {
-            case wl_status_t::WL_CONNECTED:
-            case wl_status_t::WL_SCAN_COMPLETED:
-            case wl_status_t::WL_IDLE_STATUS:
-                result = true;
+        next_time        = millis() + this->CONNECTION_CHECK_INTERVAL;
+        wifi_mode_t mode = WiFi.getMode();
+        wl_status_t status;
+        switch (mode) {
+            case wifi_mode_t::WIFI_MODE_STA:
+                status = WiFi.status();
+                switch (status) {
+                    case wl_status_t::WL_CONNECTED:
+                    case wl_status_t::WL_SCAN_COMPLETED:
+                    case wl_status_t::WL_IDLE_STATUS:
+                        result = true;
+                        break;
+                    case wl_status_t::WL_CONNECTION_LOST:
+                    case wl_status_t::WL_CONNECT_FAILED:
+                    case wl_status_t::WL_NO_SSID_AVAIL:
+                    case wl_status_t::WL_NO_SHIELD:
+                    case wl_status_t::WL_DISCONNECTED:
+                    default:
+                        result = false;
+                        break;
+                }
                 break;
-            case wl_status_t::WL_CONNECTION_LOST:
-            case wl_status_t::WL_CONNECT_FAILED:
-            case wl_status_t::WL_NO_SSID_AVAIL:
-            case wl_status_t::WL_NO_SHIELD:
-            case wl_status_t::WL_DISCONNECTED:
+
+            case wifi_mode_t::WIFI_MODE_AP:
             default:
-                result = false;
+                result = true;
                 break;
         }
     }
@@ -198,6 +210,9 @@ bool WebManagerConnection::reconnect(std::string ssid, std::string pass, bool ap
         if ((this->_ssid != ssid) || (this->_pass != pass) || (this->_mode_ap != ap_mode) || (this->_auto_default_setting != auto_default)) {
             result = this->_reconnect(this->_ssid, this->_pass, this->_mode_ap, this->_auto_default_setting, false);
         }
+    }
+    if (true == result) {
+        this->_explored_index = 0;
     }
     return result;
 }

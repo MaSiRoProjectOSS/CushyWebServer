@@ -29,6 +29,7 @@ public:
 public:
     AsyncWebServer *get_server();
     IPAddress get_ip();
+    const char *get_ssid();
     bool setup();
     bool begin();
     bool reconnect();
@@ -37,6 +38,7 @@ public:
     bool load_default(bool save);
     bool is_connected(bool immediate = true);
     std::string template_json_result(bool result, std::string data = "", std::string message = "");
+    void load_auto_setting(bool clear);
 
 public:
     String file_readString(const char *path);

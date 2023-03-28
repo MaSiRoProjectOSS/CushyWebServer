@@ -49,7 +49,7 @@
  * @brief Specify Wifi settings file path
  *
  */
-#define SETTING_WIFI_SETTING_FILE "/config/info_wifi.ini"
+#define SETTING_WIFI_SETTING_FILE "/config/wifi.ini"
 #endif
 
 #ifndef SETTING_WIFI_MODE_AUTO_TRANSITIONS
@@ -58,7 +58,18 @@
  * when If connection is not possible for a certain period of time in STA mode.
  *
  */
-#define SETTING_WIFI_MODE_AUTO_TRANSITIONS (false)
+#define SETTING_WIFI_MODE_AUTO_TRANSITIONS (true)
+#endif
+
+#ifndef SETTING_WIFI_SETTING_LIST_FILE
+/**
+ * @brief Specify Wifi settings file path
+ *
+ */
+#define SETTING_WIFI_SETTING_LIST_FILE "/config/wifi_%02d.ini"
+#endif
+#ifndef SETTING_WIFI_SETTING_LIST_MAX
+#define SETTING_WIFI_SETTING_LIST_MAX 10
 #endif
 
 #ifndef SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT
@@ -66,7 +77,7 @@
  * @brief Time to wait for transition
  *
  */
-#define SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT (60 * 1000)
+#define SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT (60)
 #endif
 
 #ifndef SETTING_WIFI_MODE_AP
@@ -90,7 +101,7 @@
  * @brief Specify Wifi SSID
  *
  */
-#define SETTING_WIFI_SSID_DEFAULT "ESP32_WEB_VIEWER"
+#define SETTING_WIFI_SSID_DEFAULT "CushyWebServer"
 #endif
 
 #ifndef SETTING_WIFI_PASS_DEFAULT
@@ -98,7 +109,7 @@
  * @brief Specify Wifi SSID password
  *
  */
-#define SETTING_WIFI_PASS_DEFAULT "password"
+#define SETTING_WIFI_PASS_DEFAULT "password!"
 #endif
 
 #endif
