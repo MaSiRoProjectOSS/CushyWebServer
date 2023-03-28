@@ -42,4 +42,4 @@
 **/.vscode/pinned-files.json
 **/doxygen
 **/miniature
-data/config/info_wifi.*
+data/config/wifi*

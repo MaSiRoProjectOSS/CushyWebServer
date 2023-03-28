@@ -51,7 +51,7 @@ void RUN_UNITY_TESTS()
 
 ///////////////////////////////////////////////////////////////////
 
-#ifdef ARDUINO
+#ifndef ARDUINO
 #include <Arduino.h>
 void setup()
 {

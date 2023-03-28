@@ -10,14 +10,10 @@
  */
 #include "web_communication.hpp"
 
-#include "../setting_cushy_web_server.hpp"
 #include "web_communication_data.hpp"
 
-#include <Arduino.h>
 #include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
 #include <SPIFFS.h>
-#include <Update.h>
 #if CUSHY_WEB_SERVER_OTA
 #include <AsyncElegantOTA.h>
 #endif
@@ -266,6 +262,10 @@ bool WebCommunication::is_connected(bool immediate)
 {
     return this->_manager.is_connected(immediate);
 }
+void WebCommunication::load_auto_setting(bool clear)
+{
+    this->_manager.load_auto_setting(clear);
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 AsyncWebServer *WebCommunication::get_server()
 {
@@ -274,6 +274,11 @@ AsyncWebServer *WebCommunication::get_server()
 IPAddress WebCommunication::get_ip()
 {
     return this->_manager.get_ip();
+}
+
+const char *WebCommunication::get_ssid()
+{
+    return this->_manager.get_ssid();
 }
 int WebCommunication::to_int(String data)
 {

@@ -9,17 +9,18 @@
 		"doxdocgen.file.copyrightTag": [
 			"@copyright Copyright (c) {year} / MaSiRo Project."
 		],
-		"doxdocgen.file.versionTag": "@version 0.0.2",
+		"doxdocgen.file.versionTag": "@version 0.3.0",
 		"cSpell.words": [
-			"endregion",
 			"APIP",
-			"GPIO",
-			"MOSI",
-			"MISO",
-			"KBPS",
-			"IRAM",
+			"CRGB",
+			"endregion",
 			"fillpix",
-			"CRGB"
+			"GPIO",
+			"IRAM",
+			"KBPS",
+			"MISO",
+			"MOSI",
+			"nosniff"
 		],
 		"doxdocgen.generic.useGitUserName": true,
 		"doxdocgen.generic.useGitUserEmail": true,
