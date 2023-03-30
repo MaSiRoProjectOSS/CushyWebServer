@@ -2,7 +2,7 @@
  * @file web_setting.hpp
  * @author Akari (masiro.to.akari@gmail.com)
  * @brief
- * @version 0.23.1
+ * @version 0.0.1
  * @date 2023-03-12
  *
  * @copyright Copyright (c) 2023 / MaSiRo Project.
@@ -17,16 +17,16 @@
 #ifndef SETTING_THREAD_PRIORITY
 #define SETTING_THREAD_PRIORITY (5)
 #endif
-#ifndef SETTING_TASK_ASSIGNED_SIZE
-#define SETTING_TASK_ASSIGNED_SIZE (4096 * 2)
+#ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE (4096 * 2)
 #endif
 
-#ifndef SETTING_STORAGE_SPI_FS
-#define SETTING_STORAGE_SPI_FS (1)
+#ifndef SETTING_WIFI_STORAGE_SPI_FS
+#define SETTING_WIFI_STORAGE_SPI_FS (1)
 #endif
 
-#ifndef SETTING_STORAGE_OVERRIDE
-#define SETTING_STORAGE_OVERRIDE (0)
+#ifndef SETTING_WIFI_STORAGE_OVERRIDE
+#define SETTING_WIFI_STORAGE_OVERRIDE (0)
 #endif
 
 #ifndef CUSHY_WEB_SERVER_OTA
@@ -63,18 +63,23 @@
 
 #ifndef SETTING_WIFI_SETTING_LIST_FILE
 /**
- * @brief Specify Wifi settings file path
+ * @brief WiFi configuration file list pattern
  *
  */
 #define SETTING_WIFI_SETTING_LIST_FILE "/config/wifi_%02d.ini"
 #endif
+
 #ifndef SETTING_WIFI_SETTING_LIST_MAX
-#define SETTING_WIFI_SETTING_LIST_MAX 10
+/**
+ * @brief Number of WiFi configuration file list
+ *
+ */
+#define SETTING_WIFI_SETTING_LIST_MAX (10)
 #endif
 
 #ifndef SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT
 /**
- * @brief Time to wait for transition
+ * @brief Time to wait for transition [unit:s]
  *
  */
 #define SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT (60)
@@ -110,6 +115,21 @@
  *
  */
 #define SETTING_WIFI_PASS_DEFAULT "password!"
+#endif
+
+#ifndef SETTING_DEFAULT_FAVICON
+#define SETTING_DEFAULT_FAVICON (1)
+#endif
+
+#ifndef SETTING_SNTP_ENABLE
+#define SETTING_SNTP_ENABLE (1)
+#endif
+#ifndef SETTING_SNTP_SERVER
+#define SETTING_SNTP_SERVER "pool.ntp.org"
+#endif
+
+#ifndef SETTING_SNTP_TIME_ZONE
+#define SETTING_SNTP_TIME_ZONE "UTC"
 #endif
 
 #endif

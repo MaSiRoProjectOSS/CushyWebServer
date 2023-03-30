@@ -1,15 +1,15 @@
 /**
- * @file web_default.hpp
+ * @file web_communication_data.hpp
  * @author Akari (masiro.to.akari@gmail.com)
  * @brief
- * @version 0.23.1
+ * @version 0.0.1
  * @date 2023-03-12
  *
  * @copyright Copyright (c) 2023 / MaSiRo Project.
  *
  */
-#ifndef MASIRO_PROJECT_WEB_DEFAULT_HPP
-#define MASIRO_PROJECT_WEB_DEFAULT_HPP
+#ifndef MASIRO_PROJECT_WEB_COMMUNICATION_DATA_HPP
+#define MASIRO_PROJECT_WEB_COMMUNICATION_DATA_HPP
 
 #include "../setting_cushy_web_server.hpp"
 

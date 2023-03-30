@@ -2,7 +2,7 @@
  * @file CushyWebServer.hpp
  * @author Akari (masiro.to.akari@gmail.com)
  * @brief
- * @version 0.1
+ * @version 0.0.1
  * @date 2023-03-22
  *
  * @copyright Copyright (c) 2023 / MaSiRo Project.
@@ -14,10 +14,13 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
 #include <HTTPClient.h>
+#include <SPIFFS.h>
 #include <Update.h>
 #include <Wire.h>
 #include <functional>
+#include <sntp.h>
 #include <string.h>
+#include <sys/time.h>
 
 #ifndef CALLBACK_STYLE_USING
 #define CALLBACK_STYLE_USING 0
@@ -60,6 +63,8 @@ public:
     // get  member valuable
     /////////////////////////////////////////
 public:
+    time_t millis_to_time(unsigned long ms);
+    bool is_sntp_sync();
     UBaseType_t get_stack_size();
     UBaseType_t get_stack_high_water_mark();
 

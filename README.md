@@ -6,6 +6,7 @@ ESP32に下記の機能を持たせるためのライブラリ
   * OTA(HTTP)
   * WiFi切り替えページ
   * HttpClientによるWebAPI
+  * SNTPによる時刻同期
 
 ## Project Status
 
@@ -124,14 +125,26 @@ esp32-CushyWebServer
 
 設定ファイル```src\setting_cushy_web_server.hpp```で定義したdefineは下記の通りです。
 
+#### OTA設定
+
+| define               | デフォルト値 | 定義                                                                                                  |
+| :------------------- | -----------: | :---------------------------------------------------------------------------------------------------- |
+| CUSHY_WEB_SERVER_OTA |          (1) | (1)の場合は```http://(アドレス)/update```でOTA機能が使用可能。<br>OTAを使わない場合などに切り離せる。 |
+
+#### SNTP設定
+
+| define                 |   デフォルト値 | 定義                        |
+| :--------------------- | -------------: | :-------------------------- |
+| SETTING_SNTP_ENABLE    |            (1) | (1)の場合はSNTPを有効にする |
+| SETTING_SNTP_SERVER    | "pool.ntp.org" | 接続するSNTPサーバ名        |
+| SETTING_SNTP_TIME_ZONE |          "UTC" | タイムゾーン                |
+
+#### WiFi接続設定
+
 | define                                        |            デフォルト値 | 定義                                                                                                                    |
 | :-------------------------------------------- | ----------------------: | :---------------------------------------------------------------------------------------------------------------------- |
-| SETTING_THREAD_CORE_WIFI                      |                     (1) | スレッドを動作させているCore番号                                                                                        |
-| SETTING_THREAD_PRIORITY                       |                     (5) | スレッドのプライオリティ(値が小さいほど優先度が低い)                                                                    |
-| SETTING_TASK_ASSIGNED_SIZE                    |              (4096 * 2) | スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。                                                  |
-| SETTING_STORAGE_SPI_FS                        |                     (1) | (1)の場合はSPIFFSに接続先情報を保持し、再起動時はそのファイルを参照する。                                               |
-| SETTING_STORAGE_OVERRIDE                      |                     (0) | (1)の場合は起動時にSPIFFSの値を無視してバイナリの情報で上書きする。                                                     |
-| CUSHY_WEB_SERVER_OTA                          |                     (1) | (1)の場合は```http://(アドレス)/update```でOTA機能が使用可能。<br>OTAを使わない場合などに切り離せる。                   |
+| SETTING_WIFI_STORAGE_SPI_FS                   |                     (1) | (1)の場合はSPIFFSに接続先情報を保持し、再起動時はそのファイルを参照する。                                               |
+| SETTING_WIFI_STORAGE_OVERRIDE                 |                     (0) | (1)の場合は起動時にSPIFFSの値を無視してバイナリの情報で接続先情報を上書きする。                                         |
 | SETTING_WIFI_PORT                             |                    (80) | WebServerのポート番号                                                                                                   |
 | SETTING_WIFI_SETTING_FILE                     |      "/config/wifi.ini" | 最後に接続したWiFiの接続情報                                                                                            |
 | SETTING_WIFI_SETTING_LIST_FILE                | "/config/wifi_%02d.ini" | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合に参照するWiFiリスト。indexは0～SETTING_WIFI_SETTING_LIST_MAXを参照する |
@@ -142,6 +155,23 @@ esp32-CushyWebServer
 | SETTING_WIFI_HOSTNAME                         |                      "" | 端末名を指定できる。空文字の場合はデフォルト値(esp32-固有番号)を使用する。<br>SPIFFSにファイルがない場合に動作する      |
 | SETTING_WIFI_SSID_DEFAULT                     |        "CushyWebServer" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する                                                                      |
 | SETTING_WIFI_PASS_DEFAULT                     |              "password" | パスワード<br>SPIFFSにファイルがない場合に動作する                                                                      |
+
+
+#### オリジナルFaviconのデータ設定
+
+
+| define                  | デフォルト値 | 定義                                                                                      |
+| :---------------------- | -----------: | :---------------------------------------------------------------------------------------- |
+| SETTING_DEFAULT_FAVICON |          (1) | (1)の場合は本プロジェクトのFaviconを使用する。容量が逼迫している場合は(0)にしてください。 |
+
+
+#### スレッド動作設定
+
+| define                            | デフォルト値 | 定義                                                                   |
+| :-------------------------------- | -----------: | :--------------------------------------------------------------------- |
+| SETTING_THREAD_CORE_WIFI          |          (1) | スレッドを動作させているCore番号                                       |
+| SETTING_THREAD_PRIORITY           |          (5) | スレッドのプライオリティ(値が小さいほど優先度が低い)                   |
+| SETTING_THREAD_TASK_ASSIGNED_SIZE |   (4096 * 2) | スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。 |
 
 
 ## Requirement

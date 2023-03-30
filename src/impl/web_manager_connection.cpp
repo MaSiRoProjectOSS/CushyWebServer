@@ -2,7 +2,7 @@
  * @file web_manager_connection.cpp
  * @author Akari (masiro.to.akari@gmail.com)
  * @brief
- * @version 0.23.1
+ * @version 0.0.1
  * @date 2023-03-12
  *
  * @copyright Copyright (c) 2023 / MaSiRo Project.
@@ -219,18 +219,23 @@ bool WebManagerConnection::reconnect(std::string ssid, std::string pass, bool ap
 
 bool WebManagerConnection::disconnect()
 {
-    bool result = true;
-    switch (this->_mode) {
-        case MODE_CONNECTION::MODE_CONNECTION_AP:
+    bool result      = true;
+    wifi_mode_t mode = WiFi.getMode();
+    switch (mode) {
+        case wifi_mode_t::WIFI_MODE_AP:
             result = WiFi.softAPdisconnect();
             break;
-        case MODE_CONNECTION::MODE_CONNECTION_STA:
+        case wifi_mode_t::WIFI_MODE_STA:
             if (true == WiFi.isConnected()) {
                 result = WiFi.disconnect();
             }
             break;
 
-        case MODE_CONNECTION::MODE_CONNECTION_NONE:
+        case wifi_mode_t::WIFI_MODE_APSTA:
+            result = WiFi.softAPdisconnect();
+            if (true == WiFi.isConnected()) {
+                result = WiFi.disconnect();
+            }
         default:
             break;
     }

@@ -2,7 +2,7 @@
  * @file CushyWebServer.cpp
  * @author Akari (masiro.to.akari@gmail.com)
  * @brief
- * @version 0.1
+ * @version 0.0.1
  * @date 2023-03-22
  *
  * @copyright Copyright (c) 2023 / MaSiRo Project.
@@ -28,6 +28,19 @@ volatile bool flag_thread_wifi_fin         = false;
 CushyWebServer::WEB_VIEWER_MODE _mode      = CushyWebServer::WEB_VIEWER_MODE::NOT_INITIALIZED;
 CushyWebServer::ModeFunction _callback_mode;
 CushyWebServer::HandleClientFunction _callback_handle_client;
+volatile time_t t0           = 0;
+volatile unsigned long t1    = 0;
+volatile bool flag_sntp_sync = false;
+
+void sntp_time_sync_notification(struct timeval *tv)
+{
+    if (SNTP_SYNC_STATUS_COMPLETED == sntp_get_sync_status()) {
+        t1 = millis();
+        t0 = time(NULL);
+        log_v("%s", "SNTP Sync completed");
+        flag_sntp_sync = true;
+    }
+}
 
 void call_handle_client()
 {
@@ -50,6 +63,9 @@ void thread_wifi(void *args)
 {
 #if SETTING_WIFI_MODE_AUTO_TRANSITIONS
     unsigned long err_begin = millis() + (1000 * SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT);
+#endif
+#if SETTING_SNTP_ENABLE
+    bool flag_sntp_sync = false;
 #endif
     flag_thread_wifi_fin = false;
     set_mode(CushyWebServer::WEB_VIEWER_MODE::NOT_INITIALIZED);
@@ -79,7 +95,13 @@ void thread_wifi(void *args)
                                  CushyWebServer::WEB_VIEWER_MODE::CONNECTED_AP :
                                  CushyWebServer::WEB_VIEWER_MODE::CONNECTED_STA);
                 log_d("MODE[%s] SSID[%s] IP[%s] ", ((true == ctrl_web.is_ap_mode()) ? "AP" : "STA"), ctrl_web.get_ssid(), ctrl_web.get_ip().toString());
-
+#if SETTING_SNTP_ENABLE
+                if (false == flag_sntp_sync) {
+                    flag_sntp_sync = true;
+                    configTzTime(SETTING_SNTP_TIME_ZONE, SETTING_SNTP_SERVER);
+                    sntp_set_time_sync_notification_cb(sntp_time_sync_notification);
+                }
+#endif
                 if (nullptr != ctrl_web.get_server()) {
                     ctrl_web.get_server()->begin();
                     while (false == flag_thread_wifi_fin) {
@@ -123,7 +145,7 @@ bool CushyWebServer::begin()
                     flag_thread_wifi_initialized = true;
                     xTaskCreatePinnedToCore(thread_wifi, //
                                             THREAD_NAME_WIFI,
-                                            SETTING_TASK_ASSIGNED_SIZE,
+                                            SETTING_THREAD_TASK_ASSIGNED_SIZE,
                                             NULL,
                                             SETTING_THREAD_PRIORITY,
                                             &this->_task_handle,
@@ -217,11 +239,19 @@ std::string CushyWebServer::template_json_result(bool result, std::string data, 
 }
 
 /////////////////////////////////////////
-// get  member valuable
+// get member valuable
 /////////////////////////////////////////
+time_t CushyWebServer::millis_to_time(unsigned long ms)
+{
+    return t0 + (long)((ms - t1) / 1000);
+}
+bool CushyWebServer::is_sntp_sync()
+{
+    return flag_sntp_sync;
+}
 UBaseType_t CushyWebServer::get_stack_size()
 {
-    return SETTING_TASK_ASSIGNED_SIZE;
+    return SETTING_THREAD_TASK_ASSIGNED_SIZE;
 }
 UBaseType_t CushyWebServer::get_stack_high_water_mark()
 {
