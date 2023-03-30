@@ -21,7 +21,8 @@
 			"KBPS",
 			"MISO",
 			"MOSI",
-			"nosniff"
+			"nosniff",
+			"platformio"
 		],
 		"doxdocgen.generic.useGitUserName": true,
 		"doxdocgen.generic.useGitUserEmail": true,

@@ -73,7 +73,8 @@
             "examples/*",
             "test/*",
             ".clang-format",
-            "Doxyfile"
+            "Doxyfile",
+            "platformio.ini"
         ]
     }
 }

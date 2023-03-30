@@ -2,7 +2,7 @@
  * @file web_manager_connection.hpp
  * @author Akari (masiro.to.akari@gmail.com)
  * @brief
- * @version 0.23.1
+ * @version 0.0.1
  * @date 2023-03-12
  *
  * @copyright Copyright (c) 2023 / MaSiRo Project.

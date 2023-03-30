@@ -1,8 +1,8 @@
 /**
- * @file main.cpp
+ * @file delete_file.cpp
  * @author Akari (masiro.to.akari@gmail.com)
  * @brief
- * @version 0.1
+ * @version 0.0.1
  * @date 2023-03-22
  *
  * @copyright Copyright (c) 2023 / MaSiRo Project.
@@ -154,23 +154,8 @@ void loop()
     (void)M5.update();
     if (true == M5.Btn.wasPressed()) {
         Serial.println("====================================");
-#if 0
-        deleteFile(SPIFFS, "/config/wifi.ini");
-        deleteFile(SPIFFS, "/config/wifi_00.ini");
-        deleteFile(SPIFFS, "/config/wifi_01.ini");
-        deleteFile(SPIFFS, "/config/wifi_02.ini");
-        deleteFile(SPIFFS, "/config/wifi_03.ini");
-        deleteFile(SPIFFS, "/config/wifi_04.ini");
-        deleteFile(SPIFFS, "/config/wifi_05.ini");
-        deleteFile(SPIFFS, "/config/wifi_06.ini");
-        deleteFile(SPIFFS, "/config/wifi_07.ini");
-        deleteFile(SPIFFS, "/config/wifi_08.ini");
-        deleteFile(SPIFFS, "/config/wifi_09.ini");
-        Serial.println("------------------------------------");
-#else
         deleteFile(SPIFFS, "/config/wifi.ini");
         Serial.println("------------------------------------");
-#endif
         listDir(SPIFFS, "/", 1);
         Serial.println("====================================");
         UBaseType_t stack_cushy = cushy.get_stack_high_water_mark();

@@ -2,7 +2,7 @@
  * @file web_manager_setting.cpp
  * @author Akari (masiro.to.akari@gmail.com)
  * @brief
- * @version 0.23.1
+ * @version 0.0.1
  * @date 2023-03-12
  *
  * @copyright Copyright (c) 2023 / MaSiRo Project.
@@ -12,7 +12,7 @@
 
 #include "../setting_cushy_web_server.hpp"
 
-#if SETTING_STORAGE_SPI_FS
+#if SETTING_WIFI_STORAGE_SPI_FS
 #include <SPIFFS.h>
 #endif
 
@@ -34,11 +34,11 @@ bool WebManagerSetting::_setup()
     this->_open_fs = false;
 
     bool result = false;
-#if SETTING_STORAGE_SPI_FS
+#if SETTING_WIFI_STORAGE_SPI_FS
     if (0 <= this->_error_count_spi) {
         // SPI FFS doing format if happened error
         if (true == SPIFFS.begin(false)) {
-#if SETTING_STORAGE_OVERRIDE
+#if SETTING_WIFI_STORAGE_OVERRIDE
             this->_save_information(this->_ssid, this->_pass, this->_mode_ap, this->_auto_default_setting);
 #endif
             if (true == SPIFFS.exists(SETTING_WIFI_SETTING_FILE)) {
@@ -71,7 +71,7 @@ bool WebManagerSetting::_setup()
 bool WebManagerSetting::save_information(std::string ssid, std::string pass, bool ap_mode, bool auto_default)
 {
     bool result = false;
-#if SETTING_STORAGE_SPI_FS
+#if SETTING_WIFI_STORAGE_SPI_FS
     if (true == this->_open_fs) {
         if (true == SPIFFS.begin()) {
             bool force_write = false;
@@ -109,7 +109,7 @@ bool WebManagerSetting::save_information(std::string ssid, std::string pass, boo
 bool WebManagerSetting::load_information()
 {
     bool result = false;
-#if SETTING_STORAGE_SPI_FS
+#if SETTING_WIFI_STORAGE_SPI_FS
     if (true == this->_open_fs) {
         if (SPIFFS.begin()) {
             if (true == SPIFFS.exists(SETTING_WIFI_SETTING_FILE)) {
@@ -132,7 +132,7 @@ bool WebManagerSetting::load_auto_setting(bool clear)
 {
     bool result = false;
     //////////////////
-#if SETTING_STORAGE_SPI_FS
+#if SETTING_WIFI_STORAGE_SPI_FS
     char buffer[255];
     if (SPIFFS.begin()) {
         result = this->_load_auto_setting(clear);
@@ -173,7 +173,7 @@ void WebManagerSetting::_set_information(std::string ssid, std::string pass, boo
 bool WebManagerSetting::_load_information(std::string file)
 {
     bool result = false;
-#if SETTING_STORAGE_SPI_FS
+#if SETTING_WIFI_STORAGE_SPI_FS
     log_d("load file: %s", file.c_str());
     if (true == SPIFFS.exists(file.c_str())) {
         File dataFile = SPIFFS.open(file.c_str(), FILE_READ);
@@ -231,7 +231,7 @@ bool WebManagerSetting::_load_information(std::string file)
 bool WebManagerSetting::_save_information(std::string ssid, std::string pass, bool ap_mode, bool auto_default)
 {
     bool result = false;
-#if SETTING_STORAGE_SPI_FS
+#if SETTING_WIFI_STORAGE_SPI_FS
     log_d("Save information");
     File dataFile = SPIFFS.open(SETTING_WIFI_SETTING_FILE, FILE_WRITE);
     dataFile.printf("%s\n", (true == ap_mode) ? "A" : "S");
@@ -257,7 +257,7 @@ bool WebManagerSetting::_load_auto_setting(bool clear)
         this->_explored_index = 0;
     }
     //////////////////
-#if SETTING_STORAGE_SPI_FS
+#if SETTING_WIFI_STORAGE_SPI_FS
     char buffer[255];
     for (int i = this->_explored_index; i < SETTING_WIFI_SETTING_LIST_MAX; i++) {
         sprintf(buffer, SETTING_WIFI_SETTING_LIST_FILE, i);
