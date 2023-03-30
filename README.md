@@ -6,6 +6,7 @@ ESP32に下記の機能を持たせるためのライブラリ
   * OTA(HTTP)
   * WiFi切り替えページ
   * HttpClientによるWebAPI
+  * SNTPによる時刻同期
 
 ## Project Status
 
