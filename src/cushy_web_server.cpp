@@ -243,7 +243,7 @@ std::string CushyWebServer::template_json_result(bool result, std::string data, 
 /////////////////////////////////////////
 time_t CushyWebServer::millis_to_time(unsigned long ms)
 {
-    return t0 + (long)((ms - t1) / 1000);
+    return t0 + (long)(((long long)ms - (long long)t1) / 1000);
 }
 bool CushyWebServer::is_sntp_sync()
 {
