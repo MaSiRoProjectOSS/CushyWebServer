@@ -15,8 +15,6 @@
 
 CustomCushyWebServer cushy;
 volatile bool flag = false;
-#include <iostream>
-#include <typeinfo>
 
 /**
  * @brief This is a callback from the WiFi connection management thread.

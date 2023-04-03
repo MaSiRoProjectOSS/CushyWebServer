@@ -1,6 +1,6 @@
 {
     "name": "CushyWebServer",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "description": "Equipped with Web server related functions for ESP32",
     "keywords": "M5Stack, M5Atom, OTA, WebServer",
     "homepage": "https://github.com/MaSiRoProjectOSS/CushyWebServer",
