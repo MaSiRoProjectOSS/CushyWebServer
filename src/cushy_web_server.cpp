@@ -94,7 +94,7 @@ void thread_wifi(void *args)
                 set_mode((true == ctrl_web.is_ap_mode()) ? //
                                  CushyWebServer::WEB_VIEWER_MODE::CONNECTED_AP :
                                  CushyWebServer::WEB_VIEWER_MODE::CONNECTED_STA);
-                log_d("MODE[%s] SSID[%s] IP[%s] ", ((true == ctrl_web.is_ap_mode()) ? "AP" : "STA"), ctrl_web.get_ssid(), ctrl_web.get_ip().toString());
+                log_i("MODE[%s] SSID[%s] IP[%s] ", ((true == ctrl_web.is_ap_mode()) ? "AP" : "STA"), ctrl_web.get_ssid(), ctrl_web.get_ip().toString());
 #if SETTING_SNTP_ENABLE
                 if (false == flag_sntp_sync) {
                     flag_sntp_sync = true;
@@ -243,7 +243,7 @@ std::string CushyWebServer::template_json_result(bool result, std::string data, 
 /////////////////////////////////////////
 time_t CushyWebServer::millis_to_time(unsigned long ms)
 {
-    return t0 + (long)((ms - t1) / 1000);
+    return t0 + (long)(((long long)ms - (long long)t1) / 1000);
 }
 bool CushyWebServer::is_sntp_sync()
 {
@@ -269,17 +269,54 @@ bool CushyWebServer::post_json(String url, String payload_json, String *reply)
             int httpCode = http.POST(payload_json);
 
             if (httpCode > 0) {
-                // HTTP header has been send and Server response header has been handled
-                log_d("[HTTP] POST... code: %d", httpCode);
-                // file found at server
                 if (HTTP_CODE_OK == httpCode) {
+                    log_d("[HTTP] POST... code: %d", httpCode);
                     *reply = http.getString();
                     result = true;
+                } else {
+                    log_w("[HTTP] POST... code: %d", httpCode);
                 }
             } else {
-                log_e("[HTTP] POST... failed, error: %s", http.errorToString(httpCode).c_str());
+                log_w("[HTTP] POST... failed, error: %s", http.errorToString(httpCode).c_str());
             }
             http.end();
+        } else {
+            log_w("[HTTP] connection refused");
+        }
+    }
+    return result;
+}
+
+bool CushyWebServer::post_json(String url, String payload_json, JsonDocument *reply)
+{
+    bool result = false;
+    HTTPClient http;
+    if ("" != url.c_str()) {
+        if (true == http.begin(url.c_str())) {
+            http.addHeader("Content-Type", "application/json");
+            int httpCode = http.POST(payload_json);
+
+            if (httpCode > 0) {
+                if (HTTP_CODE_OK == httpCode) {
+                    log_d("[HTTP] POST... code: %d", httpCode);
+                    DeserializationError error = deserializeJson(*reply, http.getString());
+                    switch (error.code()) {
+                        case DeserializationError::Ok:
+                            result = true;
+                            break;
+                        default:
+                            log_w("[HTTP] deserialize error : %s", error.c_str());
+                            break;
+                    }
+                } else {
+                    log_w("[HTTP] POST... code: %d", httpCode);
+                }
+            } else {
+                log_w("[HTTP] POST... failed, error: %s", http.errorToString(httpCode).c_str());
+            }
+            http.end();
+        } else {
+            log_w("[HTTP] connection refused");
         }
     }
     return result;

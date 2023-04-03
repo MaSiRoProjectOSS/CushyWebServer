@@ -33,7 +33,7 @@ void CustomCushyWebServer::handle_json_post(AsyncWebServerRequest *request)
         result = false;
     }
 
-    std::string json = this->template_json_result(result, buffer);
+    std::string json = this->template_json_result(result, buffer, "response data");
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json; charset=utf-8", json.c_str());
     response->addHeader("Location", String("http://") + this->get_ip().toString());

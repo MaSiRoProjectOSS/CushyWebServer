@@ -303,22 +303,21 @@ std::string WebCommunication::template_json_result(bool result, std::string data
     } else {
         json.append("\"result\":\"NG\",");
     }
-    json.append("\"status\":{\"num\": 200, \"messages\":");
-    if ("" == message) {
-        json.append("\"\"");
-    } else {
+    json.append("\"status\":{\"messages\":\"");
+    if ("" != message) {
         json.append(message);
     }
+    json.append("\"");
     json.append(", \"KEY\":");
     json.append(key);
-    json.append(", \"data\":");
+    json.append("}, \"data\":");
     if ("" == data) {
         json.append("\"\"");
     } else {
         json.append(data);
     }
 
-    json.append("}}");
+    json.append("}");
     return json;
 }
 
