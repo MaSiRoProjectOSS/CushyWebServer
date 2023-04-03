@@ -280,6 +280,8 @@ bool CushyWebServer::post_json(String url, String payload_json, String *reply)
                 log_e("[HTTP] POST... failed, error: %s", http.errorToString(httpCode).c_str());
             }
             http.end();
+        } else {
+            log_e("[HTTP] connection refused");
         }
     }
     return result;
