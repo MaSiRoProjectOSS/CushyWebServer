@@ -14,6 +14,59 @@
 #include <M5Atom.h>
 
 CustomCushyWebServer cushy;
+volatile bool flag = false;
+#include <iostream>
+#include <typeinfo>
+
+/**
+ * @brief This is a callback from the WiFi connection management thread.
+ * Since it is a separate thread, it does not affect the main loop processing.
+ */
+void handle_client()
+{
+    static String url = "http://localhost/post";
+    static int count  = 0;
+
+    if (true == flag) {
+        count++;
+        if (100 <= count) {
+            count = 0;
+        }
+        flag = false;
+        //-------------------------
+        // Json data
+        //-------------------------
+        char json[255];
+        sprintf(json, "{ \"j_id\": %d }", count);
+        //-------------------------
+        // Post data
+        //-------------------------
+        char post[255];
+        sprintf(post, "%s?id=%d", url.c_str(), count);
+        log_i("SEND[%s]", post);
+        ///////////////////////////////////////////////////////
+        String reply;
+        log_i(" * %s", "post_json(String)");
+        if (true == cushy.post_json(post, json, &reply)) {
+            log_i("%s", reply.c_str());
+        } else {
+            log_e("ERROR");
+        }
+        ///////////////////////////////////////////////////////
+        StaticJsonDocument<255> replay2;
+        log_i(" * %s", "post_json(JsonDocument)");
+        if (true == cushy.post_json(post, json, &replay2)) {
+            const char *replay_result = replay2["result"];
+            log_i("result : %s", replay_result);
+            const char *replay_status_messages = replay2["status"]["messages"];
+            log_i("status.messages : %s", replay_status_messages);
+            int replay_status_value = replay2["data"]["value"];
+            log_i("data.value : %d", replay_status_value);
+        } else {
+            log_e("ERROR");
+        }
+    }
+}
 
 void setup()
 {
@@ -27,38 +80,15 @@ void setup()
             delay(1000);
         }
     } while (false == result);
+    cushy.set_callback_handle_client(&handle_client);
     (void)M5.dis.fillpix(CRGB::Green);
 }
 
 void loop()
 {
-    static String url = "http://localhost/post";
-    static int count  = 0;
-
     (void)M5.update();
-
     if (true == M5.Btn.wasPressed()) {
-        count++;
-        if (100 <= count) {
-            count = 0;
-        }
-        String reply;
-        /////////////////////////
-        // Json data
-        /////////////////////////
-        char json[255];
-        sprintf(json, "{ \"j_id\": %d }", count++);
-        /////////////////////////
-        // Post data
-        /////////////////////////
-        char post[255];
-        sprintf(post, "%s?id=%d", url.c_str(), count);
-
-        if (true == cushy.post_json(post, json, &reply)) {
-            log_i("%s", reply.c_str());
-        } else {
-            log_e("ERROR");
-        }
+        flag = true;
     }
     delay(100);
 }

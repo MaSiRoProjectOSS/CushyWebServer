@@ -2,6 +2,11 @@
 
 ---
 
+## Ver.0.3.3
+
+* post_json() to get the argument in JsonDocument
+* Bug fix
+
 ## Ver.0.3.2
 
 * support SNTP

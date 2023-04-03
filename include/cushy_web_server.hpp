@@ -12,6 +12,7 @@
 #define CUSHY_WEB_SERVER_HPP
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
 #include <HTTPClient.h>
 #include <SPIFFS.h>
@@ -53,6 +54,7 @@ public:
 public:
     bool begin();
     bool post_json(String url, String payload, String *reply);
+    bool post_json(String url, String payload_json, JsonDocument *reply);
 
 public:
     void set_callback_mode(ModeFunction callback);

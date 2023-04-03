@@ -183,7 +183,7 @@ This system uses the following libraries.
 * [ayushsharma82/AsyncElegantOTA](https://github.com/ayushsharma82/AsyncElegantOTA)
 * [ottowinter/ESPAsyncWebServer-esphome](https://registry.platformio.org/libraries/ottowinter/ESPAsyncWebServer-esphome)
 * [ottowinter/ESPAsyncTCP-esphome](https://registry.platformio.org/libraries/ottowinter/ESPAsyncTCP-esphome)
-
+* [bblanchon/ArduinoJson](https://github.com/bblanchon/ArduinoJson)
 
 ## Changelog
 

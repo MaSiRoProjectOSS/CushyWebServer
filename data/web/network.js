@@ -72,8 +72,8 @@ if (!JS_Network) {
                     var elm = document.getElementById("network_list");
                     JS_Network.network_list = [];
                     elm.innerHTML = "";
-                    for (var i = 0; i < data.status.data.list.length; i++) {
-                        var item = data.status.data.list[i];
+                    for (var i = 0; i < data.data.list.length; i++) {
+                        var item = data.data.list[i];
                         JS_Network.network_list.push({ index: i, name: item.name, power: item.power });
                         let opt = document.createElement("option");
                         opt.value = i;
@@ -116,10 +116,10 @@ if (!JS_Network) {
                     let ret = false;
                     if (null != ok) {
                         if ("OK" == ok.result) {
-                            if (0 <= ok.status.data.ret) {
+                            if (0 <= ok.data.ret) {
                                 JS_Network.set_list(ok);
                                 ret = true;
-                            } else if (-2 == ok.status.data.ret) {
+                            } else if (-2 == ok.data.ret) {
                                 ret = true;
                                 console.error("Processing was interrupted.")
                             }
@@ -140,13 +140,13 @@ if (!JS_Network) {
             if (null != data) {
                 if ("OK" == data.result) {
                     var mode = "mode_sta";
-                    if (1 == data.status.data.ap_mode) {
+                    if (1 == data.data.ap_mode) {
                         mode = "mode_ap";
                     }
                     document.getElementById(mode).checked = true;
-                    JS_Network.default_name_ap = data.status.data.default;
-                    JS_Network.default_name_sta = data.status.data.name;
-                    document.getElementById("network_ssid").value = data.status.data.name;
+                    JS_Network.default_name_ap = data.data.default;
+                    JS_Network.default_name_sta = data.data.name;
+                    document.getElementById("network_ssid").value = data.data.name;
                     JS_Network.select_mode();
                     JS_Network.scan();
                     result = true;
