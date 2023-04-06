@@ -69,6 +69,8 @@ public:
     bool is_sntp_sync();
     UBaseType_t get_stack_size();
     UBaseType_t get_stack_high_water_mark();
+    IPAddress get_ip();
+    const char *get_ssid();
 
 protected:
     virtual bool setup_server(AsyncWebServer *server);
@@ -76,7 +78,6 @@ protected:
 
 protected:
     AsyncWebServer *get_server();
-    IPAddress get_ip();
 
     String ip_to_string(IPAddress ip);
     byte to_byte(String data);

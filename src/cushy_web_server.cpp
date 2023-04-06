@@ -173,6 +173,10 @@ IPAddress CushyWebServer::get_ip()
 {
     return ctrl_web.get_ip();
 }
+const char *CushyWebServer::get_ssid()
+{
+    return ctrl_web.get_ssid();
+}
 void CushyWebServer::handle_favicon_ico(AsyncWebServerRequest *request)
 {
     ctrl_web.handle_favicon_ico(request);

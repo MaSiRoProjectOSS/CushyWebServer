@@ -2,6 +2,13 @@
 
 ---
 
+## Ver.0.3.4
+
+* Bug fix
+* Add function
+  * CushyWebServer::get_ssid()
+  * CushyWebServer::get_ip()
+
 ## Ver.0.3.3
 
 * post_json() to get the argument in JsonDocument
