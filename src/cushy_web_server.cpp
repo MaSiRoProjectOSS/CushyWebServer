@@ -23,11 +23,13 @@ const int THREAD_SEEK_INTERVAL_WIFI  = (10 * 1000);
 const int THREAD_RETRY_INTERVAL_WIFI = (5 * 1000);
 const int THREAD_INTERVAL_WIFI       = (25);
 
+volatile bool flag_list_reconnect          = false;
 volatile bool flag_thread_wifi_initialized = false;
 volatile bool flag_thread_wifi_fin         = false;
 CushyWebServer::WEB_VIEWER_MODE _mode      = CushyWebServer::WEB_VIEWER_MODE::NOT_INITIALIZED;
 CushyWebServer::ModeFunction _callback_mode;
 CushyWebServer::HandleClientFunction _callback_handle_client;
+CushyWebServer::SyncCompletedFunction _callback_sync_completed;
 volatile time_t t0           = 0;
 volatile unsigned long t1    = 0;
 volatile bool flag_sntp_sync = false;
@@ -39,6 +41,9 @@ void sntp_time_sync_notification(struct timeval *tv)
         t0 = time(NULL);
         log_v("%s", "SNTP Sync completed");
         flag_sntp_sync = true;
+        if (nullptr != _callback_sync_completed) {
+            _callback_sync_completed();
+        }
     }
 }
 
@@ -109,6 +114,13 @@ void thread_wifi(void *args)
                         if (true != ctrl_web.is_connected()) {
                             break;
                         }
+                        if (true == flag_list_reconnect) {
+                            flag_list_reconnect = false;
+#if SETTING_WIFI_MODE_AUTO_TRANSITIONS
+                            ctrl_web.load_auto_setting(true);
+#endif
+                            break;
+                        }
                         vTaskDelay(THREAD_INTERVAL_WIFI);
                     }
                     ctrl_web.get_server()->end();
@@ -177,6 +189,10 @@ const char *CushyWebServer::get_ssid()
 {
     return ctrl_web.get_ssid();
 }
+void CushyWebServer::list_reconnect()
+{
+    flag_list_reconnect = true;
+}
 void CushyWebServer::handle_favicon_ico(AsyncWebServerRequest *request)
 {
     ctrl_web.handle_favicon_ico(request);
@@ -189,6 +205,10 @@ void CushyWebServer::set_callback_mode(ModeFunction callback)
 void CushyWebServer::set_callback_handle_client(HandleClientFunction callback)
 {
     _callback_handle_client = callback;
+}
+void CushyWebServer::set_callback_sync_completed(SyncCompletedFunction callback)
+{
+    _callback_sync_completed = callback;
 }
 CushyWebServer::WEB_VIEWER_MODE CushyWebServer::get_mode()
 {
