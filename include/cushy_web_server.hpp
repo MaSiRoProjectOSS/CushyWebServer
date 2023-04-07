@@ -45,6 +45,7 @@ public:
 #else
     typedef std::function<void(WEB_VIEWER_MODE)> ModeFunction;
     typedef std::function<void(void)> HandleClientFunction;
+    typedef std::function<void(void)> SyncCompletedFunction;
 #endif
 
 public:
@@ -59,6 +60,7 @@ public:
 public:
     void set_callback_mode(ModeFunction callback);
     void set_callback_handle_client(HandleClientFunction callback);
+    void set_callback_sync_completed(SyncCompletedFunction callback);
     WEB_VIEWER_MODE get_mode();
 
     /////////////////////////////////////////
@@ -69,6 +71,9 @@ public:
     bool is_sntp_sync();
     UBaseType_t get_stack_size();
     UBaseType_t get_stack_high_water_mark();
+    IPAddress get_ip();
+    const char *get_ssid();
+    void list_reconnect();
 
 protected:
     virtual bool setup_server(AsyncWebServer *server);
@@ -76,7 +81,6 @@ protected:
 
 protected:
     AsyncWebServer *get_server();
-    IPAddress get_ip();
 
     String ip_to_string(IPAddress ip);
     byte to_byte(String data);

@@ -2,6 +2,17 @@
 
 ---
 
+## Ver.0.3.4
+
+* Bug fix
+* Add function
+  * CushyWebServer::get_ssid()
+    * Get SSID information
+  * CushyWebServer::get_ip()
+    * Obtain IP address information
+  * CushyWebServer::list_reconnect()
+    * Disconnect the network and try to connect from the top of the file list
+
 ## Ver.0.3.3
 
 * post_json() to get the argument in JsonDocument
