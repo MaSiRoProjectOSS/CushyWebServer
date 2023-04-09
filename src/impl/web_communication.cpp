@@ -197,7 +197,7 @@ void WebCommunication::handle_network_get(AsyncWebServerRequest *request)
     data.append("},");
     data.append("\"STA\": {");
     data.append("\"default\": \"");
-    data.append(SETTING_WIFI_AP_DEFAULT_SSID);
+    data.append(SETTING_WIFI_STA_DEFAULT_SSID);
     data.append("\", \"name\": \"");
     data.append(this->_manager.get_ssid_sta());
     data.append("\", \"enable\":");
