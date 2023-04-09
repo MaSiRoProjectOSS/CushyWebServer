@@ -139,23 +139,36 @@ esp32-CushyWebServer
 | SETTING_SNTP_SERVER    | "pool.ntp.org" | 接続するSNTPサーバ名        |
 | SETTING_SNTP_TIME_ZONE |          "UTC" | タイムゾーン                |
 
+#### WiFiの保存設定接続設定
+
+| define                          | デフォルト値 | 定義                                                                      |
+| :------------------------------ | -----------: | :------------------------------------------------------------------------ |
+| SETTING_WIFI_STORAGE_SPI_FS     |          (1) | (1)の場合はSPIFFSに接続先情報を保持し、再起動時はそのファイルを参照する。 |
+| SETTING_WIFI_STORAGE_SPI_FORMAT |       (true) | (1)の場合はSPIFFSがフォーマットされてない場合はフォーマットする           |
+
 #### WiFi接続設定
 
-| define                                        |            デフォルト値 | 定義                                                                                                                    |
-| :-------------------------------------------- | ----------------------: | :---------------------------------------------------------------------------------------------------------------------- |
-| SETTING_WIFI_STORAGE_SPI_FS                   |                     (1) | (1)の場合はSPIFFSに接続先情報を保持し、再起動時はそのファイルを参照する。                                               |
-| SETTING_WIFI_STORAGE_OVERRIDE                 |                     (0) | (1)の場合は起動時にSPIFFSの値を無視してバイナリの情報で接続先情報を上書きする。                                         |
-| SETTING_WIFI_PORT                             |                    (80) | WebServerのポート番号                                                                                                   |
-| SETTING_WIFI_SETTING_FILE                     |      "/config/wifi.ini" | 最後に接続したWiFiの接続情報                                                                                            |
-| SETTING_WIFI_SETTING_LIST_FILE                | "/config/wifi_%02d.ini" | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合に参照するWiFiリスト。indexは0～SETTING_WIFI_SETTING_LIST_MAXを参照する |
-| SETTING_WIFI_SETTING_LIST_MAX                 |                    (10) | SETTING_WIFI_SETTING_LIST_FILEが許容するファイル数                                                                      |
-| SETTING_WIFI_MODE_AUTO_TRANSITIONS            |                  (true) | STAで動作中に指示されたWiFi機器が見つからない場合、自動でAPへ移行するフラグ                                             |
-| SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT |                    (60) | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合のWiFi機器の探索時間[単位:秒,5秒以上推奨]                               |
-| SETTING_WIFI_MODE_AP                          |                  (true) | (true)の場合はAPで起動する。(false)の場合はSTAで起動する。<br>SPIFFSにファイルがない場合に動作する                      |
-| SETTING_WIFI_HOSTNAME                         |                      "" | 端末名を指定できる。空文字の場合はデフォルト値(esp32-固有番号)を使用する。<br>SPIFFSにファイルがない場合に動作する      |
-| SETTING_WIFI_SSID_DEFAULT                     |        "CushyWebServer" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する                                                                      |
-| SETTING_WIFI_PASS_DEFAULT                     |              "password" | パスワード<br>SPIFFSにファイルがない場合に動作する                                                                      |
+| define                        |       デフォルト値 | 定義                                                                                                               |
+| :---------------------------- | -----------------: | :----------------------------------------------------------------------------------------------------------------- |
+| SETTING_WIFI_STORAGE_OVERRIDE |                (0) | (1)の場合は起動時にSPIFFSの値を無視してバイナリの情報で接続先情報を上書きする。                                    |
+| SETTING_WIFI_PORT             |               (80) | WebServerのポート番号                                                                                              |
+| SETTING_WIFI_SETTING_FILE     | "/config/wifi.ini" | 最後に接続したWiFiの接続情報                                                                                       |
+| SETTING_WIFI_MODE_AP          |             (true) | (true)の場合はAPで起動する。(false)の場合はSTAで起動する。<br>SPIFFSにファイルがない場合に動作する                 |
+| SETTING_WIFI_HOSTNAME         |                 "" | 端末名を指定できる。空文字の場合はデフォルト値(esp32-固有番号)を使用する。<br>SPIFFSにファイルがない場合に動作する |
+| SETTING_WIFI_SSID_DEFAULT     |   "CushyWebServer" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する                                                                 |
+| SETTING_WIFI_PASS_DEFAULT     |         "password" | パスワード<br>SPIFFSにファイルがない場合に動作する                                                                 |
 
+#### WiFi接続設定
+
+| define                                        |            デフォルト値 | 定義                                                                                                                        |
+| :-------------------------------------------- | ----------------------: | :-------------------------------------------------------------------------------------------------------------------------- |
+| SETTING_WIFI_SETTING_LIST_FILE                | "/config/wifi_%02d.ini" | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合に参照するWiFiリスト。indexは0～SETTING_WIFI_SETTING_LIST_MAXを参照する (*) |
+| SETTING_WIFI_SETTING_LIST_MAX                 |                     (5) | SETTING_WIFI_SETTING_LIST_FILEが許容するファイル数                                                                          |
+| SETTING_WIFI_MODE_AUTO_TRANSITIONS            |                  (true) | STAで動作中に指示されたWiFi機器が見つからない場合、自動でAPへ移行するフラグ                                                 |
+| SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT |                    (60) | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合のWiFi機器の探索時間[単位:秒,5秒以上推奨]                                   |
+| SETTING_WIFI_MODE_LOOP_FILE                   |                  (true) | 接続先がない場合は、ファイルリストの最初から探査する                                                                        |
+
+*) 例えば、SETTING_WIFI_SETTING_LIST_FILEが"/config/wifi_%02d.ini"の場合、/config/wifi_00.ini～/config/wifi_04.iniまでのファイルを参照する。
 
 #### オリジナルFaviconのデータ設定
 
