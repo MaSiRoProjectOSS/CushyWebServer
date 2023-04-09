@@ -37,7 +37,7 @@ bool WebManagerSetting::_setup()
 #if SETTING_WIFI_STORAGE_SPI_FS
     if (0 <= this->_error_count_spi) {
         // SPI FFS doing format if happened error
-        if (true == SPIFFS.begin(false)) {
+        if (true == SPIFFS.begin(SETTING_WIFI_STORAGE_SPI_FORMAT)) {
 #if SETTING_WIFI_STORAGE_OVERRIDE
             this->_save_information(this->_ssid, this->_pass, this->_mode_ap, this->_auto_default_setting);
 #endif
@@ -257,6 +257,7 @@ bool WebManagerSetting::_load_auto_setting(bool clear)
         this->_explored_index = 0;
     }
     //////////////////
+    int count_up = this->_explored_index;
 #if SETTING_WIFI_STORAGE_SPI_FS
     char buffer[255];
     for (int i = this->_explored_index; i < SETTING_WIFI_SETTING_LIST_MAX; i++) {
@@ -265,11 +266,18 @@ bool WebManagerSetting::_load_auto_setting(bool clear)
             result = this->_load_information(buffer);
             break;
         }
+        count_up++;
     }
 #endif
-    if (SETTING_WIFI_SETTING_LIST_MAX > this->_explored_index) {
-        this->_explored_index++;
+    if (SETTING_WIFI_SETTING_LIST_MAX >= this->_explored_index) {
+        this->_explored_index = count_up + 1;
     }
+    //////////////////
+#if SETTING_WIFI_MODE_LOOP_FILE
+    if (false == result) {
+        result = this->_load_auto_setting(true);
+    }
+#endif
     //////////////////
     if (false == result) {
         result = this->_default_information();

@@ -11,38 +11,33 @@
 #ifndef WEB_SETTING_HPP
 #define WEB_SETTING_HPP
 
-#ifndef SETTING_THREAD_CORE_WIFI
-#define SETTING_THREAD_CORE_WIFI (1)
-#endif
-#ifndef SETTING_THREAD_PRIORITY
-#define SETTING_THREAD_PRIORITY (5)
-#endif
-#ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE
-#define SETTING_THREAD_TASK_ASSIGNED_SIZE (4096 * 2)
-#endif
+//////////////////////////////////////////////////////////////
+// WEB settings
+//////////////////////////////////////////////////////////////
 
-#ifndef SETTING_WIFI_STORAGE_SPI_FS
-#define SETTING_WIFI_STORAGE_SPI_FS (1)
-#endif
-
-#ifndef SETTING_WIFI_STORAGE_OVERRIDE
-#define SETTING_WIFI_STORAGE_OVERRIDE (0)
-#endif
-
-#ifndef CUSHY_WEB_SERVER_OTA
-#define CUSHY_WEB_SERVER_OTA (1)
-#endif
 #ifndef SETTING_DEFAULT_FAVICON
 #define SETTING_DEFAULT_FAVICON (1)
 #endif
 
-#ifndef SETTING_WIFI_PORT
-/**
- * @brief Specify Wifi port
- *
- */
-#define SETTING_WIFI_PORT (80)
+//////////////////////////////////////////////////////////////
+// SNTP settings
+//////////////////////////////////////////////////////////////
+
+#ifndef SETTING_SNTP_ENABLE
+#define SETTING_SNTP_ENABLE (1)
 #endif
+
+#ifndef SETTING_SNTP_SERVER
+#define SETTING_SNTP_SERVER "pool.ntp.org"
+#endif
+
+#ifndef SETTING_SNTP_TIME_ZONE
+#define SETTING_SNTP_TIME_ZONE "UTC"
+#endif
+
+//////////////////////////////////////////////////////////////
+// WIFI FILE settings
+//////////////////////////////////////////////////////////////
 
 #ifndef SETTING_WIFI_SETTING_FILE
 /**
@@ -52,14 +47,9 @@
 #define SETTING_WIFI_SETTING_FILE "/config/wifi.ini"
 #endif
 
-#ifndef SETTING_WIFI_MODE_AUTO_TRANSITIONS
-/**
- * @brief Specify Wifi mode : the system transitions to AP mode
- * when If connection is not possible for a certain period of time in STA mode.
- *
- */
-#define SETTING_WIFI_MODE_AUTO_TRANSITIONS (true)
-#endif
+//////////////////////////////////////////////////////////////
+// Auto transitions settings
+//////////////////////////////////////////////////////////////
 
 #ifndef SETTING_WIFI_SETTING_LIST_FILE
 /**
@@ -74,7 +64,16 @@
  * @brief Number of WiFi configuration file list
  *
  */
-#define SETTING_WIFI_SETTING_LIST_MAX (10)
+#define SETTING_WIFI_SETTING_LIST_MAX (5)
+#endif
+
+#ifndef SETTING_WIFI_MODE_AUTO_TRANSITIONS
+/**
+ * @brief Specify Wifi mode : the system transitions to AP mode
+ * when If connection is not possible for a certain period of time in STA mode.
+ *
+ */
+#define SETTING_WIFI_MODE_AUTO_TRANSITIONS (true)
 #endif
 
 #ifndef SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT
@@ -85,20 +84,44 @@
 #define SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT (60)
 #endif
 
+#ifndef SETTING_WIFI_MODE_LOOP_FILE
+#define SETTING_WIFI_MODE_LOOP_FILE (true)
+#endif
+
+//////////////////////////////////////////////////////////////
+// Server settings
+//////////////////////////////////////////////////////////////
+
+#ifndef SETTING_DEFAULT_FAVICON
+#define SETTING_DEFAULT_FAVICON (1)
+#endif
+
+#ifndef SETTING_WIFI_PORT
+/**
+ * @brief Specify Wifi port
+ *
+ */
+#define SETTING_WIFI_PORT (80)
+#endif
+
+//////////////////////////////////////////////////////////////
+// OTA settings
+//////////////////////////////////////////////////////////////
+
+#ifndef CUSHY_WEB_SERVER_OTA
+#define CUSHY_WEB_SERVER_OTA (1)
+#endif
+
+//////////////////////////////////////////////////////////////
+// Default Wifi settings
+//////////////////////////////////////////////////////////////
+
 #ifndef SETTING_WIFI_MODE_AP
 /**
  * @brief Specify Wifi mode : Access point
  *
  */
 #define SETTING_WIFI_MODE_AP (true)
-#endif
-
-#ifndef SETTING_WIFI_HOSTNAME
-/**
- * @brief Specify Wifi HOSTNAME
- *
- */
-//#define SETTING_WIFI_HOSTNAME "ESP32_DEVICE"
 #endif
 
 #ifndef SETTING_WIFI_SSID_DEFAULT
@@ -117,19 +140,43 @@
 #define SETTING_WIFI_PASS_DEFAULT "password!"
 #endif
 
-#ifndef SETTING_DEFAULT_FAVICON
-#define SETTING_DEFAULT_FAVICON (1)
+#ifndef SETTING_WIFI_HOSTNAME
+/**
+ * @brief Specify Wifi HOSTNAME
+ *
+ */
+//#define SETTING_WIFI_HOSTNAME "ESP32_DEVICE"
 #endif
 
-#ifndef SETTING_SNTP_ENABLE
-#define SETTING_SNTP_ENABLE (1)
-#endif
-#ifndef SETTING_SNTP_SERVER
-#define SETTING_SNTP_SERVER "pool.ntp.org"
+//////////////////////////////////////////////////////////////
+// SPIFFS settings
+//////////////////////////////////////////////////////////////
+
+#ifndef SETTING_WIFI_STORAGE_SPI_FORMAT
+#define SETTING_WIFI_STORAGE_SPI_FORMAT (true)
 #endif
 
-#ifndef SETTING_SNTP_TIME_ZONE
-#define SETTING_SNTP_TIME_ZONE "UTC"
+#ifndef SETTING_WIFI_STORAGE_SPI_FS
+#define SETTING_WIFI_STORAGE_SPI_FS (1)
+#endif
+
+#ifndef SETTING_WIFI_STORAGE_OVERRIDE
+#define SETTING_WIFI_STORAGE_OVERRIDE (0)
+#endif
+
+//////////////////////////////////////////////////////////////
+// Thread settings
+//////////////////////////////////////////////////////////////
+
+#ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE (4096 * 2)
+#endif
+
+#ifndef SETTING_THREAD_CORE_WIFI
+#define SETTING_THREAD_CORE_WIFI (1)
+#endif
+#ifndef SETTING_THREAD_PRIORITY
+#define SETTING_THREAD_PRIORITY (5)
 #endif
 
 #endif
