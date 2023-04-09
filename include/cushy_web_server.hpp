@@ -37,6 +37,7 @@ public:
         RETRY,
         CONNECTED_STA,
         CONNECTED_AP,
+        CONNECTED_AP_AND_STA,
     };
 
 #if CALLBACK_STYLE_USING
@@ -71,9 +72,15 @@ public:
     bool is_sntp_sync();
     UBaseType_t get_stack_size();
     UBaseType_t get_stack_high_water_mark();
-    IPAddress get_ip();
-    const char *get_ssid();
-    void list_reconnect();
+
+    bool is_enable_ap();
+    IPAddress get_ip_address_ap();
+    const char *get_ssid_ap();
+
+    bool is_enable_sta();
+    IPAddress get_ip_address_sta();
+    const char *get_ssid_sta();
+    void list_reconnect_sta();
 
 protected:
     virtual bool setup_server(AsyncWebServer *server);

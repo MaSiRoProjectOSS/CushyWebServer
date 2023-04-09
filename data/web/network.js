@@ -139,14 +139,16 @@ if (!JS_Network) {
             var result = false;
             if (null != data) {
                 if ("OK" == data.result) {
-                    var mode = "mode_sta";
-                    if (1 == data.data.ap_mode) {
-                        mode = "mode_ap";
+                    JS_Network.default_name_ap = data.data.AP.name;
+                    JS_Network.default_name_sta = data.data.STA.name;
+                    var ssid_name = data.data.AP.name;
+                    var mode = "mode_ap";
+                    if (1 == data.data.STA.enable) {
+                        mode = "mode_sta";
+                        ssid_name = data.data.STA.name;
                     }
+                    document.getElementById("network_ssid").value = ssid_name;
                     document.getElementById(mode).checked = true;
-                    JS_Network.default_name_ap = data.data.default;
-                    JS_Network.default_name_sta = data.data.name;
-                    document.getElementById("network_ssid").value = data.data.name;
                     JS_Network.select_mode();
                     JS_Network.scan();
                     result = true;

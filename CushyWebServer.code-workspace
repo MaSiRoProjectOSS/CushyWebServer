@@ -9,9 +9,11 @@
 		"doxdocgen.file.copyrightTag": [
 			"@copyright Copyright (c) {year} / MaSiRo Project."
 		],
-		"doxdocgen.file.versionTag": "@version 0.3.5",
+		"doxdocgen.file.versionTag": "@version 0.4.0",
 		"cSpell.words": [
 			"APIP",
+			"APSSID",
+			"APSTA",
 			"CRGB",
 			"Doxyfile",
 			"endregion",
@@ -22,7 +24,10 @@
 			"MISO",
 			"MOSI",
 			"nosniff",
+			"onchange",
+			"onclick",
 			"platformio",
+			"PROGMEM",
 			"sntp"
 		],
 		"doxdocgen.generic.useGitUserName": true,

@@ -36,7 +36,6 @@ void CustomCushyWebServer::handle_json_post(AsyncWebServerRequest *request)
     std::string json = this->template_json_result(result, buffer);
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json; charset=utf-8", json.c_str());
-    response->addHeader("Location", String("http://") + this->get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -59,7 +58,6 @@ void CustomCushyWebServer::handle_html_root(AsyncWebServerRequest *request)
     html += "</body>";
     html += "</html>";
     AsyncWebServerResponse *response = request->beginResponse(200, "text/html; charset=utf-8", html.c_str());
-    response->addHeader("Location", String("http://") + this->get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);

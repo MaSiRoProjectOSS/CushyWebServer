@@ -12,7 +12,7 @@
 #define WEB_SETTING_HPP
 
 //////////////////////////////////////////////////////////////
-// WEB settings
+// WEB server settings
 //////////////////////////////////////////////////////////////
 
 #ifndef SETTING_DEFAULT_FAVICON
@@ -36,65 +36,16 @@
 #endif
 
 //////////////////////////////////////////////////////////////
-// WIFI FILE settings
+// OTA settings
 //////////////////////////////////////////////////////////////
 
-#ifndef SETTING_WIFI_SETTING_FILE
-/**
- * @brief Specify Wifi settings file path
- *
- */
-#define SETTING_WIFI_SETTING_FILE "/config/wifi.ini"
-#endif
-
-//////////////////////////////////////////////////////////////
-// Auto transitions settings
-//////////////////////////////////////////////////////////////
-
-#ifndef SETTING_WIFI_SETTING_LIST_FILE
-/**
- * @brief WiFi configuration file list pattern
- *
- */
-#define SETTING_WIFI_SETTING_LIST_FILE "/config/wifi_%02d.ini"
-#endif
-
-#ifndef SETTING_WIFI_SETTING_LIST_MAX
-/**
- * @brief Number of WiFi configuration file list
- *
- */
-#define SETTING_WIFI_SETTING_LIST_MAX (5)
-#endif
-
-#ifndef SETTING_WIFI_MODE_AUTO_TRANSITIONS
-/**
- * @brief Specify Wifi mode : the system transitions to AP mode
- * when If connection is not possible for a certain period of time in STA mode.
- *
- */
-#define SETTING_WIFI_MODE_AUTO_TRANSITIONS (true)
-#endif
-
-#ifndef SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT
-/**
- * @brief Time to wait for transition [unit:s]
- *
- */
-#define SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT (60)
-#endif
-
-#ifndef SETTING_WIFI_MODE_LOOP_FILE
-#define SETTING_WIFI_MODE_LOOP_FILE (true)
+#ifndef CUSHY_WEB_SERVER_OTA
+#define CUSHY_WEB_SERVER_OTA (1)
 #endif
 
 //////////////////////////////////////////////////////////////
 // Server settings
 //////////////////////////////////////////////////////////////
-
-#ifndef SETTING_DEFAULT_FAVICON
-#define SETTING_DEFAULT_FAVICON (1)
-#endif
 
 #ifndef SETTING_WIFI_PORT
 /**
@@ -104,48 +55,112 @@
 #define SETTING_WIFI_PORT (80)
 #endif
 
-//////////////////////////////////////////////////////////////
-// OTA settings
-//////////////////////////////////////////////////////////////
-
-#ifndef CUSHY_WEB_SERVER_OTA
-#define CUSHY_WEB_SERVER_OTA (1)
-#endif
-
-//////////////////////////////////////////////////////////////
-// Default Wifi settings
-//////////////////////////////////////////////////////////////
-
-#ifndef SETTING_WIFI_MODE_AP
-/**
- * @brief Specify Wifi mode : Access point
- *
- */
-#define SETTING_WIFI_MODE_AP (true)
-#endif
-
-#ifndef SETTING_WIFI_SSID_DEFAULT
-/**
- * @brief Specify Wifi SSID
- *
- */
-#define SETTING_WIFI_SSID_DEFAULT "CushyWebServer"
-#endif
-
-#ifndef SETTING_WIFI_PASS_DEFAULT
-/**
- * @brief Specify Wifi SSID password
- *
- */
-#define SETTING_WIFI_PASS_DEFAULT "password!"
-#endif
-
 #ifndef SETTING_WIFI_HOSTNAME
 /**
  * @brief Specify Wifi HOSTNAME
  *
  */
-//#define SETTING_WIFI_HOSTNAME "ESP32_DEVICE"
+#define SETTING_WIFI_HOSTNAME ""
+#endif
+
+//////////////////////////////////////////////////////////////
+// WIFI settings : AP mode
+//////////////////////////////////////////////////////////////
+
+#ifndef SETTING_WIFI_AP_DEFAULT_ENABLE
+/**
+ * @brief Specify Wifi mode : AP mode
+ *
+ */
+#define SETTING_WIFI_AP_DEFAULT_ENABLE (false)
+#endif
+
+#ifndef SETTING_WIFI_AP_SETTING_FILE
+/**
+ * @brief Specify Wifi settings file path
+ *
+ */
+#define SETTING_WIFI_AP_SETTING_FILE "/config/wifi_ap.ini"
+#endif
+
+#ifndef SETTING_WIFI_AP_DEFAULT_SSID
+/**
+ * @brief Specify Wifi SSID : AP mode
+ *
+ */
+#define SETTING_WIFI_AP_DEFAULT_SSID "CushyWebServer"
+#endif
+
+#ifndef SETTING_WIFI_AP_DEFAULT_PASSWORD
+/**
+ * @brief Specify Wifi password : AP mode
+ *
+ */
+#define SETTING_WIFI_AP_DEFAULT_PASSWORD "password!"
+#endif
+
+//////////////////////////////////////////////////////////////
+// WIFI settings : STA mode
+//////////////////////////////////////////////////////////////
+
+#ifndef SETTING_WIFI_STA_DEFAULT_ENABLE
+/**
+ * @brief Specify Wifi mode : STA mode
+ *
+ */
+#define SETTING_WIFI_STA_DEFAULT_ENABLE (true)
+#endif
+
+#ifndef SETTING_WIFI_STA_CONNECTED_FILE
+/**
+ * @brief Specify Wifi settings file path
+ *
+ */
+#define SETTING_WIFI_STA_CONNECTED_FILE "/config/wifi_sta.ini"
+#endif
+
+#ifndef SETTING_WIFI_STA_FILE_PATTERN
+/**
+ * @brief WiFi configuration file list pattern
+ *
+ */
+#define SETTING_WIFI_STA_FILE_PATTERN "/config/wifi_sta_%02d.ini"
+#endif
+
+#ifndef SETTING_WIFI_STA_FILE_MAX
+/**
+ * @brief Number of WiFi configuration file list
+ *
+ */
+#define SETTING_WIFI_STA_FILE_MAX (5)
+#endif
+
+#ifndef SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT
+/**
+ * @brief Time to wait for transition [unit:s]
+ *
+ */
+#define SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT (60)
+#endif
+
+#ifndef SETTING_WIFI_STA_LOOP_FILE
+#define SETTING_WIFI_STA_LOOP_FILE (true)
+#endif
+
+#ifndef SETTING_WIFI_STA_DEFAULT_SSID
+/**
+ * @brief Specify Wifi SSID : STA mode
+ *
+ */
+#define SETTING_WIFI_STA_DEFAULT_SSID "CushyWebServer"
+#endif
+
+#ifndef SETTING_WIFI_STA_DEFAULT_PASSWORD
+/**
+ * @brief Specify Wifi password : STA mode
+ *
+ */
+#define SETTING_WIFI_STA_DEFAULT_PASSWORD "password!"
 #endif
 
 //////////////////////////////////////////////////////////////

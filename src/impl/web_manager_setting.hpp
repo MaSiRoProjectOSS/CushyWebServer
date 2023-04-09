@@ -11,6 +11,8 @@
 #ifndef MASIRO_PROJECT_WEB_MANAGER_SETTING_HPP
 #define MASIRO_PROJECT_WEB_MANAGER_SETTING_HPP
 
+#include "../setting_cushy_web_server.hpp"
+
 #include <Arduino.h>
 
 namespace MaSiRoProject
@@ -22,34 +24,48 @@ public:
     WebManagerSetting();
 
 public:
-    bool save_information(std::string ssid, std::string pass, bool ap_mode, bool auto_default);
-    bool load_information();
+    bool save_information_ap(std::string ssid, std::string pass, std::string hostname);
+    bool load_information_ap();
+
+public:
+    bool save_information_sta(std::string ssid, std::string pass, std::string hostname);
     void set_hostname(std::string hostname);
-    bool load_auto_setting(bool clear);
+    bool load_sta_settings(bool clear);
 
 protected:
     bool _setup();
 
 protected:
     std::string _hostname;
-    bool _auto_default_setting;
-    bool _mode_ap;
-    std::string _ssid;
-    std::string _pass;
-    int _explored_index = 0;
+    std::string _sta_ssid;
+    std::string _sta_pass;
+    std::string _ap_ssid;
+    std::string _ap_pass;
+    int _sta_explored_index = 0;
 
-    void set_information(std::string ssid, std::string pass, bool ap_mode, bool auto_default);
+    void set_information_ap(std::string ssid, std::string pass, std::string hostname);
+    void set_information_sta(std::string ssid, std::string pass, std::string hostname);
 
 private:
-    bool _default_information();
-    void _set_information(std::string ssid, std::string pass, bool ap_mode, bool auto_default);
-    bool _load_information(std::string file);
-    bool _save_information(std::string ssid, std::string pass, bool ap_mode, bool auto_default);
-    bool _load_auto_setting(bool clear);
+    bool _default_information_ap();
+    void _set_information_ap(std::string ssid, std::string pass, std::string hostname);
+
+private:
+    bool _default_information_sta();
+    void _set_information_sta(std::string ssid, std::string pass, std::string hostname);
+    bool _load_sta_setting(bool clear);
+
+private:
+    bool _load_information(std::string file, bool mode_ap);
+    bool _save_information(std::string file, std::string ssid, std::string pass, std::string hostname);
 
 private:
     bool _open_fs;
     int _error_count_spi = 3;
+
+protected:
+    bool _connect_ap  = SETTING_WIFI_AP_DEFAULT_ENABLE;
+    bool _connect_sta = SETTING_WIFI_STA_DEFAULT_ENABLE;
 };
 
 } // namespace Web

@@ -18,7 +18,6 @@ public:
     {
         std::string html                 = "Hello !";
         AsyncWebServerResponse *response = request->beginResponse(200, "text/plain; charset=utf-8", html.c_str());
-        response->addHeader("Location", String("http://") + this->get_ip().toString());
         response->addHeader("Cache-Control", "no-cache");
         response->addHeader("X-Content-Type-Options", "nosniff");
         request->send(response);

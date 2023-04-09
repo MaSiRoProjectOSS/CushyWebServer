@@ -46,7 +46,6 @@ void WebCommunication::handle_not_found(AsyncWebServerRequest *request)
 {
     std::string html                 = "404 Not Found!";
     AsyncWebServerResponse *response = request->beginResponse(200, "text/plain; charset=utf-8", html.c_str());
-    response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -55,7 +54,6 @@ void WebCommunication::handle_favicon_ico(AsyncWebServerRequest *request)
 {
 #if SETTING_DEFAULT_FAVICON
     AsyncWebServerResponse *response = request->beginResponse_P(200, "image/x-icon", WEB_IMAGE_FAVICON_ICO, WEB_IMAGE_FAVICON_ICO_LEN);
-    response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -66,7 +64,6 @@ void WebCommunication::handle_favicon_ico(AsyncWebServerRequest *request)
 void WebCommunication::handle_js_ajax(AsyncWebServerRequest *request)
 {
     AsyncWebServerResponse *response = request->beginResponse_P(200, "text/javascript; charset=utf-8", WEB_PAGE_AJAX_JS);
-    response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -75,7 +72,6 @@ void WebCommunication::handle_js_ajax(AsyncWebServerRequest *request)
 void WebCommunication::handle_css_general(AsyncWebServerRequest *request)
 {
     AsyncWebServerResponse *response = request->beginResponse_P(200, "text/css; charset=utf-8", WEB_PAGE_GENERAL_CSS);
-    response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -84,7 +80,6 @@ void WebCommunication::handle_css_general(AsyncWebServerRequest *request)
 void WebCommunication::handle_network_css(AsyncWebServerRequest *request)
 {
     AsyncWebServerResponse *response = request->beginResponse_P(200, "text/css; charset=utf-8", WEB_PAGE_NETWORK_CSS);
-    response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -92,7 +87,6 @@ void WebCommunication::handle_network_css(AsyncWebServerRequest *request)
 void WebCommunication::handle_network_js(AsyncWebServerRequest *request)
 {
     AsyncWebServerResponse *response = request->beginResponse_P(200, "text/javascript; charset=utf-8", WEB_PAGE_NETWORK_JS);
-    response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -101,7 +95,6 @@ void WebCommunication::handle_network_js(AsyncWebServerRequest *request)
 void WebCommunication::handle_network_html(AsyncWebServerRequest *request)
 {
     AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html; charset=utf-8", WEB_PAGE_NETWORK_HTML);
-    response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_SHORT_TIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -109,11 +102,10 @@ void WebCommunication::handle_network_html(AsyncWebServerRequest *request)
 
 void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
 {
-    bool result    = false;
-    String ssid    = "";
-    String pass    = "";
-    bool mode_ap   = this->_manager.is_ap_mode();
-    bool auto_tran = SETTING_WIFI_MODE_AUTO_TRANSITIONS;
+    bool result  = false;
+    String ssid  = "";
+    String pass  = "";
+    bool mode_ap = this->_manager.is_enable_ap();
 
     try {
         if (request->args() > 0) {
@@ -129,11 +121,6 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
                         result = true;
                     }
                 }
-                if (request->hasArg("auto")) {
-                    value     = this->to_int(request->arg("auto"));
-                    auto_tran = (1 == value) ? true : false;
-                    result    = true;
-                }
             }
         }
     } catch (...) {
@@ -142,13 +129,16 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
     std::string json = this->template_json_result(result);
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json; charset=utf-8", json.c_str());
-    response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
 
     if (true == result) {
-        this->_flag_save = this->_manager.reconnect(ssid.c_str(), pass.c_str(), mode_ap, auto_tran, this->_flag_save);
+        if (true == mode_ap) {
+            this->_flag_save = this->_manager.reconnect_ap(ssid.c_str(), pass.c_str(), this->_flag_save);
+        } else {
+            this->_flag_save = this->_manager.reconnect_sta(ssid.c_str(), pass.c_str(), this->_flag_save);
+        }
     }
 }
 void WebCommunication::handle_network_make_list(AsyncWebServerRequest *request)
@@ -158,7 +148,6 @@ void WebCommunication::handle_network_make_list(AsyncWebServerRequest *request)
     std::string json = this->template_json_result(result);
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json; charset=utf-8", json.c_str());
-    response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -191,27 +180,34 @@ void WebCommunication::handle_network_get_list(AsyncWebServerRequest *request)
     std::string json = this->template_json_result(result, data);
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json; charset=utf-8", json.c_str());
-    response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
 }
 void WebCommunication::handle_network_get(AsyncWebServerRequest *request)
 {
-    bool ap_mode     = this->_manager.is_ap_mode();
     std::string data = "{";
+    data.append("\"AP\": {");
     data.append("\"default\": \"");
-    data.append(SETTING_WIFI_SSID_DEFAULT);
+    data.append(SETTING_WIFI_AP_DEFAULT_SSID);
     data.append("\", \"name\": \"");
-    data.append(this->_manager.get_ssid());
-    data.append("\", \"ap_mode\":");
-    data.append((true == ap_mode) ? "1" : "0");
+    data.append(this->_manager.get_ssid_ap());
+    data.append("\", \"enable\":");
+    data.append((true == this->_manager.is_enable_ap()) ? "1" : "0");
+    data.append("},");
+    data.append("\"STA\": {");
+    data.append("\"default\": \"");
+    data.append(SETTING_WIFI_AP_DEFAULT_SSID);
+    data.append("\", \"name\": \"");
+    data.append(this->_manager.get_ssid_sta());
+    data.append("\", \"enable\":");
+    data.append((true == this->_manager.is_enable_sta()) ? "1" : "0");
+    data.append("}");
     data.append("}");
 
     std::string json = this->template_json_result(true, data);
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json; charset=utf-8", json.c_str());
-    response->addHeader("Location", String("http://") + this->_manager.get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -245,40 +241,72 @@ bool WebCommunication::begin()
     return this->_manager.begin();
 }
 
-bool WebCommunication::reconnect()
+bool WebCommunication::reconnect_ap()
 {
-    return this->_manager.reconnect(this->_flag_save);
+    bool result = true;
+    if (true == this->_manager.is_enable_ap()) {
+        result = this->_manager.reconnect_ap(this->_flag_save);
+        if (true == result) {
+            log_i("MODE[A P] SSID[%s] IP[%s] ", this->get_ssid_ap(), this->get_ip_address_ap().toString());
+        }
+    }
+    return result;
 }
-bool WebCommunication::is_ap_mode()
+bool WebCommunication::reconnect_sta()
 {
-    return this->_manager.is_ap_mode();
+    bool result = true;
+    if (true == this->_manager.is_enable_sta()) {
+        result = this->_manager.reconnect_sta(this->_flag_save);
+        if (true == result) {
+            log_i("MODE[STA] SSID[%s] IP[%s] ", this->get_ssid_sta(), this->get_ip_address_sta().toString());
+        }
+    }
+    return result;
 }
+#if 0
 bool WebCommunication::load_default(bool save)
 {
     this->_flag_save = save;
     return this->_manager.reconnect_default(save);
 }
+#endif
 bool WebCommunication::is_connected(bool immediate)
 {
     return this->_manager.is_connected(immediate);
 }
-void WebCommunication::load_auto_setting(bool clear)
+void WebCommunication::load_sta_settings(bool clear)
 {
-    this->_manager.load_auto_setting(clear);
+    this->_manager.load_sta_settings(clear);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 AsyncWebServer *WebCommunication::get_server()
 {
     return ctrl_server;
 }
-IPAddress WebCommunication::get_ip()
+bool WebCommunication::is_enable_ap()
 {
-    return this->_manager.get_ip();
+    return this->_manager.is_enable_ap();
+}
+IPAddress WebCommunication::get_ip_address_ap()
+{
+    return this->_manager.get_ip_address_ap();
+}
+const char *WebCommunication::get_ssid_ap()
+{
+    return this->_manager.get_ssid_ap();
+}
+bool WebCommunication::is_enable_sta()
+{
+    return this->_manager.is_enable_sta();
+}
+IPAddress WebCommunication::get_ip_address_sta()
+{
+    return this->_manager.get_ip_address_sta();
 }
 
-const char *WebCommunication::get_ssid()
+const char *WebCommunication::get_ssid_sta()
 {
-    return this->_manager.get_ssid();
+    return this->_manager.get_ssid_sta();
 }
 int WebCommunication::to_int(String data)
 {

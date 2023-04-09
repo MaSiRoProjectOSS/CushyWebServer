@@ -34,7 +34,6 @@ void CustomCushyWebServer::handle_html_root(AsyncWebServerRequest *request)
     html += "</body>";
     html += "</html>";
     AsyncWebServerResponse *response = request->beginResponse(200, "text/html; charset=utf-8", html.c_str());
-    response->addHeader("Location", String("http://") + this->get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -49,7 +48,6 @@ bool CustomCushyWebServer::setup_server(AsyncWebServer *server)
 void CustomCushyWebServer::handle_favicon_ico(AsyncWebServerRequest *request)
 {
     AsyncWebServerResponse *response = request->beginResponse_P(200, "image/x-icon", WEB_IMAGE_FAVICON_ICO, WEB_IMAGE_FAVICON_ICO_LEN);
-    response->addHeader("Location", String("http://") + this->get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);

@@ -42,6 +42,10 @@ void notify_mode(CushyWebServer::WEB_VIEWER_MODE mode)
             log_i("CONNECTED_AP");
             (void)M5.dis.fillpix(CRGB::Blue);
             break;
+        case CushyWebServer::WEB_VIEWER_MODE::CONNECTED_AP_AND_STA:
+            log_i("CONNECTED_AP_AND_STA");
+            (void)M5.dis.fillpix(CRGB::Blue);
+            break;
         default:
             (void)M5.dis.fillpix(CRGB::Black);
             break;
@@ -68,7 +72,7 @@ void loop()
 {
     M5.update();
     if (true == M5.Btn.wasPressed()) {
-        cushy.list_reconnect();
+        cushy.list_reconnect_sta();
     }
     delay(25);
 }
