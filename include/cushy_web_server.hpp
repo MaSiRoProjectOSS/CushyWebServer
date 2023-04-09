@@ -41,8 +41,9 @@ public:
     };
 
 #if CALLBACK_STYLE_USING
-    using ModeFunction         = void (*)(WEB_VIEWER_MODE);
-    using HandleClientFunction = void (*)();
+    using ModeFunction          = void (*)(WEB_VIEWER_MODE);
+    using HandleClientFunction  = void (*)();
+    using SyncCompletedFunction = void (*)();
 #else
     typedef std::function<void(WEB_VIEWER_MODE)> ModeFunction;
     typedef std::function<void(void)> HandleClientFunction;
