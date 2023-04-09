@@ -31,13 +31,13 @@ public:
 
     public:
         /**
-     * @brief Sort by RSSI
-     *
-     * @param left
-     * @param right
-     * @return true
-     * @return false
-     */
+         * @brief Sort by RSSI
+         *
+         * @param left
+         * @param right
+         * @return true
+         * @return false
+         */
         static bool compar_rssi(const NetworkList &left, const NetworkList &right)
         {
             return left.rssi > right.rssi;
@@ -58,38 +58,42 @@ public:
 
 public:
     bool begin();
-    bool reconnect(bool save);
-    bool reconnect_default(bool save);
-    bool reconnect(std::string ssid, std::string pass, bool ap_mode, bool auto_default, bool save);
-    bool disconnect();
+    std::vector<NetworkList> get_wifi_list(int *length);
+    bool make_wifi_list();
+    bool is_connected(bool immediate = true);
+#if 0
+    //bool reconnect_default(bool save);
+#endif
 
 public:
     void config_address_ap(IPAddress ip, IPAddress subnet, IPAddress gateway = INADDR_NONE);
-    void config_address_sta(IPAddress ip, IPAddress subnet, IPAddress gateway = INADDR_NONE);
+    bool reconnect_ap(bool save);
+    bool reconnect_ap(std::string ssid, std::string pass, bool save);
+    bool disconnect_ap();
+    bool is_enable_ap();
+    IPAddress get_ip_address_ap();
+    const char *get_ssid_ap();
 
 public:
-    bool is_connected(bool immediate = true);
-    bool is_ap_mode();
-    const char *get_ssid();
-    IPAddress get_ip();
-    std::vector<NetworkList> get_wifi_list(int *length);
-    bool make_wifi_list();
+    void config_address_sta(IPAddress ip, IPAddress subnet, IPAddress gateway = INADDR_NONE);
+    bool reconnect_sta(bool save);
+    bool reconnect_sta(std::string ssid, std::string pass, bool save);
+    bool disconnect_sta();
+    bool is_enable_sta();
+    IPAddress get_ip_address_sta();
+    const char *get_ssid_sta();
+
+    void list_reconnect_sta();
 
 private:
     int _get_rssi_as_quality(int rssi);
-    bool _reconnect(std::string ssid, std::string pass, bool ap_mode, bool auto_default, bool save);
+    bool _reconnect_ap(std::string ssid, std::string pass, bool save);
+    bool _reconnect_sta(std::string ssid, std::string pass, bool save);
 
 private:
     bool _running = false;
     config_address _config_ap;
     config_address _config_sta;
-    enum MODE_CONNECTION
-    {
-        MODE_CONNECTION_NONE,
-        MODE_CONNECTION_AP,
-        MODE_CONNECTION_STA,
-    };
-    MODE_CONNECTION _mode = MODE_CONNECTION::MODE_CONNECTION_NONE;
 
     bool _flag_make_net_list = false;
 

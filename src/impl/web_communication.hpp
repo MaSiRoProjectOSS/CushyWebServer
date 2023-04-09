@@ -28,17 +28,25 @@ public:
 
 public:
     AsyncWebServer *get_server();
-    IPAddress get_ip();
-    const char *get_ssid();
     bool setup();
     bool begin();
-    bool reconnect();
+    bool reconnect_ap();
+    bool reconnect_sta();
 
-    bool is_ap_mode();
-    bool load_default(bool save);
+    // bool load_default(bool save);
     bool is_connected(bool immediate = true);
     std::string template_json_result(bool result, std::string data = "", std::string message = "");
-    void load_auto_setting(bool clear);
+
+public:
+    bool is_enable_ap();
+    IPAddress get_ip_address_ap();
+    const char *get_ssid_ap();
+
+    bool is_enable_sta();
+    IPAddress get_ip_address_sta();
+    const char *get_ssid_sta();
+    void list_reconnect_sta();
+    void load_sta_settings(bool clear);
 
 public:
     String file_readString(const char *path);

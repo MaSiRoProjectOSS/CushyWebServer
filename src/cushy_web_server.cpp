@@ -66,9 +66,7 @@ void set_mode(CushyWebServer::WEB_VIEWER_MODE mode)
 
 void thread_wifi(void *args)
 {
-#if SETTING_WIFI_MODE_AUTO_TRANSITIONS
-    unsigned long err_begin = millis() + (1000 * SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT);
-#endif
+    unsigned long err_begin = millis() + (1000 * SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT);
 #if SETTING_SNTP_ENABLE
     bool flag_sntp_sync = false;
 #endif
@@ -82,50 +80,65 @@ void thread_wifi(void *args)
         vTaskDelay(THREAD_SEEK_INTERVAL_WIFI);
     }
     set_mode(CushyWebServer::WEB_VIEWER_MODE::INITIALIZED);
+    if (true == ctrl_web.is_enable_ap()) {
+        while (false == ctrl_web.reconnect_ap()) {
+            if (true == flag_thread_wifi_fin) {
+                break;
+            }
+            vTaskDelay(THREAD_SEEK_INTERVAL_WIFI);
+        }
+        set_mode(CushyWebServer::WEB_VIEWER_MODE::CONNECTED_AP);
+    }
 
     while (false == flag_thread_wifi_fin) {
         try {
-            if (false == ctrl_web.reconnect()) {
-                set_mode(CushyWebServer::WEB_VIEWER_MODE::RETRY);
-#if SETTING_WIFI_MODE_AUTO_TRANSITIONS
-                if (true != ctrl_web.is_ap_mode()) {
-                    if (err_begin < millis()) {
-                        err_begin = millis() + (1000 * SETTING_WIFI_AUTO_TRANSITIONS_DEFAULT_TIMEOUT);
-                        ctrl_web.load_auto_setting(false);
-                    }
-                }
-#endif
+            if (false == ctrl_web.is_enable_sta()) {
+                // do nothing
             } else {
-                set_mode((true == ctrl_web.is_ap_mode()) ? //
-                                 CushyWebServer::WEB_VIEWER_MODE::CONNECTED_AP :
-                                 CushyWebServer::WEB_VIEWER_MODE::CONNECTED_STA);
-                log_i("MODE[%s] SSID[%s] IP[%s] ", ((true == ctrl_web.is_ap_mode()) ? "AP" : "STA"), ctrl_web.get_ssid(), ctrl_web.get_ip().toString());
-#if SETTING_SNTP_ENABLE
-                if (false == flag_sntp_sync) {
-                    flag_sntp_sync = true;
-                    configTzTime(SETTING_SNTP_TIME_ZONE, SETTING_SNTP_SERVER);
-                    sntp_set_time_sync_notification_cb(sntp_time_sync_notification);
-                }
-#endif
-                if (nullptr != ctrl_web.get_server()) {
-                    ctrl_web.get_server()->begin();
-                    while (false == flag_thread_wifi_fin) {
-                        call_handle_client();
-                        if (true != ctrl_web.is_connected()) {
-                            break;
-                        }
-                        if (true == flag_list_reconnect) {
-                            flag_list_reconnect = false;
-#if SETTING_WIFI_MODE_AUTO_TRANSITIONS
-                            ctrl_web.load_auto_setting(true);
-#endif
-                            break;
-                        }
-                        vTaskDelay(THREAD_INTERVAL_WIFI);
+                if (false == ctrl_web.reconnect_sta()) {
+                    set_mode(CushyWebServer::WEB_VIEWER_MODE::RETRY);
+                    if (err_begin < millis()) {
+                        err_begin = millis() + (1000 * SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT);
+                        ctrl_web.load_sta_settings(false);
                     }
-                    ctrl_web.get_server()->end();
+                } else {
+                    bool connected_ap  = ctrl_web.is_enable_ap();
+                    bool connected_sta = ctrl_web.is_enable_sta();
+                    if ((true == connected_ap) && (true == connected_sta)) {
+                        set_mode(CushyWebServer::WEB_VIEWER_MODE::CONNECTED_AP_AND_STA);
+                    } else if (true == connected_ap) {
+                        set_mode(CushyWebServer::WEB_VIEWER_MODE::CONNECTED_AP);
+                    } else if (true == connected_sta) {
+                        set_mode(CushyWebServer::WEB_VIEWER_MODE::CONNECTED_STA);
+                    } else {
+                        set_mode(CushyWebServer::WEB_VIEWER_MODE::DISCONNECTED);
+                    }
+
+#if SETTING_SNTP_ENABLE
+                    if (false == flag_sntp_sync) {
+                        flag_sntp_sync = true;
+                        configTzTime(SETTING_SNTP_TIME_ZONE, SETTING_SNTP_SERVER);
+                        sntp_set_time_sync_notification_cb(sntp_time_sync_notification);
+                    }
+#endif
+                    if (nullptr != ctrl_web.get_server()) {
+                        ctrl_web.get_server()->begin();
+                        while (false == flag_thread_wifi_fin) {
+                            call_handle_client();
+                            if (true != ctrl_web.is_connected()) {
+                                break;
+                            }
+                            if (true == flag_list_reconnect) {
+                                flag_list_reconnect = false;
+                                ctrl_web.load_sta_settings(true);
+                                break;
+                            }
+                            vTaskDelay(THREAD_INTERVAL_WIFI);
+                        }
+                        ctrl_web.get_server()->end();
+                    }
+                    set_mode(CushyWebServer::WEB_VIEWER_MODE::DISCONNECTED);
                 }
-                set_mode(CushyWebServer::WEB_VIEWER_MODE::DISCONNECTED);
             }
             vTaskDelay(THREAD_RETRY_INTERVAL_WIFI);
         } catch (...) {
@@ -181,18 +194,37 @@ AsyncWebServer *CushyWebServer::get_server()
 {
     return ctrl_web.get_server();
 }
-IPAddress CushyWebServer::get_ip()
-{
-    return ctrl_web.get_ip();
-}
-const char *CushyWebServer::get_ssid()
-{
-    return ctrl_web.get_ssid();
-}
-void CushyWebServer::list_reconnect()
+void CushyWebServer::list_reconnect_sta()
 {
     flag_list_reconnect = true;
 }
+
+bool CushyWebServer::is_enable_ap()
+{
+    return ctrl_web.is_enable_ap();
+}
+IPAddress CushyWebServer::get_ip_address_ap()
+{
+    return ctrl_web.get_ip_address_ap();
+}
+const char *CushyWebServer::get_ssid_ap()
+{
+    return ctrl_web.get_ssid_ap();
+}
+
+bool CushyWebServer::is_enable_sta()
+{
+    return ctrl_web.is_enable_sta();
+}
+IPAddress CushyWebServer::get_ip_address_sta()
+{
+    return ctrl_web.get_ip_address_sta();
+}
+const char *CushyWebServer::get_ssid_sta()
+{
+    return ctrl_web.get_ssid_sta();
+}
+
 void CushyWebServer::handle_favicon_ico(AsyncWebServerRequest *request)
 {
     ctrl_web.handle_favicon_ico(request);

@@ -32,7 +32,6 @@ void CustomCushyWebServer::handle_html_root(AsyncWebServerRequest *request)
     html += "</body>";
     html += "</html>";
     AsyncWebServerResponse *response = request->beginResponse(200, "text/html; charset=utf-8", html.c_str());
-    response->addHeader("Location", String("http://") + this->get_ip().toString());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);

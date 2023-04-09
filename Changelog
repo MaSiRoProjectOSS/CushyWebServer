@@ -2,6 +2,12 @@
 
 ---
 
+## Ver.0.4.0
+
+* Support dual mode on WiFi : AP mode and STA mode
+* Loop through STA file settings
+* SPIFFS format setting at startup
+
 ## Ver.0.3.4
 
 * Bug fix
