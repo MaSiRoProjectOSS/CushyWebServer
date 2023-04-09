@@ -30,8 +30,7 @@ CushyWebServer クラスを継承する事でESP32(M5Stack)で動作する WebSe
 
 接続先情報はSPIFFSに持っており以下の順番で接続を確認します。
 
-1. ```SETTING_WIFI_SETTING_FILE```で定義されたファイル
-1. ```SETTING_WIFI_SETTING_LIST_FILE```で設定されたルールに従った[接続情報ファイル](#接続情報ファイルについて)
+1. ```SETTING_WIFI_STA_FILE_PATTERN```で設定されたルールに従った[接続情報ファイル](#接続情報ファイルについて)
    * データのアップロードはPlatformIOの[Uploading files to Filesystem](https://docs.platformio.org/en/latest/platforms/espressif8266.html#uploading-files-to-filesystem)を参照してださい。
 1. [Defineによる設定](#Defineによる設定)で定義した```SETTING_WIFI_SSID_DEFAULT``` / ```SETTING_WIFI_PASS_DEFAULT``` / ```SETTING_WIFI_MODE_AP``` / ```SETTING_WIFI_HOSTNAME``` に従う
 
@@ -102,7 +101,7 @@ void loop()
 
 ### 接続情報ファイルについて
 
-設定情報は```SETTING_WIFI_SETTING_FILE```および```SETTING_WIFI_SETTING_LIST_FILE```で指定されたファイルに下記の書式で記載することで読み取り可能
+設定情報は```SETTING_WIFI_STA_FILE_PATTERN```で指定されたファイルに下記の書式で記載することで読み取り可能
 
 1. １行目：SETTING_WIFI_SSID_DEFAULT：SSID名
 1. ２行目：SETTING_WIFI_PASS_DEFAULT：パスワード
