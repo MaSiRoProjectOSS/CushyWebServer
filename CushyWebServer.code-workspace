@@ -9,7 +9,7 @@
 		"doxdocgen.file.copyrightTag": [
 			"@copyright Copyright (c) {year} / MaSiRo Project."
 		],
-		"doxdocgen.file.versionTag": "@version 0.4.0",
+		"doxdocgen.file.versionTag": "@version 0.4.1",
 		"cSpell.words": [
 			"APIP",
 			"APSSID",
