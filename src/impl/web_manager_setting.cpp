@@ -236,6 +236,8 @@ bool WebManagerSetting::_load_information(std::string file, bool mode_ap)
             // int totalBytes = dataFile.size();
             while (dataFile.available()) {
                 String word = dataFile.readStringUntil('\n');
+                word.replace("\r", "");
+                word.replace("\n", "");
                 switch (type) {
                     case 0:
                         if (0 < word.length()) {
