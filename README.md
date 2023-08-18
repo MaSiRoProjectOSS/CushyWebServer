@@ -132,7 +132,7 @@ esp32-CushyWebServer
 
 | define                 |   デフォルト値 | 定義                        |
 | :--------------------- | -------------: | :-------------------------- |
-| SETTING_SNTP_ENABLE    |            (1) | (1)の場合はSNTPを有効にする |
+| SETTING_SNTP_ENABLE    |            (0) | (1)の場合はSNTPを有効にする |
 | SETTING_SNTP_SERVER    | "pool.ntp.org" | 接続するSNTPサーバ名        |
 | SETTING_SNTP_TIME_ZONE |          "UTC" | タイムゾーン                |
 
@@ -153,7 +153,7 @@ esp32-CushyWebServer
 
 | define                           |          デフォルト値 | 定義                                               |
 | :------------------------------- | --------------------: | :------------------------------------------------- |
-| SETTING_WIFI_AP_DEFAULT_ENABLE   |               (false) | APモードで動作させる                               |
+| SETTING_WIFI_AP_DEFAULT_ENABLE   |                (true) | APモードで動作させる                               |
 | SETTING_WIFI_AP_SETTING_FILE     | "/config/wifi_ap.ini" | APモードのWiFiの接続情報の保存先                   |
 | SETTING_WIFI_AP_DEFAULT_SSID     |      "CushyWebServer" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する |
 | SETTING_WIFI_AP_DEFAULT_PASSWORD |           "password!" | パスワード<br>SPIFFSにファイルがない場合に動作する |
@@ -162,7 +162,7 @@ esp32-CushyWebServer
 
 | define                                    |                デフォルト値 | 定義                                                                                                                        |
 | :---------------------------------------- | --------------------------: | :-------------------------------------------------------------------------------------------------------------------------- |
-| SETTING_WIFI_STA_DEFAULT_ENABLE           |                      (true) | STAモードで動作させる                                                                                                       |
+| SETTING_WIFI_STA_DEFAULT_ENABLE           |                     (false) | STAモードで動作させる                                                                                                       |
 | SETTING_WIFI_STA_CONNECTED_FILE           |      "/config/wifi_sta.ini" | STAモードで最後に接続成功した接続情報の保存先                                                                               |
 | SETTING_WIFI_STA_FILE_PATTERN             | "/config/wifi_sta_%02d.ini" | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合に参照するWiFiリスト。indexは0～SETTING_WIFI_SETTING_LIST_MAXを参照する (*) |
 | SETTING_WIFI_STA_FILE_MAX                 |                         (5) | SETTING_WIFI_SETTING_LIST_FILEが許容するファイル数                                                                          |
