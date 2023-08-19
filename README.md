@@ -99,24 +99,6 @@ void loop()
 
 ## Usage
 
-### 接続情報ファイルについて
-
-設定情報は```SETTING_WIFI_STA_FILE_PATTERN```で指定されたファイルに下記の書式で記載することで読み取り可能
-
-1. １行目：SETTING_WIFI_SSID_DEFAULT：SSID名
-1. ２行目：SETTING_WIFI_PASS_DEFAULT：パスワード
-1. ３行目：SETTING_WIFI_HOSTNAME：STAモードの時に使用するホスト名を記載する。空文字でもよし。
-* 改行は"\n"であること
-
-
-記載例
-
-```file
-CushyWebServer
-password
-esp32-CushyWebServer
-```
-
 ### Defineによる設定
 
 設定ファイル```src\setting_cushy_web_server.hpp```で定義したdefineは下記の通りです。
@@ -126,7 +108,6 @@ esp32-CushyWebServer
 | define                  | デフォルト値 | 定義                                                                                      |
 | :---------------------- | -----------: | :---------------------------------------------------------------------------------------- |
 | SETTING_DEFAULT_FAVICON |          (1) | (1)の場合は本プロジェクトのFaviconを使用する。容量が逼迫している場合は(0)にしてください。 |
-
 
 #### SNTP設定
 
@@ -171,8 +152,7 @@ esp32-CushyWebServer
 | SETTING_WIFI_STA_DEFAULT_SSID             |            "CushyWebServer" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する                                                                          |
 | SETTING_WIFI_STA_DEFAULT_PASSWORD         |                 "password!" | パスワード<br>SPIFFSにファイルがない場合に動作する                                                                          |
 
-*) 例えば、SETTING_WIFI_SETTING_LIST_FILEが"/config/wifi_%02d.ini"の場合、/config/wifi_00.ini～/config/wifi_04.iniまでのファイルを参照する。
-
+*) SETTING_WIFI_SETTING_LIST_FILEが"/config/wifi_%02d.ini"の場合、/config/wifi_00.ini～/config/wifi_04.iniまでのファイルを参照する。
 
 #### WiFiの保存設定接続設定
 
@@ -201,6 +181,8 @@ This system uses the following libraries.
 * [ottowinter/ESPAsyncWebServer-esphome](https://registry.platformio.org/libraries/ottowinter/ESPAsyncWebServer-esphome)
 * [ottowinter/ESPAsyncTCP-esphome](https://registry.platformio.org/libraries/ottowinter/ESPAsyncTCP-esphome)
 * [bblanchon/ArduinoJson](https://github.com/bblanchon/ArduinoJson)
+* [suculent/AESLib](https://github.com/suculent/thinx-aes-lib)
+
 
 ## Changelog
 
@@ -208,7 +190,6 @@ It is listed [here](./Changelog).
 
 ## Notes
 
-* <<caution!!>> [接続情報ファイル](#接続情報ファイルについて)で設定されるファイルは暗号化されていません。
 * M5Atom Liteの場合はAPモードで動作するとデバイスが熱を持つ現象を確認しています。
 
 ## Support
@@ -218,6 +199,18 @@ It is listed [here](./Changelog).
 
 ## Roadmap
 
+* Network ページ
+  * AP/STAの有効無効が設定出来るようにする。
+    * 両方を閉じるとアクセス不可になるため、どちらかが有効になるようにする。
+      * AP
+      * STA
+      * AP and STA
+  * STAは複数の接続優先度を持てるため、それを選択可能にする。
+* URL設定
+  * 公開しているＵＲＬは固定値のため、設定で変更可能にする。（ビルド時のみ）
+
+
+<!--
 Update irregularly.
 
 <div style="display: flex">
@@ -225,19 +218,91 @@ Update irregularly.
     <span style="">Next Update&nbsp;:&nbsp; </span>
     <span style="">No plans.</span>
 </div>
+-->
 
 
 ## Contributing
 
-Pull requests are welcome. For major changes, please open an issue first
-to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
+We welcome pull requests from the community. If you're considering significant changes, we kindly ask you to begin by opening an issue to initiate a discussion about your proposed modifications.
+Additionally, when submitting a pull request, please ensure that any relevant tests are updated or added as needed.
 
 ## Authors and acknowledgment
 
-Show your appreciation to those who have contributed to the project.
+We offer heartfelt thanks to the open-source community for the invaluable gifts they've shared with us. The hardware, libraries, and tools they've provided have breathed life into our journey of development. Each line of code and innovation has woven a tapestry of brilliance, lighting our path. In this symphony of ingenuity, we find ourselves humbled and inspired. These offerings infuse our project with boundless possibilities. As we create, they guide us like stars, reminding us that collaboration can turn dreams into reality. With deep appreciation, we honor the open-source universe that nurtures us on this journey of discovery and growth.
 
 ## License
 
 [MIT License](./LICENSE)
+
+
+---
+
+<!--
+Apply styles when markdown
+-->
+
+<style>
+  body {
+    counter-reset: chapter;
+}
+
+h2 {
+    counter-reset: sub-chapter;
+}
+
+h3 {
+    counter-reset: section;
+}
+
+h4 {
+    counter-reset: indexlist;
+}
+
+h1::before {
+    counter-reset: chapter;
+}
+
+h2::before {
+    counter-increment: chapter;
+    content: counter(chapter) ". ";
+}
+
+h3::before {
+    counter-increment: sub-chapter;
+    content: counter(chapter) "-" counter(sub-chapter) ". ";
+}
+
+h4::before {
+    counter-increment: section;
+    content: counter(chapter) "-" counter(sub-chapter) "-" counter(section) ". ";
+}
+
+h5::before {
+    counter-increment: indexlist;
+    content: "(" counter(indexlist) ") ";
+}
+
+#sidebar-toc-btn {
+    bottom: unset;
+    top: 8px;
+}
+
+.markdown-preview.markdown-preview {
+    h2 {
+        border-bottom: 4px solid #eaecef;
+    }
+
+    h3 {
+        border-bottom: 1px solid #eaecef;
+    }
+}
+
+.md-sidebar-toc.md-sidebar-toc {
+    padding-top: 40px;
+}
+
+#sidebar-toc-btn {
+    bottom: unset;
+    top: 8px;
+}
+</style>

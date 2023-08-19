@@ -105,19 +105,22 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
     bool result  = false;
     String ssid  = "";
     String pass  = "";
-    bool mode_ap = this->_manager.is_enable_ap();
-
+    int num      = 0;
+    bool mode_ap = false;
+    std::string message;
+    int value = 0;
     try {
         if (request->args() > 0) {
             if (request->hasArg("ap")) {
-                int value = this->to_int(request->arg("ap"));
-                if (value == 1) {
-                    mode_ap = true;
-                }
-                if (request->hasArg("id")) {
+                value   = this->to_int(request->arg("ap"));
+                mode_ap = (value == 1) ? true : false;
+                if (true == request->hasArg("id")) {
                     ssid = request->arg("id");
-                    if (request->hasArg("pa")) {
-                        pass   = request->arg("pa");
+                    if (true == request->hasArg("pa")) {
+                        pass = request->arg("pa");
+                        if (true == request->hasArg("num")) {
+                            num = this->to_int(request->arg("num"));
+                        }
                         result = true;
                     }
                 }
@@ -126,7 +129,11 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
     } catch (...) {
         result = false;
     }
-    std::string json = this->template_json_result(result);
+    message.append(mode_ap ? "reconnect AP" : "reconnect STA");
+    message.append(" [");
+    message.append(ssid.c_str());
+    message.append("]");
+    std::string json = this->template_json_result(result, "", message);
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json; charset=utf-8", json.c_str());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
@@ -134,10 +141,11 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
     request->send(response);
 
     if (true == result) {
+        log_v("%s", message.c_str());
         if (true == mode_ap) {
             this->_flag_save = this->_manager.reconnect_ap(ssid.c_str(), pass.c_str(), this->_flag_save);
         } else {
-            this->_flag_save = this->_manager.reconnect_sta(ssid.c_str(), pass.c_str(), this->_flag_save);
+            this->_flag_save = this->_manager.reconnect_sta(ssid.c_str(), pass.c_str(), num, this->_flag_save);
         }
     }
 }

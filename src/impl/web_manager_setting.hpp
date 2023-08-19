@@ -28,7 +28,7 @@ public:
     bool load_information_ap();
 
 public:
-    bool save_information_sta(std::string ssid, std::string pass, std::string hostname);
+    bool save_information_sta(std::string ssid, std::string pass, std::string hostname, int num);
     void set_hostname(std::string hostname);
     bool load_sta_settings(bool clear);
 

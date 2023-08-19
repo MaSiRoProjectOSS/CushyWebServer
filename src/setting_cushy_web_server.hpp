@@ -181,17 +181,24 @@
 
 //////////////////////////////////////////////////////////////
 // Thread settings
+// (0(LOW) - 25(height)))
 //////////////////////////////////////////////////////////////
 
-#ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE
-#define SETTING_THREAD_TASK_ASSIGNED_SIZE (4096 * 2)
+#ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI (4096 * 2)
+#endif
+#ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER (4096 * 2)
 #endif
 
 #ifndef SETTING_THREAD_CORE_WIFI
 #define SETTING_THREAD_CORE_WIFI (1)
 #endif
-#ifndef SETTING_THREAD_PRIORITY
-#define SETTING_THREAD_PRIORITY (5)
+#ifndef SETTING_THREAD_PRIORITY_SERVER
+#define SETTING_THREAD_PRIORITY_SERVER (5)
+#endif
+#ifndef SETTING_THREAD_PRIORITY_WIFI
+#define SETTING_THREAD_PRIORITY_WIFI (2)
 #endif
 
 #endif
