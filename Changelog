@@ -4,6 +4,9 @@
 
 ## Ver.0.4.1
 
+* AP mode is enabled by default, STA is disabled by default.
+* Stored passwords are encrypted.
+
 ## Ver.0.4.0
 
 * Support dual mode on WiFi : AP mode and STA mode

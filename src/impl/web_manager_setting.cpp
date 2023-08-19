@@ -15,14 +15,56 @@
 #if SETTING_WIFI_STORAGE_SPI_FS
 #include <SPIFFS.h>
 #endif
+#include "AESLib.h"
 
 namespace MaSiRoProject
 {
 namespace Web
 {
 
+AESLib aesLib;
+
+#define INPUT_BUFFER_LIMIT (128 + 1)
+byte ia[N_BLOCK] = { 0x2F, 0x7E, 0x25, 0x66, 0x38, 0xB4, 0xA1, 0x47, 0x43, 0x90, 0xF1, 0x83, 0x54, 0xF1, 0x33, 0x8B };
+char ik[]        = { 0x0A };
+int ik_len       = 0;
+
+uint16_t en_text(char *msg, uint16_t msgLen, char iv[], int iv_len, byte key[N_BLOCK], byte &text)
+{
+    unsigned char ciphertext[2 * INPUT_BUFFER_LIMIT] = { 0 };
+    unsigned char base64[50]                         = { 0 };
+    base64_encode((char *)base64, iv, iv_len);
+    int length                      = aesLib.encrypt((byte *)msg, msgLen, ciphertext, key, N_BLOCK, (byte *)base64);
+    unsigned char base64encoded[50] = { 0 };
+    base64_encode((char *)base64encoded, (char *)ciphertext, length);
+    sprintf((char *)&text, "%s", base64encoded);
+    return length;
+}
+uint16_t de_text(byte msg[], uint16_t msgLen, char iv[], int iv_len, byte key[N_BLOCK], byte &text)
+{
+    unsigned char cleartext[INPUT_BUFFER_LIMIT] = { 0 };
+    unsigned char base64[50]                    = { 0 };
+    base64_encode((char *)base64, iv, iv_len);
+    unsigned char base64encoded[50] = { 0 };
+    int b_len                       = base64_decode((char *)base64encoded, (char *)msg, msgLen);
+    uint16_t length                 = aesLib.decrypt(base64encoded, b_len, cleartext, key, N_BLOCK, (byte *)base64);
+    cleartext[length]               = 0x00;
+    sprintf((char *)&text, "%s", (char *)cleartext);
+    return length;
+}
+
 WebManagerSetting::WebManagerSetting()
 {
+    uint8_t baseMac[6];
+    char baseMacChr[18] = { 0 };
+
+    esp_read_mac(baseMac, ESP_MAC_WIFI_STA);
+    sprintf(baseMacChr, "%02X:%02X:%02X:%02X:%02X:%02X", baseMac[0], baseMac[1], baseMac[2], baseMac[3], baseMac[4], baseMac[5]);
+    for (int i = 0; (i < 18) & (i < N_BLOCK); i++) {
+        ia[i] = (byte)baseMacChr[i];
+    }
+    ik_len = sprintf(ik, "sta%sap%s", SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_SSID);
+    aesLib.set_paddingmode((paddingMode)0);
     this->_hostname = "";
     (void)this->_default_information_ap();
     (void)this->_default_information_sta();
@@ -44,6 +86,9 @@ bool WebManagerSetting::_setup()
             this->_save_information(SETTING_WIFI_STA_CONNECTED_FILE, SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
 #endif
             if (true == this->_connect_ap) {
+                if (false == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
+                    this->_save_information(SETTING_WIFI_AP_SETTING_FILE, SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+                }
                 if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
                     // load setting information from file
                     result = this->_load_information(SETTING_WIFI_AP_SETTING_FILE, true);
@@ -73,6 +118,8 @@ bool WebManagerSetting::_setup()
         //result         = this->save_information(this->_ssid, this->_pass, this->_mode_ap, this->_auto_default_setting);
     }
 #endif
+    log_d("%s", ((true == result) ? "Setup was successful." : "Setup failed."));
+
     return result;
 }
 
@@ -210,7 +257,7 @@ void WebManagerSetting::_set_information_ap(std::string ssid, std::string pass, 
     this->_ap_pass  = (std::string)pass;
     this->_hostname = (std::string)hostname;
 
-    log_v("Set information : MODE[A P] SSID[%s]", this->_sta_ssid.c_str());
+    log_d("Set information : MODE[A P] SSID[%s]", this->_sta_ssid.c_str());
 }
 void WebManagerSetting::_set_information_sta(std::string ssid, std::string pass, std::string hostname)
 {
@@ -218,14 +265,17 @@ void WebManagerSetting::_set_information_sta(std::string ssid, std::string pass,
     this->_sta_pass = (std::string)pass;
     this->_hostname = (std::string)hostname;
 
-    log_v("Set information : MODE[STA] SSID[%s]", this->_ap_ssid.c_str());
+    log_d("Set information : MODE[STA] SSID[%s]", this->_ap_ssid.c_str());
 }
 
 bool WebManagerSetting::_load_information(std::string file, bool mode_ap)
 {
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
-    log_d("load file: %s", file.c_str());
+    unsigned char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
+    char buf[2 * INPUT_BUFFER_LIMIT]          = { 0 };
+    uint16_t len;
+    log_v("load file: %s", file.c_str());
     if (true == SPIFFS.exists(file.c_str())) {
         File dataFile = SPIFFS.open(file.c_str(), FILE_READ);
         if (!dataFile) {
@@ -238,22 +288,24 @@ bool WebManagerSetting::_load_information(std::string file, bool mode_ap)
                 String word = dataFile.readStringUntil('\n');
                 word.replace("\r", "");
                 word.replace("\n", "");
+                len = de_text((byte *)word.c_str(), word.length(), ik, ik_len, ia, *cip);
+                sprintf(buf, "%s", cip);
                 switch (type) {
                     case 0:
                         if (0 < word.length()) {
                             if (true == mode_ap) {
-                                this->_ap_ssid = word.c_str();
+                                this->_ap_ssid = buf;
                             } else {
-                                this->_sta_ssid = word.c_str();
+                                this->_sta_ssid = buf;
                             }
                         }
                         break;
                     case 1:
                         if (0 < word.length()) {
                             if (true == mode_ap) {
-                                this->_ap_pass = word.c_str();
+                                this->_ap_pass = buf;
                             } else {
-                                this->_sta_pass = word.c_str();
+                                this->_sta_pass = buf;
                             }
                         }
                         break;
@@ -262,7 +314,7 @@ bool WebManagerSetting::_load_information(std::string file, bool mode_ap)
                             if (true == mode_ap) {
                                 this->_hostname = "";
                             } else {
-                                this->_hostname = word.c_str();
+                                this->_hostname = buf;
                             }
                         } else {
                             this->_hostname = "";
@@ -284,7 +336,7 @@ bool WebManagerSetting::_load_information(std::string file, bool mode_ap)
     this->_default_information();
     result = true;
 #endif
-    log_v("Load information : MODE[%s] SSID[%s] HOSTNAME[%s]",
+    log_d("Load information : MODE[%s] SSID[%s] HOSTNAME[%s]",
           (true == mode_ap) ? "AP" : "STA",
           (true == mode_ap) ? this->_ap_ssid.c_str() : this->_sta_ssid.c_str(),
           (true == mode_ap) ? "" : this->_hostname.c_str());
@@ -296,10 +348,15 @@ bool WebManagerSetting::_save_information(std::string file, std::string ssid, st
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
     log_d("Save information");
+    unsigned char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
+    uint16_t len;
     File dataFile = SPIFFS.open(file.c_str(), FILE_WRITE);
-    dataFile.printf("%s\n", ssid.c_str());
-    dataFile.printf("%s\n", pass.c_str());
-    dataFile.printf("%s\n", hostname.c_str());
+    len           = en_text((char *)ssid.c_str(), ssid.length(), ik, ik_len, ia, *cip);
+    dataFile.printf("%s\n", (char *)cip);
+    len = en_text((char *)pass.c_str(), pass.length(), ik, ik_len, ia, *cip);
+    dataFile.printf("%s\n", (char *)cip);
+    len = en_text((char *)hostname.c_str(), hostname.length(), ik, ik_len, ia, *cip);
+    dataFile.printf("%s\n", (char *)cip);
     dataFile.close();
     result = true;
 #else
