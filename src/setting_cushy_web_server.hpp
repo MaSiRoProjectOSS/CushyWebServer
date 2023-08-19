@@ -24,7 +24,7 @@
 //////////////////////////////////////////////////////////////
 
 #ifndef SETTING_SNTP_ENABLE
-#define SETTING_SNTP_ENABLE (1)
+#define SETTING_SNTP_ENABLE (0)
 #endif
 
 #ifndef SETTING_SNTP_SERVER
@@ -72,7 +72,7 @@
  * @brief Specify Wifi mode : AP mode
  *
  */
-#define SETTING_WIFI_AP_DEFAULT_ENABLE (false)
+#define SETTING_WIFI_AP_DEFAULT_ENABLE (true)
 #endif
 
 #ifndef SETTING_WIFI_AP_SETTING_FILE
@@ -108,7 +108,7 @@
  * @brief Specify Wifi mode : STA mode
  *
  */
-#define SETTING_WIFI_STA_DEFAULT_ENABLE (true)
+#define SETTING_WIFI_STA_DEFAULT_ENABLE (false)
 #endif
 
 #ifndef SETTING_WIFI_STA_CONNECTED_FILE
