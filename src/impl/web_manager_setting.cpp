@@ -123,7 +123,7 @@ bool WebManagerSetting::_setup()
     return result;
 }
 
-bool WebManagerSetting::save_information_sta(std::string ssid, std::string pass, std::string hostname)
+bool WebManagerSetting::save_information_sta(std::string ssid, std::string pass, std::string hostname, int num)
 {
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
@@ -139,7 +139,14 @@ bool WebManagerSetting::save_information_sta(std::string ssid, std::string pass,
                 || (this->_sta_ssid != ssid) || (this->_sta_pass != pass)) {
                 force_write = false;
 
-                result = _save_information(SETTING_WIFI_STA_CONNECTED_FILE, ssid, pass, hostname);
+                result = this->_save_information(SETTING_WIFI_STA_CONNECTED_FILE, ssid, pass, hostname);
+                if (0 <= num) {
+                    if (num < SETTING_WIFI_STA_FILE_MAX) {
+                        char buffer[255];
+                        sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, num);
+                        this->_save_information(buffer, ssid, pass, hostname);
+                    }
+                }
             }
             SPIFFS.end();
             if (true == force_write) {

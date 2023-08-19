@@ -177,7 +177,7 @@ bool WebManagerConnection::reconnect_ap(bool save)
 }
 bool WebManagerConnection::reconnect_sta(bool save)
 {
-    return this->reconnect_sta(this->_sta_ssid, this->_sta_pass, save);
+    return this->reconnect_sta(this->_sta_ssid, this->_sta_pass, -1, save);
 }
 #if 0
 bool WebManagerConnection::reconnect_default(bool save)
@@ -204,7 +204,7 @@ bool WebManagerConnection::reconnect_ap(std::string ssid, std::string pass, bool
     }
     return result;
 }
-bool WebManagerConnection::reconnect_sta(std::string ssid, std::string pass, bool save)
+bool WebManagerConnection::reconnect_sta(std::string ssid, std::string pass, int num, bool save)
 {
     if ("" == ssid) {
         ssid = this->_sta_ssid;
@@ -212,10 +212,10 @@ bool WebManagerConnection::reconnect_sta(std::string ssid, std::string pass, boo
     if ("" == pass) {
         pass = this->_sta_pass;
     }
-    bool result = this->_reconnect_sta(ssid, pass, save);
+    bool result = this->_reconnect_sta(ssid, pass, save, num);
     if (false == result) {
         if ((this->_sta_ssid != ssid) || (this->_sta_pass != pass)) {
-            result = this->_reconnect_sta(this->_sta_ssid, this->_sta_pass, false);
+            result = this->_reconnect_sta(this->_sta_ssid, this->_sta_pass, num, false);
         }
     }
     if (true == result) {
@@ -336,7 +336,7 @@ bool WebManagerConnection::_reconnect_ap(std::string ssid, std::string pass, boo
     return result;
 }
 
-bool WebManagerConnection::_reconnect_sta(std::string ssid, std::string pass, bool save)
+bool WebManagerConnection::_reconnect_sta(std::string ssid, std::string pass, int num, bool save)
 {
     bool result = true;
     (void)this->disconnect_sta();
@@ -360,7 +360,7 @@ bool WebManagerConnection::_reconnect_sta(std::string ssid, std::string pass, bo
     }
     if (true == result) {
         if (true == save) {
-            (void)this->save_information_sta(ssid, pass, this->_hostname);
+            (void)this->save_information_sta(ssid, pass, this->_hostname, num);
         } else {
             (void)this->set_information_sta(ssid, pass, this->_hostname);
         }

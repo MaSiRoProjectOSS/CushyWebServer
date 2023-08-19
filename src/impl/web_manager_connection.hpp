@@ -77,7 +77,7 @@ public:
 public:
     void config_address_sta(IPAddress ip, IPAddress subnet, IPAddress gateway = INADDR_NONE);
     bool reconnect_sta(bool save);
-    bool reconnect_sta(std::string ssid, std::string pass, bool save);
+    bool reconnect_sta(std::string ssid, std::string pass, int num, bool save);
     bool disconnect_sta();
     bool is_enable_sta();
     IPAddress get_ip_address_sta();
@@ -88,7 +88,7 @@ public:
 private:
     int _get_rssi_as_quality(int rssi);
     bool _reconnect_ap(std::string ssid, std::string pass, bool save);
-    bool _reconnect_sta(std::string ssid, std::string pass, bool save);
+    bool _reconnect_sta(std::string ssid, std::string pass, int num, bool save);
 
 private:
     bool _running = false;

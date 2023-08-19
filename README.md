@@ -190,7 +190,6 @@ It is listed [here](./Changelog).
 
 ## Notes
 
-* <<caution!!>> [接続情報ファイル](#接続情報ファイルについて)で設定されるファイルは暗号化されていません。
 * M5Atom Liteの場合はAPモードで動作するとデバイスが熱を持つ現象を確認しています。
 
 ## Support
@@ -200,6 +199,18 @@ It is listed [here](./Changelog).
 
 ## Roadmap
 
+* Network ページ
+  * AP/STAの有効無効が設定出来るようにする。
+    * 両方を閉じるとアクセス不可になるため、どちらかが有効になるようにする。
+      * AP
+      * STA
+      * AP and STA
+  * STAは複数の接続優先度を持てるため、それを選択可能にする。
+* URL設定
+  * 公開しているＵＲＬは固定値のため、設定で変更可能にする。（ビルド時のみ）
+
+
+<!--
 Update irregularly.
 
 <div style="display: flex">
@@ -207,6 +218,7 @@ Update irregularly.
     <span style="">Next Update&nbsp;:&nbsp; </span>
     <span style="">No plans.</span>
 </div>
+-->
 
 
 ## Contributing
