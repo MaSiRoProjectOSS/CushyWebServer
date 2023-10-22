@@ -199,6 +199,8 @@ It is listed [here](./Changelog).
 
 ## Roadmap
 
+* ファイルサイズのスリム化
+  * Ver.4.0以降は、M5ATOMだと容量圧迫により書き込み不可能（OTAなど削りHuge_appのみ動作）
 * Network ページ
   * AP/STAの有効無効が設定出来るようにする。
     * 両方を閉じるとアクセス不可になるため、どちらかが有効になるようにする。
