@@ -22,7 +22,7 @@ CushyWebServer クラスを継承する事でESP32(M5Stack)で動作する WebSe
 
 関数```cushy.begin()```を実行することで、Core1にスレッドを立ててネットワーク接続まで実施する。
 
-[ayushsharma82/AsyncElegantOTA](https://github.com/ayushsharma82/AsyncElegantOTA)を使用しおりURL```http://(アドレス)/update```でバイナリの書き換えが行える。
+[ayushsharma82/ElegantOTA](https://github.com/ayushsharma82/ElegantOTA)を使用しおりURL```http://(アドレス)/update```でバイナリの書き換えが行える。
 
 ネットワーク切り替えページ```http://(アドレス)/network```を持っており、接続先をブラウザから切り替える事ができる。
 
@@ -49,6 +49,8 @@ lib_deps =
 	m5stack/M5Atom@^0.1.0
 	fastled/FastLED@^3.5.0
 	https://github.com/MaSiRoProjectOSS/CushyWebServer
+build_flags =
+	-D ELEGANTOTA_USE_ASYNC_WEBSERVER=1
 ```
 
 * main.cpp
@@ -177,7 +179,7 @@ This system uses the following libraries.
 
 * [m5stack/M5Atom](https://github.com/m5stack/M5Atom?utm_source=platformio&utm_medium=piohome)
 * [fastled/FastLED](https://github.com/Makuna/NeoPixelBus?utm_source=platformio&utm_medium=piohome)
-* [ayushsharma82/AsyncElegantOTA](https://github.com/ayushsharma82/AsyncElegantOTA)
+* [ayushsharma82/ElegantOTA](https://github.com/ayushsharma82/ElegantOTA)
 * [ottowinter/ESPAsyncWebServer-esphome](https://registry.platformio.org/libraries/ottowinter/ESPAsyncWebServer-esphome)
 * [ottowinter/ESPAsyncTCP-esphome](https://registry.platformio.org/libraries/ottowinter/ESPAsyncTCP-esphome)
 * [bblanchon/ArduinoJson](https://github.com/bblanchon/ArduinoJson)

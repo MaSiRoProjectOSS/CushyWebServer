@@ -17,10 +17,10 @@
     "frameworks": "arduino",
     "platforms": "espressif32",
     "dependencies": {
-        "ottowinter/ESPAsyncWebServer-esphome": "~3.0.0",
-        "ottowinter/ESPAsyncTCP-esphome": "~1.2.3",
-        "ayushsharma82/AsyncElegantOTA": "~2.2.7",
-        "bblanchon/ArduinoJson": "~6.21.1",
+        "ottowinter/ESPAsyncWebServer-esphome": "^3.0.0",
+        "ottowinter/ESPAsyncTCP-esphome": "^1.2.3",
+        "ayushsharma82/ElegantOTA": "^3.1.0",
+        "bblanchon/ArduinoJson": "^6.21.1",
         "suculent/AESLib": "^2.3.6"
     },
     "headers": "cushy_web_server.hpp",
@@ -68,6 +68,11 @@
             ]
         }
     ],
+    "build": {
+        "flags": [
+            "-D ELEGANTOTA_USE_ASYNC_WEBSERVER=1"
+        ]
+    },
     "export": {
         "exclude": [
             ".vscode/*",
