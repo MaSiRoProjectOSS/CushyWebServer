@@ -18,8 +18,8 @@
 #include <SPIFFS.h>
 #include <Update.h>
 #include <Wire.h>
+#include <esp_sntp.h>
 #include <functional>
-#include <sntp.h>
 #include <string.h>
 #include <sys/time.h>
 

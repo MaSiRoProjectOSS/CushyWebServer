@@ -6,6 +6,7 @@
 
 * AP mode is enabled by default, STA is disabled by default.
 * Stored passwords are encrypted.
+* AsyncElegantOTA has been deprecated, so move to ElegantOTA
 
 ## Ver.0.4.0
 
