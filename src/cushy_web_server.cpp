@@ -175,7 +175,7 @@ void thread_wifi(void *args)
                 set_mode(CushyWebServer::WEB_VIEWER_MODE::DISCONNECTED);
             }
             previous_mode = _mode;
-            if (false == ctrl_web.is_enable_sta()) {
+            if (false == connected_sta) {
                 // do nothing
             } else {
                 if (false == ctrl_web.reconnect_sta()) {

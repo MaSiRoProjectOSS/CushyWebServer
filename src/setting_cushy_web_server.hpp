@@ -11,6 +11,10 @@
 #ifndef WEB_SETTING_HPP
 #define WEB_SETTING_HPP
 
+namespace MaSiRoProject
+{
+namespace Web
+{
 //////////////////////////////////////////////////////////////
 // WEB server settings
 //////////////////////////////////////////////////////////////
@@ -201,4 +205,6 @@
 #define SETTING_THREAD_PRIORITY_WIFI (2)
 #endif
 
+} // namespace Web
+} // namespace MaSiRoProject
 #endif

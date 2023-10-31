@@ -2,6 +2,10 @@
 
 ---
 
+## Ver.0.4.2
+
+* Change encryption method.
+
 ## Ver.0.4.1
 
 * AP mode is enabled by default, STA is disabled by default.

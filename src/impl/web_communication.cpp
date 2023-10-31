@@ -18,6 +18,7 @@
 #ifndef ELEGANTOTA_USE_ASYNC_WEBSERVER
 #error "Please define ELEGANTOTA_USE_ASYNC_WEBSERVER. ref https://docs.elegantota.pro/async-mode/"
 #endif
+#define ELEGANTOTA_USE_ASYNC_WEBSERVER 1
 #include <ElegantOTA.h>
 #endif
 
@@ -274,13 +275,6 @@ bool WebCommunication::reconnect_sta()
     }
     return result;
 }
-#if 0
-bool WebCommunication::load_default(bool save)
-{
-    this->_flag_save = save;
-    return this->_manager.reconnect_default(save);
-}
-#endif
 bool WebCommunication::is_connected(bool immediate)
 {
     return this->_manager.is_connected(immediate);

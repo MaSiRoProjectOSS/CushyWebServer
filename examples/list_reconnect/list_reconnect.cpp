@@ -1,9 +1,8 @@
 /**
- * @file mode_notification.ino
- * @author Akari (masiro.to.akari@gmail.com)
+ * @file list_reconnect.cpp
  * @brief
- * @version 0.3.0
- * @date 2023-03-28
+ * @version 0.4.2
+ * @date 2023-10-30
  *
  * @copyright Copyright (c) 2023 / MaSiRo Project.
  *
@@ -68,10 +67,41 @@ void setup()
     cushy.set_callback_mode(&notify_mode);
 }
 
+void listDir(fs::FS &fs, const char *dirname, uint8_t levels)
+{
+    File root = fs.open(dirname);
+    if (root) {
+        File file = root.openNextFile();
+        while (file) {
+            if (file.isDirectory()) {
+                if (levels) {
+                    listDir(fs, file.name(), levels - 1);
+                }
+            } else {
+                log_i("\t[SIZE: %7d] %s", file.size(), file.path());
+            }
+            file = root.openNextFile();
+        }
+    }
+}
+
+void listDir(const char *dirname, uint8_t levels)
+{
+    try {
+        if (SPIFFS.begin(true)) {
+            listDir(SPIFFS, dirname, levels);
+            SPIFFS.end();
+        }
+    } catch (...) {
+    }
+}
+
 void loop()
 {
     M5.update();
     if (true == M5.Btn.wasPressed()) {
+        listDir("/config", 2);
+        log_i("list_reconnect_sta");
         cushy.list_reconnect_sta();
     }
     delay(25);

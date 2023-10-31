@@ -15,56 +15,124 @@
 #if SETTING_WIFI_STORAGE_SPI_FS
 #include <SPIFFS.h>
 #endif
-#include "AESLib.h"
+#include <aes/esp_aes.h>
+#include <base64.h>
 
 namespace MaSiRoProject
 {
 namespace Web
 {
 
-AESLib aesLib;
-
 #define INPUT_BUFFER_LIMIT (128 + 1)
-byte ia[N_BLOCK] = { 0x2F, 0x7E, 0x25, 0x66, 0x38, 0xB4, 0xA1, 0x47, 0x43, 0x90, 0xF1, 0x83, 0x54, 0xF1, 0x33, 0x8B };
-char ik[]        = { 0x0A };
-int ik_len       = 0;
+#define N_BLOCK            (32)
 
-uint16_t en_text(char *msg, uint16_t msgLen, char iv[], int iv_len, byte key[N_BLOCK], byte &text)
+const uint8_t ia[16]      = { 0x2F, 0x7E, 0x25, 0x66, 0x38, 0xB4, 0xA1, 0x47, 0x43, 0x90, 0xF1, 0x83, 0x54, 0xF1, 0x33, 0x8B };
+unsigned char ik_shift    = 0xA0;
+unsigned char ik[N_BLOCK] = { 0x0A };
+int ik_len                = 0;
+
+inline unsigned char lookup_b64(char c)
 {
-    unsigned char ciphertext[2 * INPUT_BUFFER_LIMIT] = { 0 };
-    unsigned char base64[50]                         = { 0 };
-    base64_encode((char *)base64, iv, iv_len);
-    int length                      = aesLib.encrypt((byte *)msg, msgLen, ciphertext, key, N_BLOCK, (byte *)base64);
-    unsigned char base64encoded[50] = { 0 };
-    base64_encode((char *)base64encoded, (char *)ciphertext, length);
-    sprintf((char *)&text, "%s", base64encoded);
-    return length;
+    if (c >= 'A' && c <= 'Z')
+        return c - 'A';
+    if (c >= 'a' && c <= 'z')
+        return c - 71;
+    if (c >= '0' && c <= '9')
+        return c + 4;
+    if (c == '+')
+        return 62;
+    if (c == '/')
+        return 63;
+    return -1;
 }
-uint16_t de_text(byte msg[], uint16_t msgLen, char iv[], int iv_len, byte key[N_BLOCK], byte &text)
+
+int decode_base64(uint8_t *output, const char *input, int inputLen)
 {
-    unsigned char cleartext[INPUT_BUFFER_LIMIT] = { 0 };
-    unsigned char base64[50]                    = { 0 };
-    base64_encode((char *)base64, iv, iv_len);
-    unsigned char base64encoded[50] = { 0 };
-    int b_len                       = base64_decode((char *)base64encoded, (char *)msg, msgLen);
-    uint16_t length                 = aesLib.decrypt(base64encoded, b_len, cleartext, key, N_BLOCK, (byte *)base64);
-    cleartext[length]               = 0x00;
-    sprintf((char *)&text, "%s", (char *)cleartext);
-    return length;
+    int i      = 0;
+    int j      = 0;
+    int decLen = 0;
+    unsigned char a4[4];
+
+    while (inputLen--) {
+        if (*input == '=') {
+            break;
+        }
+
+        a4[i++] = *(input++);
+        if (i == 4) {
+            for (i = 0; i < 4; i++) {
+                a4[i] = lookup_b64(a4[i]);
+            }
+            output[decLen++] = (a4[0] << 2) + ((a4[1] & 0x30) >> 4);
+            output[decLen++] = ((a4[1] & 0xf) << 4) + ((a4[2] & 0x3c) >> 2);
+            output[decLen++] = ((a4[2] & 0x3) << 6) + a4[3];
+
+            i = 0;
+        }
+    }
+    if (0 != i) {
+        for (j = i; j < 4; j++) {
+            a4[j] = '\0';
+        }
+        for (j = 0; j < 4; j++) {
+            a4[j] = lookup_b64(a4[j]);
+        }
+        output[decLen++] = (a4[0] << 2) + ((a4[1] & 0x30) >> 4);
+        output[decLen++] = ((a4[1] & 0xf) << 4) + ((a4[2] & 0x3c) >> 2);
+        output[decLen++] = ((a4[2] & 0x3) << 6) + a4[3];
+    }
+    output[decLen] = '\0';
+    return decLen;
+}
+
+int cbc_base64(const uint8_t key[32], const uint8_t iv[16], const char *plaintext, char *encrypted)
+{
+    char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
+    esp_aes_context context;
+    uint8_t iv_buff[16];
+    uint8_t *output;
+    memcpy(iv_buff, iv, sizeof(iv_buff));
+
+    esp_aes_init(&context);
+    esp_aes_setkey(&context, key, 256);
+    int len = ((strlen(plaintext) / 16) + 1) * 16;
+    esp_aes_crypt_cbc(&context, ESP_AES_ENCRYPT, len, iv_buff, (const unsigned char *)plaintext, (unsigned char *)cip);
+    esp_aes_free(&context);
+
+    String base = base64::encode((const uint8_t *)cip, len);
+    sprintf(encrypted, "%s", base.c_str());
+    return len;
+}
+
+int cbc_base64_to_text(const uint8_t key[32], const uint8_t iv[16], const char *encrypted, char *plaintext)
+{
+    esp_aes_context context;
+    uint8_t iv_buff[16];
+    uint8_t b_text[2 * INPUT_BUFFER_LIMIT];
+    memcpy(iv_buff, iv, sizeof(iv_buff));
+    decode_base64(b_text, encrypted, strlen(encrypted));
+
+    esp_aes_init(&context);
+    esp_aes_setkey(&context, key, 256);
+    int len = ((strlen(encrypted) / 16) + 1) * 16;
+    esp_aes_crypt_cbc(&context, ESP_AES_DECRYPT, len, iv_buff, b_text, (uint8_t *)plaintext);
+    esp_aes_free(&context);
+
+    return len;
 }
 
 WebManagerSetting::WebManagerSetting()
 {
-    uint8_t baseMac[6];
-    char baseMacChr[18] = { 0 };
+    uint8_t base_mac[6];
+    char base_mac_chr[18] = { 0 };
+    char buffer[255];
 
-    esp_read_mac(baseMac, ESP_MAC_WIFI_STA);
-    sprintf(baseMacChr, "%02X:%02X:%02X:%02X:%02X:%02X", baseMac[0], baseMac[1], baseMac[2], baseMac[3], baseMac[4], baseMac[5]);
-    for (int i = 0; (i < 18) & (i < N_BLOCK); i++) {
-        ia[i] = (byte)baseMacChr[i];
+    esp_read_mac(base_mac, ESP_MAC_WIFI_STA);
+    sprintf(base_mac_chr, "%02X%02X%02X%02X%02X%02X", base_mac[0], base_mac[1], base_mac[2], base_mac[3], base_mac[4], base_mac[5]);
+    ik_len = sprintf(buffer, "%s-sta%sap%s", base_mac_chr, SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_SSID);
+    for (int i = 0; (i < ik_len) & (i < N_BLOCK); i++) {
+        ik[i] = (unsigned char)((buffer[i] + ik_shift) & 0xFF);
     }
-    ik_len = sprintf(ik, "sta%sap%s", SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_SSID);
-    aesLib.set_paddingmode((paddingMode)0);
     this->_hostname = "";
     (void)this->_default_information_ap();
     (void)this->_default_information_sta();
@@ -264,7 +332,7 @@ void WebManagerSetting::_set_information_ap(std::string ssid, std::string pass, 
     this->_ap_pass  = (std::string)pass;
     this->_hostname = (std::string)hostname;
 
-    log_d("Set information : MODE[A P] SSID[%s]", this->_sta_ssid.c_str());
+    log_d("Set information : MODE[A P] SSID[%s]", this->_ap_ssid.c_str());
 }
 void WebManagerSetting::_set_information_sta(std::string ssid, std::string pass, std::string hostname)
 {
@@ -272,15 +340,15 @@ void WebManagerSetting::_set_information_sta(std::string ssid, std::string pass,
     this->_sta_pass = (std::string)pass;
     this->_hostname = (std::string)hostname;
 
-    log_d("Set information : MODE[STA] SSID[%s]", this->_ap_ssid.c_str());
+    log_d("Set information : MODE[STA] SSID[%s]", this->_sta_ssid.c_str());
 }
 
 bool WebManagerSetting::_load_information(std::string file, bool mode_ap)
 {
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
-    unsigned char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
-    char buf[2 * INPUT_BUFFER_LIMIT]          = { 0 };
+    char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
+    char buf[2 * INPUT_BUFFER_LIMIT] = { 0 };
     uint16_t len;
     log_v("load file: %s", file.c_str());
     if (true == SPIFFS.exists(file.c_str())) {
@@ -295,7 +363,7 @@ bool WebManagerSetting::_load_information(std::string file, bool mode_ap)
                 String word = dataFile.readStringUntil('\n');
                 word.replace("\r", "");
                 word.replace("\n", "");
-                len = de_text((byte *)word.c_str(), word.length(), ik, ik_len, ia, *cip);
+                len = cbc_base64_to_text(ik, ia, word.c_str(), cip);
                 sprintf(buf, "%s", cip);
                 switch (type) {
                     case 0:
@@ -340,7 +408,8 @@ bool WebManagerSetting::_load_information(std::string file, bool mode_ap)
         }
     }
 #else
-    this->_default_information();
+    this->_default_information_ap();
+    this->_default_information_sta();
     result = true;
 #endif
     log_d("Load information : MODE[%s] SSID[%s] HOSTNAME[%s]",
@@ -354,15 +423,15 @@ bool WebManagerSetting::_save_information(std::string file, std::string ssid, st
 {
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
-    log_d("Save information");
-    unsigned char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
+    log_d("Save information: %s", file.c_str());
+    char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
     uint16_t len;
     File dataFile = SPIFFS.open(file.c_str(), FILE_WRITE);
-    len           = en_text((char *)ssid.c_str(), ssid.length(), ik, ik_len, ia, *cip);
+    len           = cbc_base64(ik, ia, ssid.c_str(), cip);
     dataFile.printf("%s\n", (char *)cip);
-    len = en_text((char *)pass.c_str(), pass.length(), ik, ik_len, ia, *cip);
+    len = cbc_base64(ik, ia, pass.c_str(), cip);
     dataFile.printf("%s\n", (char *)cip);
-    len = en_text((char *)hostname.c_str(), hostname.length(), ik, ik_len, ia, *cip);
+    len = cbc_base64(ik, ia, hostname.c_str(), cip);
     dataFile.printf("%s\n", (char *)cip);
     dataFile.close();
     result = true;

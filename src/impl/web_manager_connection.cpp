@@ -138,10 +138,10 @@ bool WebManagerConnection::is_connected(bool immediate)
                 status = WiFi.status();
                 switch (status) {
                     case wl_status_t::WL_CONNECTED:
-                    case wl_status_t::WL_SCAN_COMPLETED:
-                    case wl_status_t::WL_IDLE_STATUS:
                         result = true;
                         break;
+                    case wl_status_t::WL_SCAN_COMPLETED:
+                    case wl_status_t::WL_IDLE_STATUS:
                     case wl_status_t::WL_CONNECTION_LOST:
                     case wl_status_t::WL_CONNECT_FAILED:
                     case wl_status_t::WL_NO_SSID_AVAIL:
@@ -179,12 +179,6 @@ bool WebManagerConnection::reconnect_sta(bool save)
 {
     return this->reconnect_sta(this->_sta_ssid, this->_sta_pass, -1, save);
 }
-#if 0
-bool WebManagerConnection::reconnect_default(bool save)
-{
-    return this->reconnect(SETTING_WIFI_SSID_DEFAULT, SETTING_WIFI_PASS_DEFAULT, SETTING_WIFI_MODE_AP, SETTING_WIFI_MODE_AUTO_TRANSITIONS, save);
-}
-#endif
 bool WebManagerConnection::reconnect_ap(std::string ssid, std::string pass, bool save)
 {
     if ("" == ssid) {
