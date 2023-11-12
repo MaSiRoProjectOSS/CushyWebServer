@@ -152,7 +152,7 @@ if (!JS_NW) {
                     JS_NW._checked_elm((0 == JS_NW.info.STA.enable) ? "disable_sta" : "enable_sta");
                     JS_NW.check_mode_ap(JS_NW.info.AP.enable);
                     JS_NW.check_mode_sta(JS_NW.info.STA.enable);
-                    JS_NW._replace_sta_order("radio_sta", JS_NW.info.STA.list);
+                    JS_NW._replace_sta_order("selector_sta", JS_NW.info.STA.list);
                     JS_NW.select_sta_mode(JS_NW.info.STA.selected);
                     JS_NW._scan();
                     result = true;
@@ -209,7 +209,7 @@ if (!JS_NW) {
         },
         set_network: function (id) {
             let mode = (id == "ap") ? 1 : 0;
-            let num = (id == "ap") ? 0 : document.getElementById("radio_sta").elements["sta_select"].value;
+            let num = (id == "ap") ? 0 : document.getElementById("selector_sta").elements["sta_select"].value;
             let state = document.getElementById("enable_" + id).checked ? 1 : 0;
 
             JS_AJAX.post("/CushyWebServer/set?id=" +
