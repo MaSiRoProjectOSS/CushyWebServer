@@ -99,6 +99,10 @@ public:
     WEB_VIEWER_MODE get_mode();
     time_t millis_to_time(unsigned long ms);
 
+    bool set_enable(NETWORK_INTERFACE interface, bool flag);
+    bool save_ap_setting(bool enable, std::string ssid, std::string pass);
+    bool save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num);
+
 public:
     //////////////////////////////////////////////////////////////
     // Stack function

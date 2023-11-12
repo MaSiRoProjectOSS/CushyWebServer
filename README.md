@@ -150,7 +150,6 @@ void loop()
 | SETTING_WIFI_STA_FILE_PATTERN             | "/config/wifi_sta_%02d.ini" | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合に参照するWiFiリスト。indexは0～SETTING_WIFI_SETTING_LIST_MAXを参照する (*) |
 | SETTING_WIFI_STA_FILE_MAX                 |                         (5) | SETTING_WIFI_SETTING_LIST_FILEが許容するファイル数                                                                          |
 | SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT |                        (60) | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合のWiFi機器の探索時間[単位:秒,5秒以上推奨]                                   |
-| SETTING_WIFI_STA_LOOP_FILE                |                      (true) | 接続先がない場合は、ファイルリストの最初から探査する                                                                        |
 | SETTING_WIFI_STA_DEFAULT_SSID             |            "CushyWebServer" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する                                                                          |
 | SETTING_WIFI_STA_DEFAULT_PASSWORD         |                 "password!" | パスワード<br>SPIFFSにファイルがない場合に動作する                                                                          |
 

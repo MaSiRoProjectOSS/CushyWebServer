@@ -155,10 +155,6 @@ namespace Web
 #define SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT (60)
 #endif
 
-#ifndef SETTING_WIFI_STA_LOOP_FILE
-#define SETTING_WIFI_STA_LOOP_FILE (true)
-#endif
-
 #ifndef SETTING_WIFI_STA_DEFAULT_SSID
 /**
  * @brief Wifi SSID : STA mode
@@ -196,10 +192,10 @@ namespace Web
 //////////////////////////////////////////////////////////////
 // Task assigned
 #ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI
-#define SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI (4096 * 2)
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI (4096 * 3)
 #endif
 #ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER
-#define SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER (4096 * 2)
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER (4096 * 3)
 #endif
 // PRIORITY (0(LOW) - 25(height)))
 #ifndef SETTING_THREAD_PRIORITY_SERVER

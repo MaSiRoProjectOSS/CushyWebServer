@@ -182,7 +182,7 @@ void thread_wifi(void *args)
                     set_mode(CushyWebServer::WEB_VIEWER_MODE::RETRY);
                     if (err_begin < millis()) {
                         err_begin = millis() + (1000 * SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT);
-                        ctrl_web.load_settings_sta(false);
+                        ctrl_web.load_sta_settings(false);
                         log_d("%s", "Retry to connect");
                     }
                 } else {
@@ -192,7 +192,7 @@ void thread_wifi(void *args)
                         }
                         if (true == flag_list_reconnect) {
                             flag_list_reconnect = false;
-                            ctrl_web.load_settings_sta(true);
+                            ctrl_web.load_sta_settings(true);
                             break;
                         }
                         vTaskDelay(THREAD_RETRY_INTERVAL_WIFI);
@@ -366,6 +366,30 @@ bool CushyWebServer::is_sntp_sync()
 {
     return flag_sntp_sync;
 }
+bool CushyWebServer::set_enable(NETWORK_INTERFACE interface, bool flag)
+{
+    bool result = false;
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            result = ctrl_web.set_ap_enable(flag);
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            result = ctrl_web.set_sta_enable(flag);
+            break;
+        default:
+            break;
+    }
+    return result;
+}
+bool CushyWebServer::save_ap_setting(bool enable, std::string ssid, std::string pass)
+{
+    return ctrl_web.save_ap_setting(enable, ssid, pass);
+}
+bool CushyWebServer::save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num)
+{
+    return ctrl_web.save_sta_setting(enable, ssid, pass, hostname, num);
+}
+
 bool CushyWebServer::is_enable(NETWORK_INTERFACE interface)
 {
     bool result = false;

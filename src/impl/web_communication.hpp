@@ -46,6 +46,9 @@ public:
     bool is_enable_ap();
     const char *get_ssid_ap();
 
+    bool set_ap_enable(bool flag);
+    bool save_ap_setting(bool enable, std::string ssid, std::string pass);
+
 public:
     //////////////////////////////////////////////////////////////
     // STA settings
@@ -56,7 +59,10 @@ public:
     bool is_connected_sta(bool immediate = true);
     bool is_enable_sta();
     const char *get_ssid_sta();
-    void load_settings_sta(bool clear);
+
+    void load_sta_settings(bool clear);
+    bool set_sta_enable(bool flag);
+    bool save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num);
 
     int to_int(String data);
 
@@ -97,7 +103,6 @@ private:
 private:
     WebManagerConnection _manager;
     AsyncWebServer *ctrl_server;
-    bool _flag_save                    = true;
     const std::string _message_network = "The system was reconfigured."
                                          "<br />"
                                          "Please change the network connection.";

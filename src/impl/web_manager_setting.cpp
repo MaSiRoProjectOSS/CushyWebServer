@@ -136,15 +136,170 @@ WebManagerSetting::WebManagerSetting() : _error_count_spi(ERROR_COUNT_SPI_MAX), 
         SPIFFS.end();
     }
     (void)this->set_hostname(SETTING_WIFI_HOSTNAME);
-    (void)this->set_information_ap(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
-    (void)this->set_information_sta(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
+    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
+    (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
 }
 
 //////////////////////////////////////////////////////////////
 // Public function
 //////////////////////////////////////////////////////////////
+// AP mode
+bool WebManagerSetting::set_ap_enable(bool flag)
+{
+    bool result = false;
+#if SETTING_WIFI_STORAGE_SPI_FS
+    char buffer[255];
+    if (true == this->_open_fs) {
+        if (true == SPIFFS.begin()) {
+            this->_save_settings_wifi(SPIFFS, flag, this->_enable_sta);
+            SPIFFS.end();
+        }
+    } else {
+        if (0 > this->_error_count_spi) {
+            result = true;
+        }
+    }
+#else
+    result = true;
+#endif
+    return result;
+}
+bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::string pass)
+{
+    bool result = false;
+#if SETTING_WIFI_STORAGE_SPI_FS
+    char buffer[255];
+    if (true == this->_open_fs) {
+        if (true == SPIFFS.begin()) {
+            this->_save_settings_wifi(SPIFFS, enable, this->_enable_sta);
+            if (true == enable) {
+                result = this->_save_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, ssid, pass, this->_hostname);
+            }
+            SPIFFS.end();
+        }
+    } else {
+        if (0 > this->_error_count_spi) {
+            result = true;
+        }
+    }
+#else
+    result = true;
+#endif
+    return result;
+}
+bool WebManagerSetting::save_ap_information(std::string ssid, std::string pass, std::string hostname)
+{
+    bool result = false;
+#if SETTING_WIFI_STORAGE_SPI_FS
+    if (true == this->_open_fs) {
+        if (true == SPIFFS.begin()) {
+            bool force_write = false;
+            if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
+                this->_load_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, true);
+            } else {
+                force_write = true;
+            }
+            if ((true == force_write)                                   //
+                || (this->_ap_ssid != ssid) || (this->_ap_pass != pass) //
+            ) {
+                force_write = false;
+                result      = _save_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, ssid, pass, hostname);
+            }
+            SPIFFS.end();
+            if (true == force_write) {
+                ssid = this->_ap_ssid;
+                pass = this->_ap_pass;
+            }
+        }
+    } else {
+        if (0 > this->_error_count_spi) {
+            result = true;
+        }
+    }
+#else
+    ssid   = SETTING_WIFI_AP_DEFAULT_SSID;
+    pass   = SETTING_WIFI_AP_DEFAULT_PASSWORD;
+    result = true;
+#endif
+    (void)this->set_hostname(hostname);
+    (void)this->set_ap_information(ssid, pass);
 
-bool WebManagerSetting::save_information_sta(std::string ssid, std::string pass, std::string hostname, int num)
+    return result;
+}
+bool WebManagerSetting::load_ap_settings()
+{
+    bool result = false;
+#if SETTING_WIFI_STORAGE_SPI_FS
+    if (true == this->_open_fs) {
+        if (SPIFFS.begin()) {
+            if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
+                result = this->_load_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, true);
+            }
+            SPIFFS.end();
+        }
+    } else {
+        if (0 > this->_error_count_spi) {
+            (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
+            result = true;
+        }
+    }
+#else
+    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+    result            = true;
+#endif
+    return result;
+}
+
+// STA mode
+bool WebManagerSetting::set_sta_enable(bool flag)
+{
+    bool result = false;
+#if SETTING_WIFI_STORAGE_SPI_FS
+    char buffer[255];
+    if (true == this->_open_fs) {
+        if (true == SPIFFS.begin()) {
+            this->_save_settings_wifi(SPIFFS, this->_enable_ap, flag);
+            SPIFFS.end();
+        }
+    } else {
+        if (0 > this->_error_count_spi) {
+            result = true;
+        }
+    }
+#else
+    result            = true;
+#endif
+    return result;
+}
+bool WebManagerSetting::save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num)
+{
+    bool result = false;
+#if SETTING_WIFI_STORAGE_SPI_FS
+    char buffer[255];
+    if (true == this->_open_fs) {
+        if (true == SPIFFS.begin()) {
+            this->_save_settings_wifi(SPIFFS, this->_enable_ap, enable);
+            if (true == enable) {
+                if (0 <= num) {
+                    if (num < SETTING_WIFI_STA_FILE_MAX) {
+                        sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, num);
+                        result = this->_save_information(SPIFFS, buffer, ssid, pass, hostname);
+                    }
+                }
+            }
+            SPIFFS.end();
+        }
+    } else {
+        if (0 > this->_error_count_spi) {
+            result = true;
+        }
+    }
+#else
+    result            = true;
+#endif
+    return result;
+}
+bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass, std::string hostname, int num)
 {
     bool result = false;
     char buffer[255];
@@ -181,77 +336,14 @@ bool WebManagerSetting::save_information_sta(std::string ssid, std::string pass,
         }
     }
 #else
-    ssid   = SETTING_WIFI_STA_DEFAULT_SSID;
-    pass   = SETTING_WIFI_STA_DEFAULT_PASSWORD;
-    result = true;
-#endif
-    (void)this->set_information_sta(ssid, pass);
-    return result;
-}
-bool WebManagerSetting::save_information_ap(std::string ssid, std::string pass, std::string hostname)
-{
-    bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
-    if (true == this->_open_fs) {
-        if (true == SPIFFS.begin()) {
-            bool force_write = false;
-            if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
-                this->_load_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, true);
-            } else {
-                force_write = true;
-            }
-            if ((true == force_write)                                   //
-                || (this->_ap_ssid != ssid) || (this->_ap_pass != pass) //
-            ) {
-                force_write = false;
-                result      = _save_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, ssid, pass, hostname);
-            }
-            SPIFFS.end();
-            if (true == force_write) {
-                ssid = this->_ap_ssid;
-                pass = this->_ap_pass;
-            }
-        }
-    } else {
-        if (0 > this->_error_count_spi) {
-            result = true;
-        }
-    }
-#else
-    ssid   = SETTING_WIFI_AP_DEFAULT_SSID;
-    pass   = SETTING_WIFI_AP_DEFAULT_PASSWORD;
-    result = true;
-#endif
-    (void)this->set_hostname(hostname);
-    (void)this->set_information_ap(ssid, pass);
-
-    return result;
-}
-bool WebManagerSetting::load_settings_ap()
-{
-    bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
-    if (true == this->_open_fs) {
-        if (SPIFFS.begin()) {
-            if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
-                result = this->_load_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, true);
-            }
-            SPIFFS.end();
-        }
-    } else {
-        if (0 > this->_error_count_spi) {
-            (void)this->set_information_ap(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
-            result = true;
-        }
-    }
-#else
-    (void)this->set_information_ap(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+    ssid              = SETTING_WIFI_STA_DEFAULT_SSID;
+    pass              = SETTING_WIFI_STA_DEFAULT_PASSWORD;
     result            = true;
 #endif
+    (void)this->set_sta_information(ssid, pass);
     return result;
 }
-
-bool WebManagerSetting::load_settings_sta(bool clear)
+bool WebManagerSetting::load_sta_settings(bool clear)
 {
     bool result = false;
     //////////////////
@@ -264,7 +356,7 @@ bool WebManagerSetting::load_settings_sta(bool clear)
 #endif
     //////////////////
     if (false == result) {
-        (void)this->set_information_sta(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
+        (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
         result = true;
     }
 
@@ -276,8 +368,8 @@ bool WebManagerSetting::load_settings_sta(bool clear)
 //////////////////////////////////////////////////////////////
 bool WebManagerSetting::_setup()
 {
-    (void)this->set_information_ap(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
-    (void)this->set_information_sta(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
+    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
+    (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
 
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
@@ -413,33 +505,20 @@ bool WebManagerSetting::_save_settings_wifi(fs::FS &fs, bool ap_mode, bool sta_m
 }
 
 //////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
+//
 //////////////////////////////////////////////////////////////
 
-void WebManagerSetting::set_information_ap(std::string ssid, std::string pass)
+void WebManagerSetting::set_ap_information(std::string ssid, std::string pass)
 {
     this->_ap_ssid = (std::string)ssid;
     this->_ap_pass = (std::string)pass;
-
-    log_d("Set information : MODE[A P] SSID[%s]", this->_ap_ssid.c_str());
+    log_v("Set information : MODE[A P] SSID[%s]", this->_ap_ssid.c_str());
 }
-void WebManagerSetting::set_information_sta(std::string ssid, std::string pass)
+void WebManagerSetting::set_sta_information(std::string ssid, std::string pass)
 {
     this->_sta_ssid = (std::string)ssid;
     this->_sta_pass = (std::string)pass;
-
-    log_d("Set information : MODE[STA] SSID[%s]", this->_sta_ssid.c_str());
+    log_v("Set information : MODE[STA] SSID[%s]", this->_sta_ssid.c_str());
 }
 
 void WebManagerSetting::set_hostname(std::string hostname)
@@ -484,7 +563,6 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
     char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
     char buf[2 * INPUT_BUFFER_LIMIT] = { 0 };
     uint16_t len;
-    log_v("load file: %s", file.c_str());
     if (true == SPIFFS.exists(file.c_str())) {
         File dataFile = SPIFFS.open(file.c_str(), FILE_READ);
         if (!dataFile) {
@@ -521,9 +599,7 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
                         break;
                     case 3:
                         if (0 < word.length()) {
-                            if (true == mode_ap) {
-                                this->_hostname = "";
-                            } else {
+                            if (false == mode_ap) {
                                 this->_hostname = buf;
                             }
                         } else {
@@ -544,15 +620,15 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
         }
     }
 #else
-    (void)this->set_information_ap(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
-    (void)this->set_information_sta(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+    (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
     result = true;
 #endif
-    log_d("Load information : MODE[%s] SSID[%s] HOSTNAME[%s]",
-          (true == mode_ap) ? "AP" : "STA",
+    log_d("Load information : MODE[%s] SSID[%s] HOSTNAME[%s] filename[%s]",
+          (true == mode_ap) ? "A P" : "STA",
           (true == mode_ap) ? this->_ap_ssid.c_str() : this->_sta_ssid.c_str(),
-          (true == mode_ap) ? "" : this->_hostname.c_str());
-
+          (true == mode_ap) ? "" : this->_hostname.c_str(),
+          file.c_str());
     return result;
 }
 bool WebManagerSetting::_save_information(fs::FS &fs, std::string file, std::string ssid, std::string pass, std::string hostname)
@@ -616,19 +692,10 @@ bool WebManagerSetting::_load_sta_setting(fs::FS &fs, bool clear)
     }
 #endif
     this->_sta_explored_index = count_up;
-    if (SETTING_WIFI_STA_FILE_MAX < this->_sta_explored_index) {
-        this->_sta_explored_index = SETTING_WIFI_STA_FILE_MAX;
-    }
-    //////////////////
-#if SETTING_WIFI_STA_LOOP_FILE
     if (false == result) {
-        result = this->_load_sta_setting(fs, true);
-    }
-#endif
-    //////////////////
-    if (false == result) {
-        (void)this->set_information_sta(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
-        result = true;
+        (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
+        this->_sta_explored_index = 0;
+        result                    = true;
     }
 
     return result;

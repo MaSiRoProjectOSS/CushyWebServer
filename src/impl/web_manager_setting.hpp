@@ -47,15 +47,19 @@ public:
     //////////////////////////////////////////////////////////////
     // AP settings
     //////////////////////////////////////////////////////////////
-    bool save_information_ap(std::string ssid, std::string pass, std::string hostname);
-    bool load_settings_ap();
+    bool save_ap_setting(bool enable, std::string ssid, std::string pass);
+    bool save_ap_information(std::string ssid, std::string pass, std::string hostname);
+    bool load_ap_settings();
+    bool set_ap_enable(bool flag);
 
 public:
     //////////////////////////////////////////////////////////////
     // STA settings
     //////////////////////////////////////////////////////////////
-    bool save_information_sta(std::string ssid, std::string pass, std::string hostname, int num);
-    bool load_settings_sta(bool clear);
+    bool save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num);
+    bool save_sta_information(std::string ssid, std::string pass, std::string hostname, int num);
+    bool load_sta_settings(bool clear);
+    bool set_sta_enable(bool flag);
 
 protected:
     std::string _hostname;
@@ -70,8 +74,8 @@ protected:
     bool _enable_sta        = false;
 
     bool _setup();
-    void set_information_ap(std::string ssid, std::string pass);
-    void set_information_sta(std::string ssid, std::string pass);
+    void set_ap_information(std::string ssid, std::string pass);
+    void set_sta_information(std::string ssid, std::string pass);
 
     int _sta_list_selected                                    = -1;
     std::string _sta_list_ssid[SETTING_WIFI_STA_FILE_MAX]     = { "" };

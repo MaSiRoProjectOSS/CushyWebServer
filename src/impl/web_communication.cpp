@@ -87,7 +87,7 @@ bool WebCommunication::reconnect_ap()
 {
     bool result = true;
     if (true == this->_manager.is_enable_ap()) {
-        result = this->_manager.reconnect_ap(this->_flag_save);
+        result = this->_manager.reconnect_ap(true);
         if (true == result) {
             log_i("MODE[A P] SSID[%s] IP[%s] ", this->get_ssid_ap(), this->get_ip_address_ap().toString());
         }
@@ -110,6 +110,14 @@ const char *WebCommunication::get_ssid_ap()
 {
     return this->_manager.get_ssid_ap();
 }
+bool WebCommunication::set_ap_enable(bool flag)
+{
+    return this->_manager.set_ap_enable(flag);
+}
+bool WebCommunication::save_ap_setting(bool enable, std::string ssid, std::string pass)
+{
+    return this->_manager.save_ap_setting(enable, ssid, pass);
+}
 
 //////////////////////////////////////////////////////////////
 // STA settings
@@ -118,7 +126,7 @@ bool WebCommunication::reconnect_sta()
 {
     bool result = true;
     if (true == this->_manager.is_enable_sta()) {
-        result = this->_manager.reconnect_sta(this->_flag_save);
+        result = this->_manager.reconnect_sta(true);
         if (true == result) {
             log_i("MODE[STA] SSID[%s] IP[%s] ", this->get_ssid_sta(), this->get_ip_address_sta().toString());
         }
@@ -141,9 +149,17 @@ const char *WebCommunication::get_ssid_sta()
 {
     return this->_manager.get_ssid_sta();
 }
-void WebCommunication::load_settings_sta(bool clear)
+void WebCommunication::load_sta_settings(bool clear)
 {
-    this->_manager.load_settings_sta(clear);
+    this->_manager.load_sta_settings(clear);
+}
+bool WebCommunication::set_sta_enable(bool flag)
+{
+    return this->_manager.set_sta_enable(flag);
+}
+bool WebCommunication::save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num)
+{
+    return this->_manager.save_sta_setting(enable, ssid, pass, hostname, num);
 }
 
 //////////////////////////////////////////////////////////////
@@ -259,11 +275,14 @@ void WebCommunication::handle_network_html(AsyncWebServerRequest *request)
 
 void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
 {
-    bool result  = false;
-    String ssid  = "";
-    String pass  = "";
-    int num      = 0;
-    bool mode_ap = false;
+    bool result     = false;
+    String ssid     = "";
+    String pass     = "";
+    String hostname = "";
+    int num         = 0;
+    bool mode_ap    = false;
+    bool state      = false;
+
     std::string message;
     int value = 0;
     try {
@@ -273,11 +292,30 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
                 mode_ap = (value == 1) ? true : false;
                 if (true == request->hasArg("id")) {
                     ssid = request->arg("id");
-                    if (true == request->hasArg("pa")) {
-                        pass = request->arg("pa");
+                    if (0 < ssid.length()) {
+                        if (true == request->hasArg("pa")) {
+                            pass = request->arg("pa");
+                            if (0 < pass.length()) {
+                                if (true == request->hasArg("num")) {
+                                    num = this->to_int(request->arg("num"));
+                                }
+                                if (true == request->hasArg("hostname")) {
+                                    hostname = request->arg("hostname");
+                                }
+                                if (true == request->hasArg("state")) {
+                                    state = (0 == this->to_int(request->arg("state"))) ? false : true;
+                                }
+                                result = true;
+                            }
+                        }
+                    } else {
+                        ssid     = "";
+                        pass     = "";
+                        hostname = "";
                         if (true == request->hasArg("num")) {
                             num = this->to_int(request->arg("num"));
                         }
+                        state  = false;
                         result = true;
                     }
                 }
@@ -287,7 +325,7 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
         result = false;
     }
     message.append(mode_ap ? "reconnect AP" : "reconnect STA");
-    message.append(" [");
+    message.append("[");
     message.append(ssid.c_str());
     message.append("]");
     std::string json = this->template_json_result(result, "", message);
@@ -300,9 +338,13 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
     if (true == result) {
         log_v("%s", message.c_str());
         if (true == mode_ap) {
-            this->_flag_save = this->_manager.reconnect_ap(ssid.c_str(), pass.c_str(), this->_flag_save);
+            this->save_ap_setting(state, ssid.c_str(), pass.c_str());
+            this->_manager.reconnect_ap(ssid.c_str(), pass.c_str(), false);
+
         } else {
-            this->_flag_save = this->_manager.reconnect_sta(ssid.c_str(), pass.c_str(), num, this->_flag_save);
+            this->save_sta_setting(state, ssid.c_str(), pass.c_str(), hostname.c_str(), num);
+            this->_manager.set_hostname(hostname.c_str());
+            this->_manager.reconnect_sta(ssid.c_str(), pass.c_str(), num, false);
         }
     }
 }

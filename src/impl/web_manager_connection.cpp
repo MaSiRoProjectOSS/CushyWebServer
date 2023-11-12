@@ -224,7 +224,7 @@ bool WebManagerConnection::reconnect_sta(std::string ssid, std::string pass, int
     if ("" == pass) {
         pass = this->_sta_pass;
     }
-    bool result = this->_reconnect_sta(ssid, pass, save, num);
+    bool result = this->_reconnect_sta(ssid, pass, num, save);
     if (false == result) {
         if ((this->_sta_ssid != ssid) || (this->_sta_pass != pass)) {
             result = this->_reconnect_sta(this->_sta_ssid, this->_sta_pass, num, false);
@@ -329,9 +329,6 @@ bool WebManagerConnection::_reconnect_ap(std::string ssid, std::string pass, boo
 {
     bool result = true;
     (void)this->disconnect_ap();
-    if ("" != this->_hostname) {
-        WiFi.setHostname(this->_hostname.c_str());
-    }
     if (true == this->_config_ap.flag_set) {
         result = WiFi.softAPConfig(this->_config_ap.local_ip, this->_config_ap.gateway, this->_config_ap.subnet);
     }
@@ -340,9 +337,9 @@ bool WebManagerConnection::_reconnect_ap(std::string ssid, std::string pass, boo
     }
     if (true == result) {
         if (true == save) {
-            (void)this->save_information_ap(ssid, pass, this->_hostname);
+            (void)this->save_ap_information(ssid, pass, this->_hostname);
         } else {
-            (void)this->set_information_ap(ssid, pass);
+            (void)this->set_ap_information(ssid, pass);
         }
     }
     return result;
@@ -352,9 +349,7 @@ bool WebManagerConnection::_reconnect_sta(std::string ssid, std::string pass, in
 {
     bool result = true;
     (void)this->disconnect_sta();
-    if ("" != this->_hostname) {
-        WiFi.setHostname(this->_hostname.c_str());
-    }
+    WiFi.setHostname(this->_hostname.c_str());
     if (true == this->_config_sta.flag_set) {
         result = WiFi.config(this->_config_sta.local_ip, this->_config_sta.gateway, this->_config_sta.subnet);
     }
@@ -372,9 +367,9 @@ bool WebManagerConnection::_reconnect_sta(std::string ssid, std::string pass, in
     }
     if (true == result) {
         if (true == save) {
-            (void)this->save_information_sta(ssid, pass, this->_hostname, num);
+            (void)this->save_sta_information(ssid, pass, this->_hostname, num);
         } else {
-            (void)this->set_information_sta(ssid, pass);
+            (void)this->set_sta_information(ssid, pass);
         }
     }
     return result;
