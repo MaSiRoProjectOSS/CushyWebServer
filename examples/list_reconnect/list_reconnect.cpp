@@ -100,9 +100,25 @@ void loop()
 {
     M5.update();
     if (true == M5.Btn.wasPressed()) {
+        // listDir
         listDir("/config", 2);
-        log_i("list_reconnect_sta");
-        cushy.list_reconnect_sta();
+        // reconnect_sta
+        log_i("reconnect_sta");
+        cushy.reconnect_sta();
+        // STACK SIZE
+        UBaseType_t stack_cushy_server = cushy.get_stack_high_water_mark_server();
+        UBaseType_t max_cushy_server   = cushy.get_stack_size_server();
+        UBaseType_t stack_cushy_wifi   = cushy.get_stack_high_water_mark_wifi();
+        UBaseType_t max_cushy_wifi     = cushy.get_stack_size_wifi();
+
+        char msg_buffer[512];
+        sprintf(msg_buffer,
+                "STACK SIZE : Server[%d/%d] WiFi[%d/%d]", //
+                (int)stack_cushy_server,
+                (int)max_cushy_server,
+                (int)stack_cushy_wifi,
+                (int)max_cushy_wifi);
+        log_i("%s", msg_buffer);
     }
     delay(25);
 }

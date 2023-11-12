@@ -30,8 +30,156 @@ namespace Web
 #define WEB_HEADER_CACHE_CONTROL_LONGTIME   "max-age=31536000, immutable"
 #define WEB_HEADER_CACHE_CONTROL_NO_CACHE   "no-cache"
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+// Constructor and destructor
+//////////////////////////////////////////////////////////////
+WebCommunication::WebCommunication()
+{
+    this->ctrl_server = new AsyncWebServer(SETTING_WIFI_PORT);
+#if CUSHY_WEB_SERVER_OTA
+    ElegantOTA.begin(this->ctrl_server); // Start ElegantOTA
+#endif
+}
+WebCommunication::~WebCommunication()
+{
+    if (nullptr != this->ctrl_server) {
+        this->ctrl_server->end();
+    }
+}
 
+//////////////////////////////////////////////////////////////
+// Setup functions
+//////////////////////////////////////////////////////////////
+AsyncWebServer *WebCommunication::get_server()
+{
+    return ctrl_server;
+}
+bool WebCommunication::setup()
+{
+    bool result = true;
+    if (nullptr != ctrl_server) {
+        this->ctrl_server->onNotFound(std::bind(&WebCommunication::handle_not_found, this, std::placeholders::_1));
+
+        // general data
+        this->ctrl_server->on("/CushyWebServer/ajax.js", std::bind(&WebCommunication::handle_js_ajax, this, std::placeholders::_1));
+        this->ctrl_server->on("/CushyWebServer/general.css", std::bind(&WebCommunication::handle_css_general, this, std::placeholders::_1));
+        // change network page
+        this->ctrl_server->on("/CushyWebServer/network.css", std::bind(&WebCommunication::handle_network_css, this, std::placeholders::_1));
+        this->ctrl_server->on("/CushyWebServer/network.js", std::bind(&WebCommunication::handle_network_js, this, std::placeholders::_1));
+        this->ctrl_server->on("/network", std::bind(&WebCommunication::handle_network_html, this, std::placeholders::_1));
+        // setter/getter
+        this->ctrl_server->on("/CushyWebServer/set", std::bind(&WebCommunication::handle_network_set, this, std::placeholders::_1));
+        this->ctrl_server->on("/CushyWebServer/get", std::bind(&WebCommunication::handle_network_get, this, std::placeholders::_1));
+        this->ctrl_server->on("/CushyWebServer/list_get", std::bind(&WebCommunication::handle_network_list_get, this, std::placeholders::_1));
+        this->ctrl_server->on("/CushyWebServer/list_make", std::bind(&WebCommunication::handle_network_list_make, this, std::placeholders::_1));
+    }
+    return result;
+}
+bool WebCommunication::begin()
+{
+    return this->_manager.begin();
+}
+
+//////////////////////////////////////////////////////////////
+// AP settings
+//////////////////////////////////////////////////////////////
+bool WebCommunication::reconnect_ap()
+{
+    bool result = true;
+    if (true == this->_manager.is_enable_ap()) {
+        result = this->_manager.reconnect_ap(this->_flag_save);
+        if (true == result) {
+            log_i("MODE[A P] SSID[%s] IP[%s] ", this->get_ssid_ap(), this->get_ip_address_ap().toString());
+        }
+    }
+    return result;
+}
+IPAddress WebCommunication::get_ip_address_ap()
+{
+    return this->_manager.get_ip_address_ap();
+}
+bool WebCommunication::is_connected_ap(bool immediate)
+{
+    return this->_manager.is_connected_ap(immediate);
+}
+bool WebCommunication::is_enable_ap()
+{
+    return this->_manager.is_enable_ap();
+}
+const char *WebCommunication::get_ssid_ap()
+{
+    return this->_manager.get_ssid_ap();
+}
+
+//////////////////////////////////////////////////////////////
+// STA settings
+//////////////////////////////////////////////////////////////
+bool WebCommunication::reconnect_sta()
+{
+    bool result = true;
+    if (true == this->_manager.is_enable_sta()) {
+        result = this->_manager.reconnect_sta(this->_flag_save);
+        if (true == result) {
+            log_i("MODE[STA] SSID[%s] IP[%s] ", this->get_ssid_sta(), this->get_ip_address_sta().toString());
+        }
+    }
+    return result;
+}
+IPAddress WebCommunication::get_ip_address_sta()
+{
+    return this->_manager.get_ip_address_sta();
+}
+bool WebCommunication::is_connected_sta(bool immediate)
+{
+    return this->_manager.is_connected_sta(immediate);
+}
+bool WebCommunication::is_enable_sta()
+{
+    return this->_manager.is_enable_sta();
+}
+const char *WebCommunication::get_ssid_sta()
+{
+    return this->_manager.get_ssid_sta();
+}
+void WebCommunication::load_settings_sta(bool clear)
+{
+    this->_manager.load_settings_sta(clear);
+}
+
+//////////////////////////////////////////////////////////////
+// template functions
+//////////////////////////////////////////////////////////////
+std::string WebCommunication::template_json_result(bool result, std::string data, std::string message)
+{
+    static bool flag_rand = false;
+    static char key[5]    = "-1";
+    if (false == flag_rand) {
+        sprintf(key, "%d", (int)random(0, 1000));
+        flag_rand = true;
+    }
+    std::string json = "{";
+    if (true == result) {
+        json.append("\"result\":\"OK\",");
+    } else {
+        json.append("\"result\":\"NG\",");
+    }
+    json.append("\"status\":{\"messages\":\"");
+    if ("" != message) {
+        json.append(message);
+    }
+    json.append("\"");
+    json.append(", \"KEY\":");
+    json.append(key);
+    json.append("}, \"data\":");
+    if ("" == data) {
+        json.append("\"\"");
+    } else {
+        json.append(data);
+    }
+
+    json.append("}");
+    return json;
+}
 String WebCommunication::file_readString(const char *path)
 {
     String word;
@@ -46,14 +194,9 @@ String WebCommunication::file_readString(const char *path)
     return word;
 }
 
-void WebCommunication::handle_not_found(AsyncWebServerRequest *request)
-{
-    std::string html                 = "404 Not Found!";
-    AsyncWebServerResponse *response = request->beginResponse(200, "text/plain; charset=utf-8", html.c_str());
-    response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
-    response->addHeader("X-Content-Type-Options", "nosniff");
-    request->send(response);
-}
+//////////////////////////////////////////////////////////////
+// Functions that are expected to be overwritten
+//////////////////////////////////////////////////////////////
 void WebCommunication::handle_favicon_ico(AsyncWebServerRequest *request)
 {
 #if SETTING_DEFAULT_FAVICON
@@ -65,6 +208,18 @@ void WebCommunication::handle_favicon_ico(AsyncWebServerRequest *request)
     handle_not_found(request);
 #endif
 }
+void WebCommunication::handle_not_found(AsyncWebServerRequest *request)
+{
+    std::string html                 = "404 Not Found!";
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/plain; charset=utf-8", html.c_str());
+    response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
+    response->addHeader("X-Content-Type-Options", "nosniff");
+    request->send(response);
+}
+
+//////////////////////////////////////////////////////////////
+// web page handle
+//////////////////////////////////////////////////////////////
 void WebCommunication::handle_js_ajax(AsyncWebServerRequest *request)
 {
     AsyncWebServerResponse *response = request->beginResponse_P(200, "text/javascript; charset=utf-8", WEB_PAGE_AJAX_JS);
@@ -72,7 +227,6 @@ void WebCommunication::handle_js_ajax(AsyncWebServerRequest *request)
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
 }
-
 void WebCommunication::handle_css_general(AsyncWebServerRequest *request)
 {
     AsyncWebServerResponse *response = request->beginResponse_P(200, "text/css; charset=utf-8", WEB_PAGE_GENERAL_CSS);
@@ -95,7 +249,6 @@ void WebCommunication::handle_network_js(AsyncWebServerRequest *request)
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
 }
-
 void WebCommunication::handle_network_html(AsyncWebServerRequest *request)
 {
     AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html; charset=utf-8", WEB_PAGE_NETWORK_HTML);
@@ -153,18 +306,67 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
         }
     }
 }
-void WebCommunication::handle_network_make_list(AsyncWebServerRequest *request)
+void WebCommunication::handle_network_get(AsyncWebServerRequest *request)
 {
-    bool result = this->_manager.make_wifi_list();
+    std::string data = "{";
+    // AP Mode
+    data.append("\"AP\": {");
+    data.append("\"ssid\": \"");
+    data.append(this->_manager.get_ssid_ap());
+    data.append("\", \"ip\":\"");
+    data.append(this->ip_to_string(this->_manager.get_ip_address_ap()).c_str());
+    data.append("\", \"hostname\":\"");
+    data.append("");
+    data.append("\", \"enable\":");
+    data.append((true == this->_manager.is_enable_ap()) ? "1" : "0");
+    data.append("},");
 
-    std::string json = this->template_json_result(result);
+    // STA Mode
+    data.append("\"STA\": {");
+    data.append("\"ssid\": \"");
+    data.append(this->_manager.get_ssid_sta());
+    data.append("\", \"ip\":\"");
+    data.append(this->ip_to_string(this->_manager.get_ip_address_sta()).c_str());
+    data.append("\", \"enable\":");
+    data.append((true == this->_manager.is_enable_sta()) ? "1" : "0");
+
+    data.append(", \"selected\":");
+    data.append(std::to_string(this->_manager.get_sta_list_selected()).c_str());
+    data.append(", \"list\":[");
+    for (int i = 0; i < SETTING_WIFI_STA_FILE_MAX; i++) {
+        if (i != 0) {
+            data.append(",\"");
+        } else {
+            data.append("\"");
+        }
+        data.append(this->_manager.get_sta_list_ssid(i).c_str());
+        data.append("\"");
+    }
+    data.append("], \"hostname\":[");
+    for (int i = 0; i < SETTING_WIFI_STA_FILE_MAX; i++) {
+        if (i != 0) {
+            data.append(",\"");
+        } else {
+            data.append("\"");
+        }
+        data.append(this->_manager.get_sta_list_hostname(i).c_str());
+        data.append("\"");
+    }
+    data.append("]");
+
+    data.append("}");
+
+    //
+    data.append("}");
+
+    std::string json = this->template_json_result(true, data);
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json; charset=utf-8", json.c_str());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
 }
-void WebCommunication::handle_network_get_list(AsyncWebServerRequest *request)
+void WebCommunication::handle_network_list_get(AsyncWebServerRequest *request)
 {
     bool result     = true;
     bool flag_start = true;
@@ -196,28 +398,11 @@ void WebCommunication::handle_network_get_list(AsyncWebServerRequest *request)
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
 }
-void WebCommunication::handle_network_get(AsyncWebServerRequest *request)
+void WebCommunication::handle_network_list_make(AsyncWebServerRequest *request)
 {
-    std::string data = "{";
-    data.append("\"AP\": {");
-    data.append("\"default\": \"");
-    data.append(SETTING_WIFI_AP_DEFAULT_SSID);
-    data.append("\", \"name\": \"");
-    data.append(this->_manager.get_ssid_ap());
-    data.append("\", \"enable\":");
-    data.append((true == this->_manager.is_enable_ap()) ? "1" : "0");
-    data.append("},");
-    data.append("\"STA\": {");
-    data.append("\"default\": \"");
-    data.append(SETTING_WIFI_STA_DEFAULT_SSID);
-    data.append("\", \"name\": \"");
-    data.append(this->_manager.get_ssid_sta());
-    data.append("\", \"enable\":");
-    data.append((true == this->_manager.is_enable_sta()) ? "1" : "0");
-    data.append("}");
-    data.append("}");
+    bool result = this->_manager.make_wifi_list();
 
-    std::string json = this->template_json_result(true, data);
+    std::string json = this->template_json_result(result);
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json; charset=utf-8", json.c_str());
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
@@ -225,94 +410,9 @@ void WebCommunication::handle_network_get(AsyncWebServerRequest *request)
     request->send(response);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-bool WebCommunication::setup()
-{
-    bool result = true;
-    if (nullptr != ctrl_server) {
-        this->ctrl_server->onNotFound(std::bind(&WebCommunication::handle_not_found, this, std::placeholders::_1));
-
-        // general data
-        this->ctrl_server->on("/ajax.js", std::bind(&WebCommunication::handle_js_ajax, this, std::placeholders::_1));
-        this->ctrl_server->on("/general.css", std::bind(&WebCommunication::handle_css_general, this, std::placeholders::_1));
-        // change network page
-        this->ctrl_server->on("/network.css", std::bind(&WebCommunication::handle_network_css, this, std::placeholders::_1));
-        this->ctrl_server->on("/network.js", std::bind(&WebCommunication::handle_network_js, this, std::placeholders::_1));
-        this->ctrl_server->on("/network", std::bind(&WebCommunication::handle_network_html, this, std::placeholders::_1));
-        // setter/getter
-        this->ctrl_server->on("/set/network", std::bind(&WebCommunication::handle_network_set, this, std::placeholders::_1));
-        this->ctrl_server->on("/get/network", std::bind(&WebCommunication::handle_network_get, this, std::placeholders::_1));
-        this->ctrl_server->on("/get/net_list", std::bind(&WebCommunication::handle_network_get_list, this, std::placeholders::_1));
-        this->ctrl_server->on("/make/net_list", std::bind(&WebCommunication::handle_network_make_list, this, std::placeholders::_1));
-    }
-    return result;
-}
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-bool WebCommunication::begin()
-{
-    return this->_manager.begin();
-}
-
-bool WebCommunication::reconnect_ap()
-{
-    bool result = true;
-    if (true == this->_manager.is_enable_ap()) {
-        result = this->_manager.reconnect_ap(this->_flag_save);
-        if (true == result) {
-            log_i("MODE[A P] SSID[%s] IP[%s] ", this->get_ssid_ap(), this->get_ip_address_ap().toString());
-        }
-    }
-    return result;
-}
-bool WebCommunication::reconnect_sta()
-{
-    bool result = true;
-    if (true == this->_manager.is_enable_sta()) {
-        result = this->_manager.reconnect_sta(this->_flag_save);
-        if (true == result) {
-            log_i("MODE[STA] SSID[%s] IP[%s] ", this->get_ssid_sta(), this->get_ip_address_sta().toString());
-        }
-    }
-    return result;
-}
-bool WebCommunication::is_connected(bool immediate)
-{
-    return this->_manager.is_connected(immediate);
-}
-void WebCommunication::load_sta_settings(bool clear)
-{
-    this->_manager.load_sta_settings(clear);
-}
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-AsyncWebServer *WebCommunication::get_server()
-{
-    return ctrl_server;
-}
-bool WebCommunication::is_enable_ap()
-{
-    return this->_manager.is_enable_ap();
-}
-IPAddress WebCommunication::get_ip_address_ap()
-{
-    return this->_manager.get_ip_address_ap();
-}
-const char *WebCommunication::get_ssid_ap()
-{
-    return this->_manager.get_ssid_ap();
-}
-bool WebCommunication::is_enable_sta()
-{
-    return this->_manager.is_enable_sta();
-}
-IPAddress WebCommunication::get_ip_address_sta()
-{
-    return this->_manager.get_ip_address_sta();
-}
-
-const char *WebCommunication::get_ssid_sta()
-{
-    return this->_manager.get_ssid_sta();
-}
+//////////////////////////////////////////////////////////////
+// private functions
+//////////////////////////////////////////////////////////////
 int WebCommunication::to_int(String data)
 {
     if (true != data.isEmpty()) {
@@ -322,54 +422,15 @@ int WebCommunication::to_int(String data)
         return 0;
     }
 }
-std::string WebCommunication::template_json_result(bool result, std::string data, std::string message)
+String WebCommunication::ip_to_string(IPAddress ip)
 {
-    static bool flag_rand = false;
-    static char key[5]    = "-1";
-    if (false == flag_rand) {
-        sprintf(key, "%d", (int)random(0, 1000));
-        flag_rand = true;
+    String res = "";
+    for (int i = 0; i < 3; i++) {
+        res += String((ip >> (8 * i)) & 0xFF) + ".";
     }
-    std::string json = "{";
-    if (true == result) {
-        json.append("\"result\":\"OK\",");
-    } else {
-        json.append("\"result\":\"NG\",");
-    }
-    json.append("\"status\":{\"messages\":\"");
-    if ("" != message) {
-        json.append(message);
-    }
-    json.append("\"");
-    json.append(", \"KEY\":");
-    json.append(key);
-    json.append("}, \"data\":");
-    if ("" == data) {
-        json.append("\"\"");
-    } else {
-        json.append(data);
-    }
-
-    json.append("}");
-    return json;
+    res += String(((ip >> 8 * 3)) & 0xFF);
+    return res;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-WebCommunication::WebCommunication()
-{
-    this->ctrl_server = new AsyncWebServer(SETTING_WIFI_PORT);
-#if CUSHY_WEB_SERVER_OTA
-    ElegantOTA.begin(this->ctrl_server); // Start ElegantOTA
-#endif
-}
-WebCommunication::~WebCommunication()
-{
-    if (nullptr != this->ctrl_server) {
-        this->ctrl_server->end();
-    }
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace Web
 } // namespace MaSiRoProject

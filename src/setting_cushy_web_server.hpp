@@ -53,7 +53,7 @@ namespace Web
 
 #ifndef SETTING_WIFI_PORT
 /**
- * @brief Specify Wifi port
+ * @brief Wifi port
  *
  */
 #define SETTING_WIFI_PORT (80)
@@ -61,10 +61,18 @@ namespace Web
 
 #ifndef SETTING_WIFI_HOSTNAME
 /**
- * @brief Specify Wifi HOSTNAME
+ * @brief Wifi HOSTNAME
  *
  */
 #define SETTING_WIFI_HOSTNAME ""
+#endif
+
+#ifndef SETTING_WIFI_SETTING_FILE
+/**
+ * @brief Wifi settings file path
+ *
+ */
+#define SETTING_WIFI_SETTING_FILE "/config/wifi_settings.ini"
 #endif
 
 //////////////////////////////////////////////////////////////
@@ -73,7 +81,7 @@ namespace Web
 
 #ifndef SETTING_WIFI_AP_DEFAULT_ENABLE
 /**
- * @brief Specify Wifi mode : AP mode
+ * @brief Wifi mode : AP mode
  *
  */
 #define SETTING_WIFI_AP_DEFAULT_ENABLE (true)
@@ -81,7 +89,7 @@ namespace Web
 
 #ifndef SETTING_WIFI_AP_SETTING_FILE
 /**
- * @brief Specify Wifi settings file path
+ * @brief Wifi settings file path : AP mode
  *
  */
 #define SETTING_WIFI_AP_SETTING_FILE "/config/wifi_ap.ini"
@@ -89,7 +97,7 @@ namespace Web
 
 #ifndef SETTING_WIFI_AP_DEFAULT_SSID
 /**
- * @brief Specify Wifi SSID : AP mode
+ * @brief Wifi SSID : AP mode
  *
  */
 #define SETTING_WIFI_AP_DEFAULT_SSID "CushyWebServer"
@@ -97,7 +105,7 @@ namespace Web
 
 #ifndef SETTING_WIFI_AP_DEFAULT_PASSWORD
 /**
- * @brief Specify Wifi password : AP mode
+ * @brief Wifi password : AP mode
  *
  */
 #define SETTING_WIFI_AP_DEFAULT_PASSWORD "password!"
@@ -109,7 +117,7 @@ namespace Web
 
 #ifndef SETTING_WIFI_STA_DEFAULT_ENABLE
 /**
- * @brief Specify Wifi mode : STA mode
+ * @brief Wifi mode : STA mode
  *
  */
 #define SETTING_WIFI_STA_DEFAULT_ENABLE (false)
@@ -117,7 +125,7 @@ namespace Web
 
 #ifndef SETTING_WIFI_STA_CONNECTED_FILE
 /**
- * @brief Specify Wifi settings file path
+ * @brief Wifi settings file path : STA mode
  *
  */
 #define SETTING_WIFI_STA_CONNECTED_FILE "/config/wifi_sta.ini"
@@ -153,7 +161,7 @@ namespace Web
 
 #ifndef SETTING_WIFI_STA_DEFAULT_SSID
 /**
- * @brief Specify Wifi SSID : STA mode
+ * @brief Wifi SSID : STA mode
  *
  */
 #define SETTING_WIFI_STA_DEFAULT_SSID "CushyWebServer"
@@ -161,7 +169,7 @@ namespace Web
 
 #ifndef SETTING_WIFI_STA_DEFAULT_PASSWORD
 /**
- * @brief Specify Wifi password : STA mode
+ * @brief Wifi password : STA mode
  *
  */
 #define SETTING_WIFI_STA_DEFAULT_PASSWORD "password!"
@@ -185,24 +193,25 @@ namespace Web
 
 //////////////////////////////////////////////////////////////
 // Thread settings
-// (0(LOW) - 25(height)))
 //////////////////////////////////////////////////////////////
-
+// Task assigned
 #ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI
 #define SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI (4096 * 2)
 #endif
 #ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER
 #define SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER (4096 * 2)
 #endif
-
-#ifndef SETTING_THREAD_CORE_WIFI
-#define SETTING_THREAD_CORE_WIFI (1)
-#endif
+// PRIORITY (0(LOW) - 25(height)))
 #ifndef SETTING_THREAD_PRIORITY_SERVER
 #define SETTING_THREAD_PRIORITY_SERVER (5)
 #endif
 #ifndef SETTING_THREAD_PRIORITY_WIFI
 #define SETTING_THREAD_PRIORITY_WIFI (2)
+#endif
+
+// CORE
+#ifndef SETTING_THREAD_CORE_CUSHY_WEB_SERVER
+#define SETTING_THREAD_CORE_CUSHY_WEB_SERVER (1)
 #endif
 
 } // namespace Web

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="./CushyWebServer/general.css" rel="stylesheet" type="text/css" media="all">
     <link href="./CushyWebServer/network.css" rel="stylesheet" type="text/css" media="all">
-    <script type="text/javascript" src="./CushyWebServer/ajax.js"></script>
+    <script type="text/javascript" src="./CushyWebServer/debug_ajax.js"></script>
     <script type="text/javascript" src="./CushyWebServer/network.js"></script>
     <title>Network</title>
 </head>
@@ -25,12 +25,17 @@
     <article id="article_setting">
         <div class="article_div">
             <div class="dot_frame">
-                <h3>Access Point mode<br><span class="font_medium">SSID&ensp;:&ensp;</span><span id="connect_ap" class="font_normal"></span><br><span class="font_medium">IP&ensp;:&ensp;</span><span id="ip_ap" class="font_normal"></span></h3>
+                <h3>Access Point mode<br>
+                    <span class="font_medium">SSID&ensp;:&ensp;</span>
+                    <span id="connect_ap" class="font_normal"></span><br>
+                    <span class="font_medium">IP&ensp;:&ensp;</span>
+                    <span id="ip_ap" class="font_normal"></span>
+                </h3>
                 <details>
                     <summary>Settings</summary>
                     <p class="no_copy">
-                        <input title="-" placeholder="0" type="radio" id="enable_ap" name="network_mode_ap" value="0" onclick="JS_NW.check_mode_ap(1);" /><label for="enable_ap">&ensp;enable</label>
-                        <input title="-" placeholder="1" type="radio" id="disable_ap" name="network_mode_ap" value="1" onclick="JS_NW.check_mode_ap(0);" /><label for="disable_ap">&ensp;disable</label>
+                        <input title="-" placeholder="0" type="radio" id="enable_ap" name="network_mode_ap" value="0" onclick="JS_NW.check_mode('ap',1);" /><label for="enable_ap">&ensp;enable</label>
+                        <input title="-" placeholder="1" type="radio" id="disable_ap" name="network_mode_ap" value="1" onclick="JS_NW.check_mode('ap',0);" /><label for="disable_ap">&ensp;disable</label>
                     </p>
                     <form>
                         <input title="-" class="input_text" id="ssid_ap" name="ssid" length="32" onchange="JS_NW.on_change();" placeholder="SSID" value="" autocomplete="username" /><br>
@@ -38,12 +43,17 @@
                         <input title="-" class="input_text" id="hostname_ap" name="hostname" length="32" onchange="JS_NW.on_change();" placeholder="hostname" value="" autocomplete="username" />
                     </form>
                     <p>
-                        <button type="button" onclick="JS_NW.set_network_ap()"> SAVE </button>
+                        <button type="button" onclick="JS_NW.set_network('ap')"> SAVE </button>
                     </p>
                 </details>
             </div>
             <div class="dot_frame">
-                <h3>Station mode<br><span class="font_medium">SSID&ensp;:&ensp;</span><span id="connect_sta" class="font_normal"></span><br><span class="font_medium">IP&ensp;:&ensp;</span><span id="ip_sta" class="font_normal"></span></h3>
+                <h3>Station mode<br>
+                    <span class="font_medium">SSID&ensp;:&ensp;</span>
+                    <span id="connect_sta" class="font_normal"></span><br>
+                    <span class="font_medium">IP&ensp;:&ensp;</span>
+                    <span id="ip_sta" class="font_normal"></span>
+                </h3>
                 <details>
                     <summary>Settings</summary>
                     <p class="no_copy">
@@ -51,7 +61,7 @@
                         <input title="-" placeholder="1" type="radio" id="disable_sta" name="network_mode_sta" value="1" onclick="JS_NW.check_mode_sta(0);" /><label for="disable_sta">&ensp;disable</label>
                     </p>
                     <p class="packed_space">
-                        <span>LIST : </span><br>
+                        <span> LIST : </span><br>
                         <select id="network_list" name="network_list" class="network_article" onchange="JS_NW.select_list(value);"></select>
                     </p>
                     <button type="button" id="scan_sta" class="b_disabled" onclick="JS_NW.begin()">Scan</button><br><br>
@@ -61,7 +71,7 @@
                         <input title="-" class="input_text" id="hostname_sta" name="hostname" length="32" onchange="JS_NW.on_change();" placeholder="hostname" value="" autocomplete="username" />
                     </form>
                     <p>
-                        <button type="button" id="reconnect_sta" onclick="JS_NW.set_network_sta()">SAVE</button>
+                        <button type="button" id="reconnect_sta" onclick="JS_NW.set_network('sta')">SAVE</button>
                     </p>
                     <div class="no_copy">
                         <span>SEARCH ORDER : </span><br>

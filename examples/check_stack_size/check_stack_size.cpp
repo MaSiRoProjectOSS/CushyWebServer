@@ -69,11 +69,18 @@ void loop()
 {
     (void)M5.update();
     if (true == M5.Btn.wasPressed()) {
-        UBaseType_t stack_cushy = cushy.get_stack_high_water_mark();
-        UBaseType_t max_cushy   = cushy.get_stack_size();
+        UBaseType_t stack_cushy_server = cushy.get_stack_high_water_mark_server();
+        UBaseType_t max_cushy_server   = cushy.get_stack_size_server();
+        UBaseType_t stack_cushy_wifi   = cushy.get_stack_high_water_mark_wifi();
+        UBaseType_t max_cushy_wifi     = cushy.get_stack_size_wifi();
 
         char msg_buffer[512];
-        sprintf(msg_buffer, "STACK SIZE : %d/%d", (int)stack_cushy, (int)max_cushy);
+        sprintf(msg_buffer,
+                "STACK SIZE : Server[%d/%d] WiFi[%d/%d]", //
+                (int)stack_cushy_server,
+                (int)max_cushy_server,
+                (int)stack_cushy_wifi,
+                (int)max_cushy_wifi);
         log_i("%s", msg_buffer);
     }
     delay(1);

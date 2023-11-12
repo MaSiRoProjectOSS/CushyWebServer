@@ -20,40 +20,63 @@ namespace MaSiRoProject
 {
 namespace Web
 {
-
 class WebCommunication {
 public:
+    //////////////////////////////////////////////////////////////
+    // Constructor and destructor
+    //////////////////////////////////////////////////////////////
     WebCommunication();
     ~WebCommunication();
 
 public:
+    //////////////////////////////////////////////////////////////
+    // Setup functions
+    //////////////////////////////////////////////////////////////
     AsyncWebServer *get_server();
     bool setup();
     bool begin();
-    bool reconnect_ap();
-    bool reconnect_sta();
-
-    // bool load_default(bool save);
-    bool is_connected(bool immediate = true);
-    std::string template_json_result(bool result, std::string data = "", std::string message = "");
 
 public:
-    bool is_enable_ap();
+    //////////////////////////////////////////////////////////////
+    // AP settings
+    //////////////////////////////////////////////////////////////
+    bool reconnect_ap();
     IPAddress get_ip_address_ap();
+    bool is_connected_ap(bool immediate = true);
+    bool is_enable_ap();
     const char *get_ssid_ap();
 
-    bool is_enable_sta();
+public:
+    //////////////////////////////////////////////////////////////
+    // STA settings
+    //////////////////////////////////////////////////////////////
+    bool reconnect_sta();
     IPAddress get_ip_address_sta();
+    String ip_to_string(IPAddress ip);
+    bool is_connected_sta(bool immediate = true);
+    bool is_enable_sta();
     const char *get_ssid_sta();
-    void list_reconnect_sta();
-    void load_sta_settings(bool clear);
+    void load_settings_sta(bool clear);
+
+    int to_int(String data);
 
 public:
+    //////////////////////////////////////////////////////////////
+    // template functions
+    //////////////////////////////////////////////////////////////
+    std::string template_json_result(bool result, std::string data = "", std::string message = "");
     String file_readString(const char *path);
+
+    //////////////////////////////////////////////////////////////
+    // Functions that are expected to be overwritten
+    //////////////////////////////////////////////////////////////
     void handle_favicon_ico(AsyncWebServerRequest *request);
+    void handle_not_found(AsyncWebServerRequest *request);
 
 private:
-    void handle_not_found(AsyncWebServerRequest *request);
+    //////////////////////////////////////////////////////////////
+    // web page handle
+    //////////////////////////////////////////////////////////////
     void handle_js_ajax(AsyncWebServerRequest *request);
     void handle_css_general(AsyncWebServerRequest *request);
 
@@ -63,16 +86,18 @@ private:
 
     void handle_network_set(AsyncWebServerRequest *request);
     void handle_network_get(AsyncWebServerRequest *request);
-    void handle_network_get_list(AsyncWebServerRequest *request);
-    void handle_network_make_list(AsyncWebServerRequest *request);
+    void handle_network_list_get(AsyncWebServerRequest *request);
+    void handle_network_list_make(AsyncWebServerRequest *request);
 
 private:
-    int to_int(String data);
-    bool _flag_save = true;
+    //////////////////////////////////////////////////////////////
+    // private functions
+    //////////////////////////////////////////////////////////////
 
 private:
     WebManagerConnection _manager;
     AsyncWebServer *ctrl_server;
+    bool _flag_save                    = true;
     const std::string _message_network = "The system was reconfigured."
                                          "<br />"
                                          "Please change the network connection.";

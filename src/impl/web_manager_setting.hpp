@@ -14,6 +14,11 @@
 #include "../setting_cushy_web_server.hpp"
 
 #include <Arduino.h>
+#if SETTING_WIFI_STORAGE_SPI_FS
+#include <SPIFFS.h>
+#else
+#include <FS.h>
+#endif
 
 namespace MaSiRoProject
 {
@@ -21,19 +26,36 @@ namespace Web
 {
 class WebManagerSetting {
 public:
+    class SettingsInformation {
+    public:
+        std::string hostname = "";
+        std::string ssid     = "";
+        std::string pass     = "";
+        bool result          = false;
+    };
+
+public:
     WebManagerSetting();
 
 public:
-    bool save_information_ap(std::string ssid, std::string pass, std::string hostname);
-    bool load_information_ap();
+    void set_hostname(std::string hostname);
+    int get_sta_list_selected();
+    std::string get_sta_list_ssid(int index);
+    std::string get_sta_list_hostname(int index);
 
 public:
-    bool save_information_sta(std::string ssid, std::string pass, std::string hostname, int num);
-    void set_hostname(std::string hostname);
-    bool load_sta_settings(bool clear);
+    //////////////////////////////////////////////////////////////
+    // AP settings
+    //////////////////////////////////////////////////////////////
+    bool save_information_ap(std::string ssid, std::string pass, std::string hostname);
+    bool load_settings_ap();
 
-protected:
-    bool _setup();
+public:
+    //////////////////////////////////////////////////////////////
+    // STA settings
+    //////////////////////////////////////////////////////////////
+    bool save_information_sta(std::string ssid, std::string pass, std::string hostname, int num);
+    bool load_settings_sta(bool clear);
 
 protected:
     std::string _hostname;
@@ -42,30 +64,38 @@ protected:
     std::string _ap_ssid;
     std::string _ap_pass;
     int _sta_explored_index = 0;
+    bool _connect_ap        = SETTING_WIFI_AP_DEFAULT_ENABLE;
+    bool _connect_sta       = SETTING_WIFI_STA_DEFAULT_ENABLE;
+    bool _enable_ap         = false;
+    bool _enable_sta        = false;
 
-    void set_information_ap(std::string ssid, std::string pass, std::string hostname);
-    void set_information_sta(std::string ssid, std::string pass, std::string hostname);
+    bool _setup();
+    void set_information_ap(std::string ssid, std::string pass);
+    void set_information_sta(std::string ssid, std::string pass);
+
+    int _sta_list_selected                                    = -1;
+    std::string _sta_list_ssid[SETTING_WIFI_STA_FILE_MAX]     = { "" };
+    std::string _sta_list_hostname[SETTING_WIFI_STA_FILE_MAX] = { "" };
 
 private:
-    bool _default_information_ap();
-    void _set_information_ap(std::string ssid, std::string pass, std::string hostname);
+    //////////////////////////////////////////////////////////////
+    // WiFi settings
+    //////////////////////////////////////////////////////////////
+    bool _load_settings_wifi(fs::FS &fs);
+    bool _save_settings_wifi(fs::FS &fs, bool ap_mode, bool sta_mode);
 
 private:
-    bool _default_information_sta();
-    void _set_information_sta(std::string ssid, std::string pass, std::string hostname);
-    bool _load_sta_setting(bool clear);
-
-private:
-    bool _load_information(std::string file, bool mode_ap);
-    bool _save_information(std::string file, std::string ssid, std::string pass, std::string hostname);
+    void _init_sta_setting(fs::FS &fs);
+    bool _load_sta_setting(fs::FS &fs, bool clear);
+    bool _load_information(fs::FS &fs, std::string file, bool mode_ap);
+    bool _save_information(fs::FS &fs, std::string file, std::string ssid, std::string pass, std::string hostname);
 
 private:
     bool _open_fs;
-    int _error_count_spi = 3;
+    int _error_count_spi;
 
-protected:
-    bool _connect_ap  = SETTING_WIFI_AP_DEFAULT_ENABLE;
-    bool _connect_sta = SETTING_WIFI_STA_DEFAULT_ENABLE;
+private:
+    int ERROR_COUNT_SPI_MAX = 3;
 };
 
 } // namespace Web

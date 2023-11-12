@@ -60,10 +60,8 @@ public:
     bool begin();
     std::vector<NetworkList> get_wifi_list(int *length);
     bool make_wifi_list();
-    bool is_connected(bool immediate = true);
-#if 0
-    //bool reconnect_default(bool save);
-#endif
+    bool is_connected_sta(bool immediate = true);
+    bool is_connected_ap(bool immediate = true);
 
 public:
     void config_address_ap(IPAddress ip, IPAddress subnet, IPAddress gateway = INADDR_NONE);
@@ -83,7 +81,7 @@ public:
     IPAddress get_ip_address_sta();
     const char *get_ssid_sta();
 
-    void list_reconnect_sta();
+    void reconnect_sta();
 
 private:
     int _get_rssi_as_quality(int rssi);

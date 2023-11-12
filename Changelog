@@ -5,6 +5,7 @@
 ## Ver.0.4.2
 
 * Change encryption method.
+* Changed the way AP and STA are configured.
 
 ## Ver.0.4.1
 

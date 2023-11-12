@@ -12,11 +12,6 @@ option {
     text-align: left
 }
 
-#network_area {
-    text-align: left;
-    display: inline-block;
-    min-width: 100px
-}
 
 #network_mode_selector {
     margin-bottom: 1em
@@ -50,15 +45,58 @@ button {
     background-color: #d3d3d3
 }
 
+input:disabled {
+    background-color: #d3d3d3
+}
+
 .div_hide {
     display: none
 }
 
-#article_message {
-    border: ridge
+
+.article_div {
+    text-align: left;
+    display: inline-block;
+    min-width: 100px
 }
 
 .input_text {
     text-align: center;
     width: 95%
+}
+
+.font_medium {
+    font-size: medium;
+}
+
+.font_normal {
+    font-weight: normal;
+    font-size: medium;
+}
+
+.packed_space {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.none_list,
+li {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    list-style: none;
+    padding-left: 0.5em;
+}
+
+.dot_frame {
+    border: dotted;
+    padding: 1em;
+    border-color: lightgray;
+    margin-bottom: 2em;
+}
+
+.no_copy {
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
 }

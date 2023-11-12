@@ -42,4 +42,5 @@
 **/.vscode/pinned-files.json
 **/doxygen
 **/miniature
+**/*-min.*
 data/config/wifi*

@@ -29,7 +29,7 @@
 
 class CushyWebServer {
 public:
-    enum WEB_VIEWER_MODE
+    typedef enum
     {
         NOT_INITIALIZED,
         INITIALIZED,
@@ -38,7 +38,13 @@ public:
         CONNECTED_STA,
         CONNECTED_AP,
         CONNECTED_AP_AND_STA,
-    };
+    } WEB_VIEWER_MODE;
+    typedef enum
+    {
+        NW_IF_WIFI_STA = 0, /**< station interface */
+        NW_IF_WIFI_AP,      /**< soft-AP interface */
+        NW_IF_ETH,          /**< ethernet interface */
+    } NETWORK_INTERFACE;
 
 #if CALLBACK_STYLE_USING
     using ModeFunction          = void (*)(WEB_VIEWER_MODE);
@@ -51,54 +57,72 @@ public:
 #endif
 
 public:
+    //////////////////////////////////////////////////////////////
+    // Constructor and destructor
+    //////////////////////////////////////////////////////////////
     CushyWebServer();
     ~CushyWebServer();
 
 public:
+    //////////////////////////////////////////////////////////////
+    // Begin and callback settings
+    //////////////////////////////////////////////////////////////
     bool begin();
+    void set_callback_mode(ModeFunction callback);
+    void set_callback_handle_client(HandleClientFunction callback);
+    void set_callback_sync_completed(SyncCompletedFunction callback);
+
+protected:
+    //////////////////////////////////////////////////////////////
+    // Virtual functions
+    //////////////////////////////////////////////////////////////
+    virtual bool setup_server(AsyncWebServer *server);
+    virtual void handle_favicon_ico(AsyncWebServerRequest *request);
+    virtual void handle_not_found(AsyncWebServerRequest *request);
+
+public:
+    //////////////////////////////////////////////////////////////
+    // Post functions
+    //////////////////////////////////////////////////////////////
     bool post_json(String url, String payload, String *reply);
     bool post_json(String url, String payload_json, JsonDocument *reply);
 
 public:
-    void set_callback_mode(ModeFunction callback);
-    void set_callback_handle_client(HandleClientFunction callback);
-    void set_callback_sync_completed(SyncCompletedFunction callback);
-    WEB_VIEWER_MODE get_mode();
-
-    /////////////////////////////////////////
-    // get  member valuable
-    /////////////////////////////////////////
-public:
-    time_t millis_to_time(unsigned long ms);
+    //////////////////////////////////////////////////////////////
+    // Getter and Setter
+    //////////////////////////////////////////////////////////////
+    void reconnect_sta();
     bool is_sntp_sync();
-    UBaseType_t get_stack_size();
-    UBaseType_t get_stack_high_water_mark();
+    bool is_enable(NETWORK_INTERFACE interface);
+    IPAddress get_ip_address(NETWORK_INTERFACE interface);
+    const char *get_ssid(NETWORK_INTERFACE interface);
+    WEB_VIEWER_MODE get_mode();
+    time_t millis_to_time(unsigned long ms);
 
-    bool is_enable_ap();
-    IPAddress get_ip_address_ap();
-    const char *get_ssid_ap();
-
-    bool is_enable_sta();
-    IPAddress get_ip_address_sta();
-    const char *get_ssid_sta();
-    void list_reconnect_sta();
+public:
+    //////////////////////////////////////////////////////////////
+    // Stack function
+    //////////////////////////////////////////////////////////////
+    UBaseType_t get_stack_size_wifi();
+    UBaseType_t get_stack_high_water_mark_wifi();
+    UBaseType_t get_stack_size_server();
+    UBaseType_t get_stack_high_water_mark_server();
 
 protected:
-    virtual bool setup_server(AsyncWebServer *server);
-    virtual void handle_favicon_ico(AsyncWebServerRequest *request);
-
-protected:
-    AsyncWebServer *get_server();
-
+    //////////////////////////////////////////////////////////////
+    // Protected functions
+    //////////////////////////////////////////////////////////////
     String ip_to_string(IPAddress ip);
     byte to_byte(String data);
     int to_int(String data);
     unsigned long to_ulong(String data);
     String file_readString(const char *path);
     std::string template_json_result(bool result, std::string data = "", std::string message = "");
+    AsyncWebServer *get_server();
 
 private:
-    TaskHandle_t _task_handle;
+    TaskHandle_t _task_handle_wifi;
+    TaskHandle_t _task_handle_server;
 };
 
 #endif
