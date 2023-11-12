@@ -143,13 +143,13 @@ void setup()
     (void)M5.dis.begin();
     (void)M5.dis.fillpix(CRGB::White);
     bool result = false;
+    cushy.set_callback_mode(&notify_mode);
     do {
         result = cushy.begin();
         if (false == result) {
             delay(1000);
         }
     } while (false == result);
-    cushy.set_callback_mode(&notify_mode);
 }
 
 void loop()

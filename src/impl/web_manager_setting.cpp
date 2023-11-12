@@ -600,10 +600,10 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
                     case 3:
                         if (0 < word.length()) {
                             if (false == mode_ap) {
-                                this->_hostname = buf;
+                                this->set_hostname(buf);
                             }
                         } else {
-                            this->_hostname = "";
+                            this->set_hostname("");
                         }
                         break;
 

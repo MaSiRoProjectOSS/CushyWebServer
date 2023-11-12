@@ -57,14 +57,13 @@ void setup()
     (void)M5.dis.begin();
     (void)M5.dis.fillpix(CRGB::White);
     bool result = false;
+    cushy.set_callback_mode(&notify_mode);
     do {
         result = cushy.begin();
         if (false == result) {
             delay(1000);
         }
     } while (false == result);
-
-    cushy.set_callback_mode(&notify_mode);
 }
 
 void listDir(fs::FS &fs, const char *dirname, uint8_t levels)
@@ -105,6 +104,7 @@ void loop()
         // reconnect_sta
         log_i("reconnect_sta");
         cushy.reconnect_sta();
+
         // STACK SIZE
         UBaseType_t stack_cushy_server = cushy.get_stack_high_water_mark_server();
         UBaseType_t max_cushy_server   = cushy.get_stack_size_server();
@@ -114,9 +114,9 @@ void loop()
         char msg_buffer[512];
         sprintf(msg_buffer,
                 "STACK SIZE : Server[%d/%d] WiFi[%d/%d]", //
-                (int)stack_cushy_server,
+                (int)(max_cushy_server - stack_cushy_server),
                 (int)max_cushy_server,
-                (int)stack_cushy_wifi,
+                (int)(max_cushy_wifi - stack_cushy_wifi),
                 (int)max_cushy_wifi);
         log_i("%s", msg_buffer);
     }

@@ -118,16 +118,17 @@ if (!JS_NW) {
             var text = "";
             for (var i = 0; i < data.length; i++) {
                 var it = document.createElement('input');
-                var lb = document.createElement('span');
+                var lb = document.createElement('label');
                 var li = document.createElement('li');
                 it.title = "-";
                 it.placeholder = "0";
                 it.type = "radio";
                 it.name = "sta_select";
                 it.value = i;
-                lb.onclick = JS_NW.select_sta_mode(i);
-                lb.setAttribute('onclick', "JS_NW.select_sta_mode(" + i + ")");
-                lb.innerHTML = "[" + i + "] " + data[i];
+                it.setAttribute('onclick', "JS_NW.select_sta_mode(" + i + ")");
+                it.id = "sta_select_" + i;
+                lb.setAttribute('for', "sta_select_" + i);
+                lb.innerHTML = "[" + i + "]&ensp;" + data[i];
 
                 li.appendChild(it);
                 li.appendChild(lb);
@@ -209,7 +210,7 @@ if (!JS_NW) {
         },
         set_network: function (id) {
             let mode = (id == "ap") ? 1 : 0;
-            let num = (id == "ap") ? 0 : document.getElementById("selector_sta").elements["sta_select"].value;
+            let num = (id == "ap") ? 0 : document.getElementById("radio_sta").elements["sta_select"].value;
             let state = document.getElementById("enable_" + id).checked ? 1 : 0;
 
             JS_AJAX.post("/CushyWebServer/set?id=" +

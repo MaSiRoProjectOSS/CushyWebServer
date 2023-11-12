@@ -302,10 +302,13 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
                                 if (true == request->hasArg("hostname")) {
                                     hostname = request->arg("hostname");
                                 }
-                                if (true == request->hasArg("state")) {
-                                    state = (0 == this->to_int(request->arg("state"))) ? false : true;
-                                }
                                 result = true;
+                            }
+                            if (true == request->hasArg("state")) {
+                                state = (0 == this->to_int(request->arg("state"))) ? false : true;
+                                if (false == state) {
+                                    result = true;
+                                }
                             }
                         }
                     } else {
@@ -340,10 +343,9 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
         if (true == mode_ap) {
             this->save_ap_setting(state, ssid.c_str(), pass.c_str());
             this->_manager.reconnect_ap(ssid.c_str(), pass.c_str(), false);
-
         } else {
-            this->save_sta_setting(state, ssid.c_str(), pass.c_str(), hostname.c_str(), num);
             this->_manager.set_hostname(hostname.c_str());
+            this->save_sta_setting(state, ssid.c_str(), pass.c_str(), hostname.c_str(), num);
             this->_manager.reconnect_sta(ssid.c_str(), pass.c_str(), num, false);
         }
     }

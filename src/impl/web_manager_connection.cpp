@@ -101,7 +101,7 @@ std::vector<WebManagerConnection::NetworkList> WebManagerConnection::get_wifi_li
 }
 bool WebManagerConnection::is_enable_ap()
 {
-    return this->_connect_ap;
+    return this->_connect_ap && this->_enable_ap;
 }
 IPAddress WebManagerConnection::get_ip_address_ap()
 {
@@ -113,7 +113,7 @@ const char *WebManagerConnection::get_ssid_ap()
 }
 bool WebManagerConnection::is_enable_sta()
 {
-    return this->_connect_sta;
+    return this->_connect_ap && this->_enable_sta;
 }
 IPAddress WebManagerConnection::get_ip_address_sta()
 {
