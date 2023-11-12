@@ -302,27 +302,30 @@ bool WebManagerSetting::save_sta_setting(bool enable, std::string ssid, std::str
 bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass, std::string hostname, int num)
 {
     bool result = false;
-    char buffer[255];
+    char file_name[255];
 #if SETTING_WIFI_STORAGE_SPI_FS
     if (true == this->_open_fs) {
         if (true == SPIFFS.begin()) {
             bool force_write = false;
+            if (0 <= num) {
+                if (num < SETTING_WIFI_STA_FILE_MAX) {
+                    sprintf(file_name, SETTING_WIFI_STA_FILE_PATTERN, num);
+                    this->_load_information(SPIFFS, file_name, false);
+                    if ((this->_sta_ssid != ssid) || (this->_sta_pass != pass) || (this->_hostname != hostname)) {
+                        this->_save_information(SPIFFS, file_name, ssid, pass, hostname);
+                    }
+                }
+            }
             if (true == SPIFFS.exists(SETTING_WIFI_STA_CONNECTED_FILE)) {
                 this->_load_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, false);
             } else {
                 force_write = true;
             }
             if ((true == force_write) //
-                || (this->_sta_ssid != ssid) || (this->_sta_pass != pass)) {
+                || (this->_sta_ssid != ssid) || (this->_sta_pass != pass) || (this->_hostname != hostname)) {
                 force_write = false;
 
                 result = this->_save_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, ssid, pass, hostname);
-                if (0 <= num) {
-                    if (num < SETTING_WIFI_STA_FILE_MAX) {
-                        sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, num);
-                        this->_save_information(SPIFFS, buffer, ssid, pass, hostname);
-                    }
-                }
             }
             SPIFFS.end();
             if (true == force_write) {

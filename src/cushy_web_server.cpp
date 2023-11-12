@@ -153,6 +153,10 @@ void thread_wifi(void *args)
         try {
             bool connected_ap  = ctrl_web.is_enable_ap();
             bool connected_sta = ctrl_web.is_enable_sta();
+            if ((false == connected_ap) && (false == connected_sta)) {
+                ctrl_web.set_ap_enable(true);
+                connected_ap = ctrl_web.is_enable_ap();
+            }
             if ((true == connected_ap) && (true == connected_sta)) {
                 if (previous_mode != _mode) {
                     log_d("%s", "connect mode : AP and STA");
