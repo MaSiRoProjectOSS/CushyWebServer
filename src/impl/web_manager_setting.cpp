@@ -279,12 +279,12 @@ bool WebManagerSetting::save_sta_setting(bool enable, std::string ssid, std::str
     if (true == this->_open_fs) {
         if (true == SPIFFS.begin()) {
             this->_save_settings_wifi(SPIFFS, this->_enable_ap, enable);
-            if (true == enable) {
-                if (0 <= num) {
-                    if (num < SETTING_WIFI_STA_FILE_MAX) {
-                        sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, num);
-                        result = this->_save_information(SPIFFS, buffer, ssid, pass, hostname);
-                    }
+            if (0 <= num) {
+                if (num < SETTING_WIFI_STA_FILE_MAX) {
+                    sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, num);
+                    result                        = this->_save_information(SPIFFS, buffer, ssid, pass, hostname);
+                    this->_sta_list_ssid[num]     = ssid;
+                    this->_sta_list_hostname[num] = hostname;
                 }
             }
             SPIFFS.end();
@@ -313,19 +313,25 @@ bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass,
                     this->_load_information(SPIFFS, file_name, false);
                     if ((this->_sta_ssid != ssid) || (this->_sta_pass != pass) || (this->_hostname != hostname)) {
                         this->_save_information(SPIFFS, file_name, ssid, pass, hostname);
+                        this->_sta_list_ssid[num]     = ssid;
+                        this->_sta_list_hostname[num] = hostname;
                     }
                 }
             }
-            if (true == SPIFFS.exists(SETTING_WIFI_STA_CONNECTED_FILE)) {
-                this->_load_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, false);
-            } else {
-                force_write = true;
-            }
-            if ((true == force_write) //
-                || (this->_sta_ssid != ssid) || (this->_sta_pass != pass) || (this->_hostname != hostname)) {
-                force_write = false;
+            if (0 < ssid.length()) {
+                if (0 < pass.length()) {
+                    if (true == SPIFFS.exists(SETTING_WIFI_STA_CONNECTED_FILE)) {
+                        this->_load_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, false);
+                    } else {
+                        force_write = true;
+                    }
+                    if ((true == force_write) //
+                        || (this->_sta_ssid != ssid) || (this->_sta_pass != pass) || (this->_hostname != hostname)) {
+                        force_write = false;
 
-                result = this->_save_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, ssid, pass, hostname);
+                        result = this->_save_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, ssid, pass, hostname);
+                    }
+                }
             }
             SPIFFS.end();
             if (true == force_write) {
@@ -552,7 +558,7 @@ std::string WebManagerSetting::get_sta_list_hostname(int index)
             return this->_sta_list_hostname[index];
         }
     }
-    return "";
+    return this->_hostname;
 }
 
 ////////////////////////////////////////////////////
@@ -641,15 +647,24 @@ bool WebManagerSetting::_save_information(fs::FS &fs, std::string file, std::str
     log_d("Save information: %s", file.c_str());
     char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
     uint16_t len;
-    File dataFile = fs.open(file.c_str(), FILE_WRITE);
-    len           = cbc_base64(ik, ia, ssid.c_str(), cip);
-    dataFile.printf("%s\n", (char *)cip);
-    len = cbc_base64(ik, ia, pass.c_str(), cip);
-    dataFile.printf("%s\n", (char *)cip);
-    len = cbc_base64(ik, ia, hostname.c_str(), cip);
-    dataFile.printf("%s\n", (char *)cip);
-    dataFile.close();
-    result = true;
+    if (0 < ssid.length()) {
+        if (0 < pass.length()) {
+            File dataFile = fs.open(file.c_str(), FILE_WRITE);
+            len           = cbc_base64(ik, ia, ssid.c_str(), cip);
+            dataFile.printf("%s\n", (char *)cip);
+            len = cbc_base64(ik, ia, pass.c_str(), cip);
+            dataFile.printf("%s\n", (char *)cip);
+            len = cbc_base64(ik, ia, hostname.c_str(), cip);
+            dataFile.printf("%s\n", (char *)cip);
+            dataFile.close();
+            result = true;
+        }
+    }
+    if (false == result) {
+        fs.remove(file.c_str());
+        result = true;
+    }
+
 #else
     result = true;
 #endif
