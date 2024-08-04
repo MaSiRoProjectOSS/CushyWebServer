@@ -2,6 +2,19 @@
 
 ---
 
+## Ver.0.4.3
+
+* Updated dependent libraries for ElegantOTA
+  * For ESP32
+    * mathieucarbou/ESPAsyncWebServer
+    * mathieucarbou/AsyncTCP
+  * For ESP8266
+    * mathieucarbou/ESPAsyncWebServer
+    * mathieucarbou/esphome-ESPAsyncTCP
+  * For RP2040+W
+    * mathieucarbou/ESPAsyncWebServer
+    * khoih-prog/AsyncTCP_RP2040W
+
 ## Ver.0.4.2
 
 * Change encryption method.

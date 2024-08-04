@@ -216,7 +216,7 @@ String WebCommunication::file_readString(const char *path)
 void WebCommunication::handle_favicon_ico(AsyncWebServerRequest *request)
 {
 #if SETTING_DEFAULT_FAVICON
-    AsyncWebServerResponse *response = request->beginResponse_P(200, "image/x-icon", WEB_IMAGE_FAVICON_ICO, WEB_IMAGE_FAVICON_ICO_LEN);
+    AsyncWebServerResponse *response = request->beginResponse(200, "image/x-icon", WEB_IMAGE_FAVICON_ICO, WEB_IMAGE_FAVICON_ICO_LEN);
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -238,14 +238,14 @@ void WebCommunication::handle_not_found(AsyncWebServerRequest *request)
 //////////////////////////////////////////////////////////////
 void WebCommunication::handle_js_ajax(AsyncWebServerRequest *request)
 {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/javascript; charset=utf-8", WEB_PAGE_AJAX_JS);
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/javascript; charset=utf-8", WEB_PAGE_AJAX_JS);
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
 }
 void WebCommunication::handle_css_general(AsyncWebServerRequest *request)
 {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/css; charset=utf-8", WEB_PAGE_GENERAL_CSS);
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/css; charset=utf-8", WEB_PAGE_GENERAL_CSS);
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -253,21 +253,21 @@ void WebCommunication::handle_css_general(AsyncWebServerRequest *request)
 
 void WebCommunication::handle_network_css(AsyncWebServerRequest *request)
 {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/css; charset=utf-8", WEB_PAGE_NETWORK_CSS);
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/css; charset=utf-8", WEB_PAGE_NETWORK_CSS);
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
 }
 void WebCommunication::handle_network_js(AsyncWebServerRequest *request)
 {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/javascript; charset=utf-8", WEB_PAGE_NETWORK_JS);
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/javascript; charset=utf-8", WEB_PAGE_NETWORK_JS);
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
 }
 void WebCommunication::handle_network_html(AsyncWebServerRequest *request)
 {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html; charset=utf-8", WEB_PAGE_NETWORK_HTML);
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/html; charset=utf-8", WEB_PAGE_NETWORK_HTML);
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_SHORT_TIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
