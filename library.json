@@ -17,8 +17,8 @@
     "frameworks": "arduino",
     "platforms": "espressif32",
     "dependencies": {
-        "ottowinter/ESPAsyncWebServer": "^3.1.2",
-        "ottowinter/AsyncTCP": "^3.2.4",
+        "mathieucarbou/ESPAsyncWebServer": "^3.1.2",
+        "mathieucarbou/AsyncTCP": "^3.2.4",
         "ayushsharma82/ElegantOTA": "^3.1.4",
         "bblanchon/ArduinoJson": "^7.1.0"
     },
