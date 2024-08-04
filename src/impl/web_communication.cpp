@@ -89,7 +89,7 @@ bool WebCommunication::reconnect_ap()
     if (true == this->_manager.is_enable_ap()) {
         result = this->_manager.reconnect_ap(true);
         if (true == result) {
-            log_i("MODE[A P] SSID[%s] IP[%s] ", this->get_ssid_ap(), this->get_ip_address_ap().toString());
+            log_i("MODE[A P] SSID[%s] IP[%s] ", this->get_ssid_ap(), this->get_ip_address_ap().toString().c_str());
         }
     }
     return result;
@@ -128,7 +128,7 @@ bool WebCommunication::reconnect_sta()
     if (true == this->_manager.is_enable_sta()) {
         result = this->_manager.reconnect_sta(true);
         if (true == result) {
-            log_i("MODE[STA] SSID[%s] IP[%s] ", this->get_ssid_sta(), this->get_ip_address_sta().toString());
+            log_i("MODE[STA] SSID[%s] IP[%s] ", this->get_ssid_sta(), this->get_ip_address_sta().toString().c_str());
         }
     }
     return result;
