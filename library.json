@@ -17,11 +17,11 @@
     "frameworks": "arduino",
     "platforms": "espressif32",
     "dependencies": {
-        "mathieucarbou/ESPAsyncWebServer": "^3.1.2",
-        "mathieucarbou/AsyncTCP": "^3.2.4",
+        "ESP32Async/ESPAsyncWebServer": "^3.8.0",
         "ayushsharma82/ElegantOTA": "^3.1.4",
         "bblanchon/ArduinoJson": "^7.1.0"
     },
+    "libArchive": true,
     "headers": "cushy_web_server.hpp",
     "examples": [
         {
