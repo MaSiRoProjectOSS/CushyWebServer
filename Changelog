@@ -2,6 +2,12 @@
 
 ---
 
+## Ver.0.5.0
+
+* Updated dependent libraries
+  * For ESP32
+    * ESP32Async/ESPAsyncWebServer
+
 ## Ver.0.4.3
 
 * Updated dependent libraries for ElegantOTA

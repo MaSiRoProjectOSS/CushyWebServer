@@ -49,6 +49,11 @@ lib_deps =
 	m5stack/M5Atom@^0.1.0
 	fastled/FastLED@^3.5.0
 	https://github.com/MaSiRoProjectOSS/CushyWebServer
+lib_ignore =
+  RPAsyncTCP
+  ESPAsyncTCP
+lib_compat_mode = strict
+lib_ldf_mode = chain
 build_flags =
 	-D ELEGANTOTA_USE_ASYNC_WEBSERVER=1
 ```
@@ -150,6 +155,7 @@ void loop()
 | SETTING_WIFI_STA_FILE_PATTERN             | "/config/wifi_sta_%02d.ini" | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合に参照するWiFiリスト。indexは0～SETTING_WIFI_SETTING_LIST_MAXを参照する (*) |
 | SETTING_WIFI_STA_FILE_MAX                 |                         (5) | SETTING_WIFI_SETTING_LIST_FILEが許容するファイル数                                                                          |
 | SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT |                        (60) | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合のWiFi機器の探索時間[単位:秒,5秒以上推奨]                                   |
+| SETTING_WIFI_STA_LOOP_FILE                |                      (true) | 接続先がない場合は、ファイルリストの最初から探査する                                                                        |
 | SETTING_WIFI_STA_DEFAULT_SSID             |            "CushyWebServer" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する                                                                          |
 | SETTING_WIFI_STA_DEFAULT_PASSWORD         |                 "password!" | パスワード<br>SPIFFSにファイルがない場合に動作する                                                                          |
 
@@ -180,8 +186,7 @@ This system uses the following libraries.
 * [m5stack/M5Atom](https://github.com/m5stack/M5Atom?utm_source=platformio&utm_medium=piohome)
 * [fastled/FastLED](https://github.com/Makuna/NeoPixelBus?utm_source=platformio&utm_medium=piohome)
 * [ayushsharma82/ElegantOTA](https://github.com/ayushsharma82/ElegantOTA)
-* [ottowinter/ESPAsyncWebServer-esphome](https://registry.platformio.org/libraries/ottowinter/ESPAsyncWebServer-esphome)
-* [ottowinter/ESPAsyncTCP-esphome](https://registry.platformio.org/libraries/ottowinter/ESPAsyncTCP-esphome)
+* [ESP32Async/ESPAsyncWebServer](https://registry.platformio.org/libraries/ESP32Async/ESPAsyncWebServer)
 * [bblanchon/ArduinoJson](https://github.com/bblanchon/ArduinoJson)
 * [suculent/AESLib](https://github.com/suculent/thinx-aes-lib)
 
