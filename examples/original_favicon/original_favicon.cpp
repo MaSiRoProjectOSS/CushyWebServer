@@ -1,7 +1,6 @@
 /**
  * @file original_favicon.ino
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief オリジナルファビコンを設定するサンプル
  * # オリジナルファビコンを設定する方法
  *  CushyWebServerを継承したクラスでhandle_favicon_ico()をoverrideし、
  *  imageデータ戻してください。

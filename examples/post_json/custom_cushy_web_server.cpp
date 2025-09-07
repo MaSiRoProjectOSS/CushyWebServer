@@ -1,7 +1,6 @@
 /**
  * @file custom_cushy_web_server.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief JSON POSTリクエストの処理とサーバーセットアップを行うカスタムWebサーバーの実装。
  * @version 0.3.0
  * @date 2023-03-28
  *

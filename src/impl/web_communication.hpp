@@ -1,7 +1,6 @@
 /**
  * @file web_communication.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief AP/STAネットワーク設定やWebページ処理を提供します。
  * @version 0.0.1
  * @date 2023-03-12
  *

@@ -1,7 +1,6 @@
 /**
  * @file web_communication.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief Webサーバーリクエスト、ネットワーク設定（AP/STA）、OTAアップデートの処理を担当します。
  * @version 0.0.1
  * @date 2023-03-12
  *

@@ -1,7 +1,6 @@
 /**
  * @file CushyWebServer.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief Wi-Fi/AP接続管理とWebサーバの制御、各種コールバック・設定・通信処理を行うクラスの実装
  * @version 0.0.1
  * @date 2023-03-22
  *

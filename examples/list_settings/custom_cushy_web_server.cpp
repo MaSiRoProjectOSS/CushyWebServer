@@ -1,10 +1,6 @@
 /**
  * @file custom_cushy_web_server.cpp
- * @brief ルートHTMLとfaviconリクエストを処理するカスタムWebサーバの実装。
- *
- * このファイルは、CustomCushyWebServerクラスを定義し、メインHTMLページとfavicon.icoを提供する
- * HTTPエンドポイントをセットアップします。キャッシュやコンテンツタイプのHTTPヘッダーも適切に設定します。
- * サーバの初期化や特定リクエストの処理メソッドを提供します。
+ * @brief CushyWebServer の JSON POST と HTML ルート応答のカスタム HTTP ハンドラを実装します。
  * @version 0.3.0
  * @date 2023-03-28
  *
@@ -13,12 +9,36 @@
  */
 #include "custom_cushy_web_server.hpp"
 
-#include "data_custom_cushy_web_server.hpp"
-
 #define WEB_HEADER_CACHE_CONTROL_SHORT_TIME "max-age=100, immutable"
 #define WEB_HEADER_CACHE_CONTROL_LONGTIME   "max-age=31536000, immutable"
 #define WEB_HEADER_CACHE_CONTROL_NO_CACHE   "no-cache"
 
+void CustomCushyWebServer::handle_json_post(AsyncWebServerRequest *request)
+{
+    bool result      = false;
+    char buffer[255] = "";
+    try {
+        int len = request->args();
+        if (request->args() > 0) {
+            if (true == request->hasArg("id")) {
+                int value = 1000 + this->to_int(request->arg("id"));
+                sprintf(buffer, "{ \"value\": %d }", value);
+            }
+        } else {
+            sprintf(buffer, "{ \"length\": %d }", len);
+        }
+        result = true;
+    } catch (...) {
+        result = false;
+    }
+
+    std::string json = this->template_json_result(result, buffer);
+
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json; charset=utf-8", json.c_str());
+    response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
+    response->addHeader("X-Content-Type-Options", "nosniff");
+    request->send(response);
+}
 void CustomCushyWebServer::handle_html_root(AsyncWebServerRequest *request)
 {
     String html = "";
@@ -45,13 +65,6 @@ void CustomCushyWebServer::handle_html_root(AsyncWebServerRequest *request)
 bool CustomCushyWebServer::setup_server(AsyncWebServer *server)
 {
     server->on("/", std::bind(&CustomCushyWebServer::handle_html_root, this, std::placeholders::_1));
+    server->on("/post", std::bind(&CustomCushyWebServer::handle_json_post, this, std::placeholders::_1));
     return true;
-}
-
-void CustomCushyWebServer::handle_favicon_ico(AsyncWebServerRequest *request)
-{
-    AsyncWebServerResponse *response = request->beginResponse_P(200, "image/x-icon", WEB_IMAGE_FAVICON_ICO, WEB_IMAGE_FAVICON_ICO_LEN);
-    response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
-    response->addHeader("X-Content-Type-Options", "nosniff");
-    request->send(response);
 }

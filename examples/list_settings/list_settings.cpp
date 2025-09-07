@@ -1,6 +1,6 @@
 /**
- * @file delete_file.cpp
- * @brief ファイル削除・一覧表示を行うサンプル。ボタン押下でWiFi設定関連ファイルを削除し、ディレクトリ内容を表示する。LED表示でWebサーバの状態も通知する。
+ * @file list_settings.cpp
+ * @brief SPIFFSファイル操作とWi-Fi/AP情報を表示・確認するサンプル
  * @version 0.0.1
  * @date 2023-03-22
  *
@@ -158,16 +158,17 @@ void loop()
     (void)M5.update();
     if (true == M5.Btn.wasPressed()) {
         Serial.println("====================================");
-        deleteFile(SPIFFS, SETTING_WIFI_SETTING_FILE);
-        deleteFile(SPIFFS, SETTING_WIFI_AP_SETTING_FILE);
-        deleteFile(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE);
+        Serial.println("------------------------------------");
+        listDir(SPIFFS, "/", 1);
+        Serial.println("------------------------------------");
+        readFile(SPIFFS, SETTING_WIFI_SETTING_FILE);
+        readFile(SPIFFS, SETTING_WIFI_AP_SETTING_FILE);
+        readFile(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE);
         for (int i = 0; i < SETTING_WIFI_STA_FILE_MAX; i++) {
             char buffer[32];
             sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, i);
-            deleteFile(SPIFFS, buffer);
+            readFile(SPIFFS, buffer);
         }
-        Serial.println("------------------------------------");
-        listDir(SPIFFS, "/", 1);
         Serial.println("------------------------------------");
         UBaseType_t stack_cushy_server = cushy.get_stack_high_water_mark_server();
         UBaseType_t max_cushy_server   = cushy.get_stack_size_server();
@@ -179,6 +180,23 @@ void loop()
                       (int)max_cushy_server,
                       (int)(max_cushy_wifi - stack_cushy_wifi),
                       (int)max_cushy_wifi);
+        Serial.println("------------------------------------");
+        bool enable     = false;
+        String ssid     = "";
+        String hostname = "";
+        String ip       = "";
+        cushy.get_ap_information(enable, ssid, hostname, ip);
+        Serial.printf("AP : [%s] SSID[%s] HOSTNAME[%s] IP[%s]\n", //
+                      (true == enable) ? "Enabled" : "Disabled",
+                      ssid.c_str(),
+                      hostname.c_str(),
+                      ip.c_str());
+        cushy.get_sta_information(enable, ssid, hostname, ip);
+        Serial.printf("STA: [%s] SSID[%s] HOSTNAME[%s] IP[%s]\n", //
+                      (true == enable) ? "Enabled" : "Disabled",
+                      ssid.c_str(),
+                      hostname.c_str(),
+                      ip.c_str());
         Serial.println("====================================");
     }
     (void)delay(SETTING_LOOP_TIME_SLEEP_DETECT);

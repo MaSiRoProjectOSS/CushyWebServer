@@ -1,7 +1,6 @@
 /**
- * @file mode_notification.ino
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @file post_json.cpp
+ * @brief ボタン操作で JSON データを HTTP POST 送信するサンプル
  * @version 0.3.0
  * @date 2023-03-28
  *

@@ -1,7 +1,6 @@
 /**
  * @file custom_cushy_web_server.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief CushyWebServer を継承し、独自のサーバーセットアップとルートハンドラを追加するクラス定義
  * @version 0.3.0
  * @date 2023-03-28
  *

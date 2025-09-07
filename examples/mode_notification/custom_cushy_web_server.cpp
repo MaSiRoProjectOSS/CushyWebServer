@@ -1,7 +1,6 @@
 /**
  * @file custom_cushy_web_server.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief HTMLルートページを提供し、Webサーバーのエンドポイントをセットアップする実装ファイル
  * @version 0.3.0
  * @date 2023-03-28
  *
@@ -22,7 +21,7 @@ void CustomCushyWebServer::handle_html_root(AsyncWebServerRequest *request)
     html += "<head>";
     html += "<meta charset='UTF-8'>";
     html += "<meta name='viewport' content='width=device-width, initial-scale=1.0'>";
-    html += "<link href='/general.css' rel='stylesheet' type='text/css' media='all'>";
+    html += "<link href='/CushyWebServer/general.css' rel='stylesheet' type='text/css' media='all'>";
     html += "<title>Cushy Web Server</title>";
     html += "</head>";
     html += "<body>";

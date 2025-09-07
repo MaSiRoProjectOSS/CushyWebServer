@@ -1,7 +1,7 @@
 /**
  * @file CushyWebServer.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief Webサーバ機能を提供するクラス
+ * WiFi/AP/Ethernetのネットワーク管理、コールバック設定、JSON通信、各種情報取得・設定機能を持つ。
  * @version 0.0.1
  * @date 2023-03-22
  *

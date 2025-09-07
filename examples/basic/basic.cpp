@@ -1,7 +1,6 @@
 /**
  * @file main.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief "Hello !"を返すWebサーバーのサンプル
  * @version 0.0.1
  * @date 2023-03-22
  *

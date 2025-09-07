@@ -1,7 +1,6 @@
 /**
  * @file web_manager_connection.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief WiFi接続管理（AP/STAモード切替、接続・切断、ネットワーク情報取得など）を行うクラスの実装
  * @version 0.0.1
  * @date 2023-03-12
  *

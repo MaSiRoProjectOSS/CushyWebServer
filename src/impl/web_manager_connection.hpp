@@ -1,7 +1,6 @@
 /**
  * @file web_manager_connection.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief APモードおよびSTAモードのWiFi接続とネットワーク設定を管理し、スキャン・接続・設定を行います。
  * @version 0.0.1
  * @date 2023-03-12
  *

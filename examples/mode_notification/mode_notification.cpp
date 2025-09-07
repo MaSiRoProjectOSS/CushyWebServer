@@ -1,7 +1,6 @@
 /**
  * @file mode_notification.ino
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief LED表示にWebサーバーの状態（モード）を通知するサンプル
  * @version 0.3.0
  * @date 2023-03-28
  *

@@ -1,7 +1,6 @@
 /**
  * @file web_manager_setting.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief WiFi設定（AP/STA）の保存・読み込み・管理を行うWebManagerSettingクラスの定義
  * @version 0.0.1
  * @date 2023-03-12
  *

@@ -1,7 +1,6 @@
 /**
  * @file main.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief スタックサイズをボタン押下でシリアル出力するサンプル
  * @version 0.0.1
  * @date 2023-03-22
  *
@@ -74,14 +73,11 @@ void loop()
         UBaseType_t stack_cushy_wifi   = cushy.get_stack_high_water_mark_wifi();
         UBaseType_t max_cushy_wifi     = cushy.get_stack_size_wifi();
 
-        char msg_buffer[512];
-        sprintf(msg_buffer,
-                "STACK SIZE : Server[%d/%d] WiFi[%d/%d]", //
-                (int)stack_cushy_server,
-                (int)max_cushy_server,
-                (int)stack_cushy_wifi,
-                (int)max_cushy_wifi);
-        log_i("%s", msg_buffer);
+        Serial.printf("STACK SIZE : Server[%d/%d] WiFi[%d/%d]\n", //
+                      (int)(max_cushy_server - stack_cushy_server),
+                      (int)max_cushy_server,
+                      (int)(max_cushy_wifi - stack_cushy_wifi),
+                      (int)max_cushy_wifi);
     }
     delay(1);
 }

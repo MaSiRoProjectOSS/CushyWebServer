@@ -1,7 +1,7 @@
 /**
  * @file web_communication_data.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief Web 通信に必要な HTML, CSS, JS, および favicon 画像データを Arduino プログラム内に定義するヘッダファイルです。
+ *        ネットワーク設定ページや AJAX 通信、スタイルシート、アイコン画像などを PROGMEM に格納し、Web サーバから提供できるようにします。
  * @version 0.0.1
  * @date 2023-03-12
  *

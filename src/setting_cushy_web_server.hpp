@@ -1,7 +1,6 @@
 /**
  * @file web_setting.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief CushyWebServerの各種設定（WiFi, SNTP, OTA, ストレージ, スレッド等）の定義をまとめたヘッダファイル
  * @version 0.0.1
  * @date 2023-03-12
  *

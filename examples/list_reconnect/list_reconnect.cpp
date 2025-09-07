@@ -1,6 +1,6 @@
 /**
  * @file list_reconnect.cpp
- * @brief
+ * @brief 接続状態をLEDで通知し、ボタン押下でSPIFFS内のディレクトリ一覧表示とWiFi再接続を行うサンプル
  * @version 0.4.2
  * @date 2023-10-30
  *
@@ -111,14 +111,11 @@ void loop()
         UBaseType_t stack_cushy_wifi   = cushy.get_stack_high_water_mark_wifi();
         UBaseType_t max_cushy_wifi     = cushy.get_stack_size_wifi();
 
-        char msg_buffer[512];
-        sprintf(msg_buffer,
-                "STACK SIZE : Server[%d/%d] WiFi[%d/%d]", //
-                (int)(max_cushy_server - stack_cushy_server),
-                (int)max_cushy_server,
-                (int)(max_cushy_wifi - stack_cushy_wifi),
-                (int)max_cushy_wifi);
-        log_i("%s", msg_buffer);
+        Serial.printf("STACK SIZE : Server[%d/%d] WiFi[%d/%d]\n", //
+                      (int)(max_cushy_server - stack_cushy_server),
+                      (int)max_cushy_server,
+                      (int)(max_cushy_wifi - stack_cushy_wifi),
+                      (int)max_cushy_wifi);
     }
     delay(25);
 }

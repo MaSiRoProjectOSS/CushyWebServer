@@ -1,7 +1,6 @@
 /**
  * @file web_manager_setting.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief WiFi設定（AP/STAモード）の管理・保存・読み込み・暗号化を行うクラスの実装
  * @version 0.0.1
  * @date 2023-03-12
  *
