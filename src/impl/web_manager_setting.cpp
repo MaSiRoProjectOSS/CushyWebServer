@@ -142,7 +142,8 @@ WebManagerSetting::WebManagerSetting() : _error_count_spi(ERROR_COUNT_SPI_MAX), 
         this->_init_sta_setting(SPIFFS);
         SPIFFS.end();
     }
-    (void)this->set_hostname(SETTING_WIFI_HOSTNAME);
+    (void)this->set_ap_hostname(SETTING_WIFI_HOSTNAME);
+    (void)this->set_sta_hostname(SETTING_WIFI_HOSTNAME);
     (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
     (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
 }
@@ -228,7 +229,7 @@ bool WebManagerSetting::save_ap_information(std::string ssid, std::string pass, 
     pass   = SETTING_WIFI_AP_DEFAULT_PASSWORD;
     result = true;
 #endif
-    (void)this->set_hostname(hostname);
+    (void)this->set_ap_hostname(hostname);
     (void)this->set_ap_information(ssid, pass);
 
     return result;
@@ -318,7 +319,7 @@ bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass,
                 if (num < SETTING_WIFI_STA_FILE_MAX) {
                     sprintf(file_name, SETTING_WIFI_STA_FILE_PATTERN, num);
                     this->_load_information(SPIFFS, file_name, false);
-                    if ((this->_sta_ssid != ssid) || (this->_sta_pass != pass) || (this->_hostname != hostname)) {
+                    if ((this->_sta_ssid != ssid) || (this->_sta_pass != pass) || (this->_sta_hostname != hostname)) {
                         this->_save_information(SPIFFS, file_name, ssid, pass, hostname);
                         this->_sta_list_ssid[num]     = ssid;
                         this->_sta_list_hostname[num] = hostname;
@@ -333,7 +334,7 @@ bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass,
                         force_write = true;
                     }
                     if ((true == force_write) //
-                        || (this->_sta_ssid != ssid) || (this->_sta_pass != pass) || (this->_hostname != hostname)) {
+                        || (this->_sta_ssid != ssid) || (this->_sta_pass != pass) || (this->_sta_hostname != hostname)) {
                         force_write = false;
 
                         result = this->_save_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, ssid, pass, hostname);
@@ -540,9 +541,13 @@ void WebManagerSetting::set_sta_information(std::string ssid, std::string pass)
     log_v("Set information : MODE[STA] SSID[%s]", this->_sta_ssid.c_str());
 }
 
-void WebManagerSetting::set_hostname(std::string hostname)
+void WebManagerSetting::set_ap_hostname(std::string hostname)
 {
-    this->_hostname = (std::string)hostname;
+    this->_ap_hostname = (std::string)hostname;
+}
+void WebManagerSetting::set_sta_hostname(std::string hostname)
+{
+    this->_sta_hostname = (std::string)hostname;
 }
 int WebManagerSetting::get_sta_list_selected()
 {
@@ -568,7 +573,7 @@ std::string WebManagerSetting::get_sta_list_hostname(int index)
             return this->_sta_list_hostname[index];
         }
     }
-    return this->_hostname;
+    return this->_sta_hostname;
 }
 
 ////////////////////////////////////////////////////
@@ -623,11 +628,17 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
                         break;
                     case 3:
                         if (0 < word.length()) {
-                            if (false == mode_ap) {
-                                this->set_hostname(buf);
+                            if (true == mode_ap) {
+                                this->set_ap_hostname(buf);
+                            } else {
+                                this->set_sta_hostname(buf);
                             }
                         } else {
-                            this->set_hostname("");
+                            if (true == mode_ap) {
+                                this->set_ap_hostname("");
+                            } else {
+                                this->set_sta_hostname("");
+                            }
                         }
                         break;
 
@@ -651,7 +662,7 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
     log_d("Load information : MODE[%s] SSID[%s] HOSTNAME[%s] filename[%s]",
           (true == mode_ap) ? "A P" : "STA",
           (true == mode_ap) ? this->_ap_ssid.c_str() : this->_sta_ssid.c_str(),
-          (true == mode_ap) ? "" : this->_hostname.c_str(),
+          (true == mode_ap) ? this->_ap_hostname.c_str() : this->_sta_hostname.c_str(),
           file.c_str());
     return result;
 }
@@ -705,7 +716,7 @@ void WebManagerSetting::_init_sta_setting(fs::FS &fs)
         if (true == fs.exists(buffer)) {
             if (true == this->_load_information(fs, buffer, false)) {
                 this->_sta_list_ssid[i]     = this->_sta_ssid;
-                this->_sta_list_hostname[i] = this->_hostname;
+                this->_sta_list_hostname[i] = this->_sta_hostname;
             }
         }
     }
@@ -728,7 +739,7 @@ bool WebManagerSetting::_load_sta_setting(fs::FS &fs, bool clear)
             result = this->_load_information(fs, buffer, false);
             if (true == result) {
                 this->_sta_list_ssid[i]     = this->_sta_ssid;
-                this->_sta_list_hostname[i] = this->_hostname;
+                this->_sta_list_hostname[i] = this->_sta_hostname;
                 this->_sta_list_selected    = i;
             }
             break;

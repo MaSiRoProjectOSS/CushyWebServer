@@ -194,7 +194,8 @@ bool WebManagerConnection::is_connected_ap(bool immediate)
 ////////////////////////////////////////////////////
 bool WebManagerConnection::begin()
 {
-    this->set_hostname(SETTING_WIFI_HOSTNAME);
+    this->set_ap_hostname(SETTING_WIFI_HOSTNAME);
+    this->set_sta_hostname(SETTING_WIFI_HOSTNAME);
     return this->_setup();
 }
 
@@ -340,6 +341,7 @@ bool WebManagerConnection::_reconnect_ap(std::string ssid, std::string pass, boo
 {
     bool result = true;
     (void)this->disconnect_ap();
+    WiFi.softAPsetHostname(this->_ap_hostname.c_str());
     if (true == this->_config_ap.flag_set) {
         result = WiFi.softAPConfig(this->_config_ap.local_ip, this->_config_ap.gateway, this->_config_ap.subnet);
     }
@@ -348,7 +350,7 @@ bool WebManagerConnection::_reconnect_ap(std::string ssid, std::string pass, boo
     }
     if (true == result) {
         if (true == save) {
-            (void)this->save_ap_information(ssid, pass, this->_hostname);
+            (void)this->save_ap_information(ssid, pass, this->_ap_hostname);
         } else {
             (void)this->set_ap_information(ssid, pass);
         }
@@ -360,7 +362,7 @@ bool WebManagerConnection::_reconnect_sta(std::string ssid, std::string pass, in
 {
     bool result = true;
     (void)this->disconnect_sta();
-    WiFi.setHostname(this->_hostname.c_str());
+    WiFi.setHostname(this->_sta_hostname.c_str());
     if (true == this->_config_sta.flag_set) {
         result = WiFi.config(this->_config_sta.local_ip, this->_config_sta.gateway, this->_config_sta.subnet);
     }
@@ -378,7 +380,7 @@ bool WebManagerConnection::_reconnect_sta(std::string ssid, std::string pass, in
     }
     if (true == result) {
         if (true == save) {
-            (void)this->save_sta_information(ssid, pass, this->_hostname, num);
+            (void)this->save_sta_information(ssid, pass, this->_sta_hostname, num);
         } else {
             (void)this->set_sta_information(ssid, pass);
         }

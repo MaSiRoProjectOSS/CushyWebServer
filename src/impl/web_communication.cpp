@@ -335,6 +335,7 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
         log_v("%s", message.c_str());
         if (true == mode_ap) {
             log_d("Set AP mode: SSID[%s] HOSTNAME[%s] %s", ssid.c_str(), hostname.c_str(), state ? "Enable" : "Disable");
+            this->_manager.set_ap_hostname(hostname.c_str());
             this->save_ap_setting(state, ssid.c_str(), pass.c_str(), hostname.c_str());
             if (0 < ssid.length()) {
                 if (0 < pass.length()) {
@@ -344,7 +345,7 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
                 }
             }
         } else {
-            this->_manager.set_hostname(hostname.c_str());
+            this->_manager.set_sta_hostname(hostname.c_str());
             if (false == state) {
                 num = -1;
             }

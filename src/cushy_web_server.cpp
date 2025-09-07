@@ -384,13 +384,27 @@ bool CushyWebServer::set_enable(NETWORK_INTERFACE interface, bool flag)
     }
     return result;
 }
-bool CushyWebServer::save_ap_setting(bool enable, std::string ssid, std::string pass)
+bool CushyWebServer::save_ap_setting(bool enable, std::string ssid, std::string pass, std::string hostname)
 {
-    return ctrl_web.save_ap_setting(enable, ssid, pass);
+    return ctrl_web.save_ap_setting(enable, ssid, pass, hostname);
 }
 bool CushyWebServer::save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num)
 {
     return ctrl_web.save_sta_setting(enable, ssid, pass, hostname, num);
+}
+void CushyWebServer::get_ap_information(bool &enable, String &ssid, String &hostname, String &ip)
+{
+    enable   = ctrl_web.is_enable_ap();
+    ssid     = ctrl_web.get_ssid_ap();
+    hostname = ctrl_web.get_hostname_ap();
+    ip       = ctrl_web.ip_to_string(ctrl_web.get_ip_address_ap()).c_str();
+}
+void CushyWebServer::get_sta_information(bool &enable, String &ssid, String &hostname, String &ip)
+{
+    enable   = ctrl_web.is_enable_sta();
+    ssid     = ctrl_web.get_ssid_sta();
+    hostname = ctrl_web.get_hostname_sta();
+    ip       = ctrl_web.ip_to_string(ctrl_web.get_ip_address_sta()).c_str();
 }
 
 bool CushyWebServer::is_enable(NETWORK_INTERFACE interface)
@@ -423,7 +437,7 @@ IPAddress CushyWebServer::get_ip_address(NETWORK_INTERFACE interface)
     }
     return result;
 }
-const char *CushyWebServer::get_ssid(NETWORK_INTERFACE interface)
+String CushyWebServer::get_ssid(NETWORK_INTERFACE interface)
 {
     switch (interface) {
         case NETWORK_INTERFACE::NW_IF_WIFI_AP:

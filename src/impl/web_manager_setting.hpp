@@ -37,7 +37,6 @@ public:
     WebManagerSetting();
 
 public:
-    void set_hostname(std::string hostname);
     int get_sta_list_selected();
     std::string get_sta_list_ssid(int index);
     std::string get_sta_list_hostname(int index);
@@ -50,6 +49,7 @@ public:
     bool save_ap_information(std::string ssid, std::string pass, std::string hostname);
     bool load_ap_settings();
     bool set_ap_enable(bool flag);
+    void set_ap_hostname(std::string hostname);
 
 public:
     //////////////////////////////////////////////////////////////
@@ -59,11 +59,13 @@ public:
     bool save_sta_information(std::string ssid, std::string pass, std::string hostname, int num);
     bool load_sta_settings(bool clear);
     bool set_sta_enable(bool flag);
+    void set_sta_hostname(std::string hostname);
 
 protected:
-    std::string _hostname;
+    std::string _sta_hostname;
     std::string _sta_ssid;
     std::string _sta_pass;
+    std::string _ap_hostname;
     std::string _ap_ssid;
     std::string _ap_pass;
     int _sta_explored_index = 0;
