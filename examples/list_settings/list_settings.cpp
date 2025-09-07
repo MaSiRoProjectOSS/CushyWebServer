@@ -158,7 +158,6 @@ void loop()
     (void)M5.update();
     if (true == M5.Btn.wasPressed()) {
         Serial.println("====================================");
-        Serial.println("------------------------------------");
         listDir(SPIFFS, "/", 1);
         Serial.println("------------------------------------");
         readFile(SPIFFS, SETTING_WIFI_SETTING_FILE);

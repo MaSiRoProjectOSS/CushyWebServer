@@ -105,15 +105,27 @@ bool WebManagerConnection::is_enable_ap()
 }
 IPAddress WebManagerConnection::get_ip_address_ap()
 {
-    return WiFi.softAPIP();
+    if (true == this->is_enable_ap()) {
+        return WiFi.softAPIP();
+    } else {
+        return INADDR_NONE;
+    }
 }
 String WebManagerConnection::get_ssid_ap()
 {
-    return String(WiFi.softAPSSID());
+    if (true == this->is_enable_ap()) {
+        return String(WiFi.softAPSSID());
+    } else {
+        return String("");
+    }
 }
 String WebManagerConnection::get_hostname_ap()
 {
-    return String(WiFi.softAPgetHostname());
+    if (true == this->is_enable_ap()) {
+        return String(WiFi.softAPgetHostname());
+    } else {
+        return String("");
+    }
 }
 // STA MODE
 bool WebManagerConnection::is_enable_sta()
@@ -122,15 +134,27 @@ bool WebManagerConnection::is_enable_sta()
 }
 IPAddress WebManagerConnection::get_ip_address_sta()
 {
-    return WiFi.localIP();
+    if (true == this->is_enable_sta()) {
+        return WiFi.localIP();
+    } else {
+        return INADDR_NONE;
+    }
 }
 String WebManagerConnection::get_ssid_sta()
 {
-    return this->_sta_ssid.c_str();
+    if (true == this->is_enable_sta()) {
+        return this->_sta_ssid.c_str();
+    } else {
+        return String("");
+    }
 }
 String WebManagerConnection::get_hostname_sta()
 {
-    return WiFi.getHostname();
+    if (true == this->is_enable_sta()) {
+        return WiFi.getHostname();
+    } else {
+        return String("");
+    }
 }
 
 bool WebManagerConnection::is_connected_sta(bool immediate)
