@@ -19,7 +19,12 @@ namespace MaSiRoProject
 namespace Web
 {
 #define INPUT_BUFFER_LIMIT (128 + 1)
-#define N_BLOCK            (32)
+
+#if SETTING_FILE_ENABLE_ENCRYPTION
+//////////////////////////////////////////////////////////////
+// ENCRYPTION
+//////////////////////////////////////////////////////////////
+#define N_BLOCK (32)
 
 const uint8_t ia[16]      = { 0x2F, 0x7E, 0x25, 0x66, 0x38, 0xB4, 0xA1, 0x47, 0x43, 0x90, 0xF1, 0x83, 0x54, 0xF1, 0x33, 0x8B };
 unsigned char ik_shift    = 0xA0;
@@ -115,12 +120,14 @@ int cbc_base64_to_text(const uint8_t key[32], const uint8_t iv[16], const char *
 
     return len;
 }
+#endif
 
 //////////////////////////////////////////////////////////////
 // Constructor
 //////////////////////////////////////////////////////////////
 WebManagerSetting::WebManagerSetting() : _error_count_spi(ERROR_COUNT_SPI_MAX), _open_fs(false)
 {
+#if SETTING_FILE_ENABLE_ENCRYPTION
     uint8_t base_mac[6];
     char base_mac_chr[18] = { 0 };
     char buffer[255];
@@ -130,6 +137,7 @@ WebManagerSetting::WebManagerSetting() : _error_count_spi(ERROR_COUNT_SPI_MAX), 
     for (int i = 0; (i < ik_len) & (i < N_BLOCK); i++) {
         ik[i] = (unsigned char)((buffer[i] + ik_shift) & 0xFF);
     }
+#endif
     if (true == SPIFFS.begin()) {
         this->_init_sta_setting(SPIFFS);
         SPIFFS.end();
@@ -571,9 +579,10 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
 {
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
+#if SETTING_FILE_ENABLE_ENCRYPTION
     char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
+#endif
     char buf[2 * INPUT_BUFFER_LIMIT] = { 0 };
-    uint16_t len;
     if (true == SPIFFS.exists(file.c_str())) {
         File dataFile = SPIFFS.open(file.c_str(), FILE_READ);
         if (!dataFile) {
@@ -587,8 +596,12 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
                 String word = dataFile.readStringUntil('\n');
                 word.replace("\r", "");
                 word.replace("\n", "");
-                len = cbc_base64_to_text(ik, ia, word.c_str(), cip);
+#if SETTING_FILE_ENABLE_ENCRYPTION
+                cbc_base64_to_text(ik, ia, word.c_str(), cip);
                 sprintf(buf, "%s", cip);
+#else
+                sprintf(buf, "%s", word.c_str());
+#endif
                 switch (line) {
                     case 1:
                         if (0 < word.length()) {
@@ -646,18 +659,29 @@ bool WebManagerSetting::_save_information(fs::FS &fs, std::string file, std::str
 {
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
-    log_d("Save information: %s", file.c_str());
+    log_d("Save information : MODE[%s] SSID[%s] HOSTNAME[%s] filename[%s]", //
+          (file == SETTING_WIFI_AP_SETTING_FILE) ? "A P" : "STA",
+          ssid.c_str(),
+          hostname.c_str(),
+          file.c_str());
+#if SETTING_FILE_ENABLE_ENCRYPTION
     char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
-    uint16_t len;
+#endif
     if (0 < ssid.length()) {
         if (0 < pass.length()) {
             File dataFile = fs.open(file.c_str(), FILE_WRITE);
-            len           = cbc_base64(ik, ia, ssid.c_str(), cip);
+#if SETTING_FILE_ENABLE_ENCRYPTION
+            cbc_base64(ik, ia, ssid.c_str(), cip);
             dataFile.printf("%s\n", (char *)cip);
-            len = cbc_base64(ik, ia, pass.c_str(), cip);
+            cbc_base64(ik, ia, pass.c_str(), cip);
             dataFile.printf("%s\n", (char *)cip);
-            len = cbc_base64(ik, ia, hostname.c_str(), cip);
+            cbc_base64(ik, ia, hostname.c_str(), cip);
             dataFile.printf("%s\n", (char *)cip);
+#else
+            dataFile.printf("%s\n", ssid.c_str());
+            dataFile.printf("%s\n", pass.c_str());
+            dataFile.printf("%s\n", hostname.c_str());
+#endif
             dataFile.close();
             result = true;
         }

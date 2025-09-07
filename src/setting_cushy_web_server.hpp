@@ -186,6 +186,10 @@ namespace Web
 #define SETTING_WIFI_STORAGE_OVERRIDE (0)
 #endif
 
+#ifndef SETTING_FILE_ENABLE_ENCRYPTION
+#define SETTING_FILE_ENABLE_ENCRYPTION (1)
+#endif
+
 //////////////////////////////////////////////////////////////
 // Thread settings
 //////////////////////////////////////////////////////////////
