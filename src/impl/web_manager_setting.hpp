@@ -46,7 +46,7 @@ public:
     //////////////////////////////////////////////////////////////
     // AP settings
     //////////////////////////////////////////////////////////////
-    bool save_ap_setting(bool enable, std::string ssid, std::string pass);
+    bool save_ap_setting(bool enable, std::string ssid, std::string pass, std::string hostname);
     bool save_ap_information(std::string ssid, std::string pass, std::string hostname);
     bool load_ap_settings();
     bool set_ap_enable(bool flag);

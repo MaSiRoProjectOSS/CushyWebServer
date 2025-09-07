@@ -69,7 +69,8 @@ public:
     bool disconnect_ap();
     bool is_enable_ap();
     IPAddress get_ip_address_ap();
-    const char *get_ssid_ap();
+    String get_ssid_ap();
+    String get_hostname_ap();
 
 public:
     void config_address_sta(IPAddress ip, IPAddress subnet, IPAddress gateway = INADDR_NONE);
@@ -78,7 +79,8 @@ public:
     bool disconnect_sta();
     bool is_enable_sta();
     IPAddress get_ip_address_sta();
-    const char *get_ssid_sta();
+    String get_ssid_sta();
+    String get_hostname_sta();
 
     void reconnect_sta();
 

@@ -43,10 +43,11 @@ public:
     IPAddress get_ip_address_ap();
     bool is_connected_ap(bool immediate = true);
     bool is_enable_ap();
-    const char *get_ssid_ap();
+    String get_ssid_ap();
+    String get_hostname_ap();
 
     bool set_ap_enable(bool flag);
-    bool save_ap_setting(bool enable, std::string ssid, std::string pass);
+    bool save_ap_setting(bool enable, std::string ssid, std::string pass, std::string hostname);
 
 public:
     //////////////////////////////////////////////////////////////
@@ -54,18 +55,21 @@ public:
     //////////////////////////////////////////////////////////////
     bool reconnect_sta();
     IPAddress get_ip_address_sta();
-    String ip_to_string(IPAddress ip);
     bool is_connected_sta(bool immediate = true);
     bool is_enable_sta();
-    const char *get_ssid_sta();
+    String get_ssid_sta();
+    String get_hostname_sta();
 
     void load_sta_settings(bool clear);
     bool set_sta_enable(bool flag);
     bool save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num);
 
-    int to_int(String data);
-
 public:
+    //////////////////////////////////////////////////////////////
+    // Convert functions
+    //////////////////////////////////////////////////////////////
+    String ip_to_string(IPAddress ip);
+    int to_int(String data);
     //////////////////////////////////////////////////////////////
     // template functions
     //////////////////////////////////////////////////////////////

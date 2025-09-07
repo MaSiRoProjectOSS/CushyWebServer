@@ -105,17 +105,21 @@ bool WebCommunication::is_enable_ap()
 {
     return this->_manager.is_enable_ap();
 }
-const char *WebCommunication::get_ssid_ap()
+String WebCommunication::get_ssid_ap()
 {
     return this->_manager.get_ssid_ap();
+}
+String WebCommunication::get_hostname_ap()
+{
+    return this->_manager.get_hostname_ap();
 }
 bool WebCommunication::set_ap_enable(bool flag)
 {
     return this->_manager.set_ap_enable(flag);
 }
-bool WebCommunication::save_ap_setting(bool enable, std::string ssid, std::string pass)
+bool WebCommunication::save_ap_setting(bool enable, std::string ssid, std::string pass, std::string hostname)
 {
-    return this->_manager.save_ap_setting(enable, ssid, pass);
+    return this->_manager.save_ap_setting(enable, ssid, pass, hostname);
 }
 
 //////////////////////////////////////////////////////////////
@@ -144,9 +148,13 @@ bool WebCommunication::is_enable_sta()
 {
     return this->_manager.is_enable_sta();
 }
-const char *WebCommunication::get_ssid_sta()
+String WebCommunication::get_ssid_sta()
 {
     return this->_manager.get_ssid_sta();
+}
+String WebCommunication::get_hostname_sta()
+{
+    return this->_manager.get_hostname_sta();
 }
 void WebCommunication::load_sta_settings(bool clear)
 {
@@ -326,7 +334,8 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
     if (true == result) {
         log_v("%s", message.c_str());
         if (true == mode_ap) {
-            this->save_ap_setting(state, ssid.c_str(), pass.c_str());
+            log_d("Set AP mode: SSID[%s] HOSTNAME[%s] %s", ssid.c_str(), hostname.c_str(), state ? "Enable" : "Disable");
+            this->save_ap_setting(state, ssid.c_str(), pass.c_str(), hostname.c_str());
             if (0 < ssid.length()) {
                 if (0 < pass.length()) {
                     if (true == state) {
@@ -339,6 +348,7 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
             if (false == state) {
                 num = -1;
             }
+            log_d("Set STA mode: SSID[%s] HOSTNAME[%s] NUM[%d] %s", ssid.c_str(), hostname.c_str(), num, state ? "Enable" : "Disable");
             this->save_sta_setting(state, ssid.c_str(), pass.c_str(), hostname.c_str(), num);
             if (0 < ssid.length()) {
                 if (0 < pass.length()) {
@@ -356,11 +366,11 @@ void WebCommunication::handle_network_get(AsyncWebServerRequest *request)
     // AP Mode
     data.append("\"AP\": {");
     data.append("\"ssid\": \"");
-    data.append(this->_manager.get_ssid_ap());
+    data.append(this->_manager.get_ssid_ap().c_str());
     data.append("\", \"ip\":\"");
     data.append(this->ip_to_string(this->_manager.get_ip_address_ap()).c_str());
     data.append("\", \"hostname\":\"");
-    data.append("");
+    data.append(this->_manager.get_hostname_ap().c_str());
     data.append("\", \"enable\":");
     data.append((true == this->_manager.is_enable_ap()) ? "1" : "0");
     data.append("},");
@@ -368,7 +378,7 @@ void WebCommunication::handle_network_get(AsyncWebServerRequest *request)
     // STA Mode
     data.append("\"STA\": {");
     data.append("\"ssid\": \"");
-    data.append(this->_manager.get_ssid_sta());
+    data.append(this->_manager.get_ssid_sta().c_str());
     data.append("\", \"ip\":\"");
     data.append(this->ip_to_string(this->_manager.get_ip_address_sta()).c_str());
     data.append("\", \"enable\":");

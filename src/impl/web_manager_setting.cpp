@@ -163,7 +163,7 @@ bool WebManagerSetting::set_ap_enable(bool flag)
 #endif
     return result;
 }
-bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::string pass)
+bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::string pass, std::string hostname)
 {
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
@@ -172,7 +172,7 @@ bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::stri
         if (true == SPIFFS.begin()) {
             this->_save_settings_wifi(SPIFFS, enable, this->_enable_sta);
             if (true == enable) {
-                result = this->_save_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, ssid, pass, this->_hostname);
+                result = this->_save_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, ssid, pass, hostname);
             }
             SPIFFS.end();
         }
@@ -244,7 +244,7 @@ bool WebManagerSetting::load_ap_settings()
     }
 #else
     (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
-    result            = true;
+    result = true;
 #endif
     return result;
 }
@@ -266,7 +266,7 @@ bool WebManagerSetting::set_sta_enable(bool flag)
         }
     }
 #else
-    result            = true;
+    result = true;
 #endif
     return result;
 }
@@ -294,7 +294,7 @@ bool WebManagerSetting::save_sta_setting(bool enable, std::string ssid, std::str
         }
     }
 #else
-    result            = true;
+    result = true;
 #endif
     return result;
 }
@@ -344,9 +344,9 @@ bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass,
         }
     }
 #else
-    ssid              = SETTING_WIFI_STA_DEFAULT_SSID;
-    pass              = SETTING_WIFI_STA_DEFAULT_PASSWORD;
-    result            = true;
+    ssid   = SETTING_WIFI_STA_DEFAULT_SSID;
+    pass   = SETTING_WIFI_STA_DEFAULT_PASSWORD;
+    result = true;
 #endif
     (void)this->set_sta_information(ssid, pass);
     return result;
@@ -498,14 +498,17 @@ bool WebManagerSetting::_save_settings_wifi(fs::FS &fs, bool ap_mode, bool sta_m
 {
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
-    log_d("Save settings: %s", SETTING_WIFI_SETTING_FILE);
+    log_d("Save settings: AP[%s] STA[%s] %s", //
+          (true == ap_mode) ? "True" : "False",
+          (true == sta_mode) ? "True" : "False",
+          SETTING_WIFI_SETTING_FILE);
     File dataFile = fs.open(SETTING_WIFI_SETTING_FILE, FILE_WRITE);
     dataFile.printf("%d\n", (ap_mode ? 1 : 0));
     dataFile.printf("%d\n", (sta_mode ? 1 : 0));
     dataFile.close();
     result = true;
 #else
-    result            = true;
+    result = true;
 #endif
     this->_enable_ap  = ap_mode;
     this->_enable_sta = sta_mode;

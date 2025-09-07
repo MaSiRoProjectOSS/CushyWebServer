@@ -159,7 +159,7 @@ namespace Web
  * @brief Wifi SSID : STA mode
  *
  */
-#define SETTING_WIFI_STA_DEFAULT_SSID "CushyWebServer"
+#define SETTING_WIFI_STA_DEFAULT_SSID "CushyWebServerSTA"
 #endif
 
 #ifndef SETTING_WIFI_STA_DEFAULT_PASSWORD
@@ -191,10 +191,10 @@ namespace Web
 //////////////////////////////////////////////////////////////
 // Task assigned
 #ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI
-#define SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI (4096 * 3)
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI (4096 * 2)
 #endif
 #ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER
-#define SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER (4096 * 3)
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER (4096 * 4)
 #endif
 // PRIORITY (0(LOW) - 25(height)))
 #ifndef SETTING_THREAD_PRIORITY_SERVER

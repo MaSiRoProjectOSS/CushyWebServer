@@ -98,6 +98,7 @@ std::vector<WebManagerConnection::NetworkList> WebManagerConnection::get_wifi_li
     }
     return list;
 }
+// AP MODE
 bool WebManagerConnection::is_enable_ap()
 {
     return this->_connect_ap && this->_enable_ap;
@@ -106,10 +107,15 @@ IPAddress WebManagerConnection::get_ip_address_ap()
 {
     return WiFi.softAPIP();
 }
-const char *WebManagerConnection::get_ssid_ap()
+String WebManagerConnection::get_ssid_ap()
 {
-    return this->_ap_ssid.c_str();
+    return String(WiFi.softAPSSID());
 }
+String WebManagerConnection::get_hostname_ap()
+{
+    return String(WiFi.softAPgetHostname());
+}
+// STA MODE
 bool WebManagerConnection::is_enable_sta()
 {
     return this->_connect_ap && this->_enable_sta;
@@ -118,9 +124,13 @@ IPAddress WebManagerConnection::get_ip_address_sta()
 {
     return WiFi.localIP();
 }
-const char *WebManagerConnection::get_ssid_sta()
+String WebManagerConnection::get_ssid_sta()
 {
     return this->_sta_ssid.c_str();
+}
+String WebManagerConnection::get_hostname_sta()
+{
+    return WiFi.getHostname();
 }
 
 bool WebManagerConnection::is_connected_sta(bool immediate)
@@ -213,6 +223,7 @@ bool WebManagerConnection::reconnect_ap(std::string ssid, std::string pass, bool
     if (true == result) {
         this->_connect_ap = result;
     }
+    log_d("AP Connect result : %s", result ? "true" : "false");
     return result;
 }
 bool WebManagerConnection::reconnect_sta(std::string ssid, std::string pass, int num, bool save)
@@ -233,6 +244,7 @@ bool WebManagerConnection::reconnect_sta(std::string ssid, std::string pass, int
         this->_sta_explored_index = 0;
         this->_connect_sta        = result;
     }
+    log_d("STA Connect result : %s", result ? "true" : "false");
     return result;
 }
 
