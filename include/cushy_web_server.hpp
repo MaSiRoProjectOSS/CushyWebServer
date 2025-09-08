@@ -91,21 +91,23 @@ public:
     //////////////////////////////////////////////////////////////
     // Getter and Setter
     //////////////////////////////////////////////////////////////
-    void reconnect_ap();
-    void reconnect_sta();
-    bool is_sntp_sync();
-    bool is_enable(NETWORK_INTERFACE interface);
     IPAddress get_ip_address(NETWORK_INTERFACE interface);
     String get_ssid(NETWORK_INTERFACE interface);
     WEB_VIEWER_MODE get_mode();
-    time_t millis_to_time(unsigned long ms);
 
     bool set_enable(NETWORK_INTERFACE interface, bool flag);
-    bool save_ap_setting(bool enable, std::string ssid, std::string pass, std::string hostname);
-    bool save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num);
+    bool get_information(NETWORK_INTERFACE interface, bool &enable, String &ssid, String &hostname, String &ip);
 
-    void get_ap_information(bool &enable, String &ssid, String &hostname, String &ip);
-    void get_sta_information(bool &enable, String &ssid, String &hostname, String &ip);
+public:
+    //////////////////////////////////////////////////////////////
+    // Control functions
+    //////////////////////////////////////////////////////////////
+    bool is_sntp_sync();
+    bool is_enable(NETWORK_INTERFACE interface);
+    void reconnect(NETWORK_INTERFACE interface);
+    bool save_setting(NETWORK_INTERFACE interface, bool enable, std::string ssid, std::string pass, std::string hostname, int num = 0);
+
+    time_t millis_to_time(unsigned long ms);
 
 public:
     //////////////////////////////////////////////////////////////

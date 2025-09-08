@@ -368,13 +368,18 @@ bool CushyWebServer::post_json(String url, String payload_json, JsonDocument *re
 //////////////////////////////////////////////////////////////
 // Getter and Setter
 //////////////////////////////////////////////////////////////
-void CushyWebServer::reconnect_ap()
+void CushyWebServer::reconnect(NETWORK_INTERFACE interface)
 {
-    flag_list_reconnect_ap = true;
-}
-void CushyWebServer::reconnect_sta()
-{
-    flag_list_reconnect_sta = true;
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            flag_list_reconnect_ap = true;
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            flag_list_reconnect_sta = true;
+            break;
+        default:
+            break;
+    }
 }
 bool CushyWebServer::is_sntp_sync()
 {
@@ -395,27 +400,43 @@ bool CushyWebServer::set_enable(NETWORK_INTERFACE interface, bool flag)
     }
     return result;
 }
-bool CushyWebServer::save_ap_setting(bool enable, std::string ssid, std::string pass, std::string hostname)
+bool CushyWebServer::save_setting(NETWORK_INTERFACE interface, bool enable, std::string ssid, std::string pass, std::string hostname, int num)
 {
-    return ctrl_web.save_ap_setting(enable, ssid, pass, hostname);
+    bool result = false;
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            result = ctrl_web.save_ap_setting(enable, ssid, pass, hostname);
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            result = ctrl_web.save_sta_setting(enable, ssid, pass, hostname, num);
+            break;
+        default:
+            break;
+    }
+    return result;
 }
-bool CushyWebServer::save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num)
+bool CushyWebServer::get_information(NETWORK_INTERFACE interface, bool &enable, String &ssid, String &hostname, String &ip)
 {
-    return ctrl_web.save_sta_setting(enable, ssid, pass, hostname, num);
-}
-void CushyWebServer::get_ap_information(bool &enable, String &ssid, String &hostname, String &ip)
-{
-    enable   = ctrl_web.is_enable_ap();
-    ssid     = ctrl_web.get_ssid_ap();
-    hostname = ctrl_web.get_hostname_ap();
-    ip       = ctrl_web.ip_to_string(ctrl_web.get_ip_address_ap()).c_str();
-}
-void CushyWebServer::get_sta_information(bool &enable, String &ssid, String &hostname, String &ip)
-{
-    enable   = ctrl_web.is_enable_sta();
-    ssid     = ctrl_web.get_ssid_sta();
-    hostname = ctrl_web.get_hostname_sta();
-    ip       = ctrl_web.ip_to_string(ctrl_web.get_ip_address_sta()).c_str();
+    bool result = false;
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            enable   = ctrl_web.is_enable_ap();
+            ssid     = ctrl_web.get_ssid_ap();
+            hostname = ctrl_web.get_hostname_ap();
+            ip       = ctrl_web.ip_to_string(ctrl_web.get_ip_address_ap()).c_str();
+            result   = true;
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            enable   = ctrl_web.is_enable_sta();
+            ssid     = ctrl_web.get_ssid_sta();
+            hostname = ctrl_web.get_hostname_sta();
+            ip       = ctrl_web.ip_to_string(ctrl_web.get_ip_address_sta()).c_str();
+            result   = true;
+            break;
+        default:
+            break;
+    }
+    return result;
 }
 
 bool CushyWebServer::is_enable(NETWORK_INTERFACE interface)

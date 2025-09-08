@@ -131,26 +131,8 @@ void loop()
             Serial.println("====================================");
             Serial.println("reconnect sta/ap");
             Serial.println("====================================");
-            cushy.reconnect_sta();
-            cushy.reconnect_ap();
-            {
-                bool enable     = false;
-                String ssid     = "";
-                String hostname = "";
-                String ip       = "";
-                cushy.get_ap_information(enable, ssid, hostname, ip);
-                Serial.printf("AP : [%s] SSID[%s] HOSTNAME[%s] IP[%s]\n", //
-                              (true == enable) ? "Enabled" : "Disabled",
-                              ssid.c_str(),
-                              hostname.c_str(),
-                              ip.c_str());
-                cushy.get_sta_information(enable, ssid, hostname, ip);
-                Serial.printf("STA: [%s] SSID[%s] HOSTNAME[%s] IP[%s]\n", //
-                              (true == enable) ? "Enabled" : "Disabled",
-                              ssid.c_str(),
-                              hostname.c_str(),
-                              ip.c_str());
-            }
+            cushy.reconnect(CushyWebServer::NETWORK_INTERFACE::NW_IF_WIFI_STA);
+            cushy.reconnect(CushyWebServer::NETWORK_INTERFACE::NW_IF_WIFI_AP);
             break;
         case 3:
             Serial.println("====================================");
@@ -186,13 +168,13 @@ void loop()
                 String ssid     = "";
                 String hostname = "";
                 String ip       = "";
-                cushy.get_ap_information(enable, ssid, hostname, ip);
+                cushy.get_information(CushyWebServer::NETWORK_INTERFACE::NW_IF_WIFI_AP, enable, ssid, hostname, ip);
                 Serial.printf("AP : [%s] SSID[%s] HOSTNAME[%s] IP[%s]\n", //
                               (true == enable) ? "Enabled" : "Disabled",
                               ssid.c_str(),
                               hostname.c_str(),
                               ip.c_str());
-                cushy.get_sta_information(enable, ssid, hostname, ip);
+                cushy.get_information(CushyWebServer::NETWORK_INTERFACE::NW_IF_WIFI_STA, enable, ssid, hostname, ip);
                 Serial.printf("STA: [%s] SSID[%s] HOSTNAME[%s] IP[%s]\n", //
                               (true == enable) ? "Enabled" : "Disabled",
                               ssid.c_str(),
