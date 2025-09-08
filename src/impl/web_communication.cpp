@@ -17,7 +17,6 @@
 #ifndef ELEGANTOTA_USE_ASYNC_WEBSERVER
 #error "Please define ELEGANTOTA_USE_ASYNC_WEBSERVER. ref https://docs.elegantota.pro/async-mode/"
 #endif
-#define ELEGANTOTA_USE_ASYNC_WEBSERVER 1
 #include <ElegantOTA.h>
 #endif
 
@@ -88,8 +87,13 @@ bool WebCommunication::reconnect_ap()
     if (true == this->_manager.is_enable_ap()) {
         result = this->_manager.reconnect_ap(true);
         if (true == result) {
-            log_i("MODE[A P] SSID[%s] IP[%s] ", this->get_ssid_ap(), this->get_ip_address_ap().toString().c_str());
+            log_i("MODE[A P] SSID[%s] Hostname[%s] IP[%s] ", //
+                  this->get_ssid_ap().c_str(),
+                  this->get_hostname_ap().c_str(),
+                  this->get_ip_address_ap().toString().c_str());
         }
+    } else {
+        result = this->_manager.disconnect_ap();
     }
     return result;
 }
@@ -131,8 +135,13 @@ bool WebCommunication::reconnect_sta()
     if (true == this->_manager.is_enable_sta()) {
         result = this->_manager.reconnect_sta(true);
         if (true == result) {
-            log_i("MODE[STA] SSID[%s] IP[%s] ", this->get_ssid_sta(), this->get_ip_address_sta().toString().c_str());
+            log_i("MODE[STA] SSID[%s] Hostname[%s] IP[%s] ", //
+                  this->get_ssid_sta().c_str(),
+                  this->get_hostname_sta().c_str(),
+                  this->get_ip_address_sta().toString().c_str());
         }
+    } else {
+        result = this->_manager.disconnect_sta();
     }
     return result;
 }
@@ -335,13 +344,18 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
         log_v("%s", message.c_str());
         if (true == mode_ap) {
             log_d("Set AP mode: SSID[%s] HOSTNAME[%s] %s", ssid.c_str(), hostname.c_str(), state ? "Enable" : "Disable");
-            this->_manager.set_ap_hostname(hostname.c_str());
             this->save_ap_setting(state, ssid.c_str(), pass.c_str(), hostname.c_str());
-            if (0 < ssid.length()) {
-                if (0 < pass.length()) {
-                    if (true == state) {
-                        this->_manager.reconnect_ap(ssid.c_str(), pass.c_str(), false);
+            if (false == state) {
+                this->_manager.disconnect_ap();
+            } else {
+                result = false;
+                if (0 < ssid.length()) {
+                    if (0 < pass.length()) {
+                        result = this->_manager.reconnect_ap(ssid.c_str(), pass.c_str(), false);
                     }
+                }
+                if (false == result) {
+                    log_w("Not enough arguments.");
                 }
             }
         } else {
@@ -351,11 +365,18 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
             }
             log_d("Set STA mode: SSID[%s] HOSTNAME[%s] NUM[%d] %s", ssid.c_str(), hostname.c_str(), num, state ? "Enable" : "Disable");
             this->save_sta_setting(state, ssid.c_str(), pass.c_str(), hostname.c_str(), num);
-            if (0 < ssid.length()) {
-                if (0 < pass.length()) {
-                    if (true == state) {
-                        this->_manager.reconnect_sta(ssid.c_str(), pass.c_str(), num, false);
+
+            if (false == state) {
+                this->_manager.disconnect_sta();
+            } else {
+                result = false;
+                if (0 < ssid.length()) {
+                    if (0 < pass.length()) {
+                        result = this->_manager.reconnect_sta(ssid.c_str(), pass.c_str(), num, false);
                     }
+                }
+                if (false == result) {
+                    log_w("Not enough arguments.");
                 }
             }
         }
@@ -364,16 +385,17 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
 void WebCommunication::handle_network_get(AsyncWebServerRequest *request)
 {
     std::string data = "{";
+    bool mode_ap     = this->_manager.is_enable_ap();
     // AP Mode
     data.append("\"AP\": {");
     data.append("\"ssid\": \"");
-    data.append(this->_manager.get_ssid_ap().c_str());
+    data.append(mode_ap ? this->_manager.get_ssid_ap().c_str() : SETTING_WIFI_AP_DEFAULT_SSID);
     data.append("\", \"ip\":\"");
     data.append(this->ip_to_string(this->_manager.get_ip_address_ap()).c_str());
     data.append("\", \"hostname\":\"");
-    data.append(this->_manager.get_hostname_ap().c_str());
+    data.append(mode_ap ? this->_manager.get_hostname_ap().c_str() : SETTING_WIFI_HOSTNAME);
     data.append("\", \"enable\":");
-    data.append((true == this->_manager.is_enable_ap()) ? "1" : "0");
+    data.append((true == mode_ap) ? "1" : "0");
     data.append("},");
 
     // STA Mode

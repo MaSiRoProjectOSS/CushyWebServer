@@ -1,6 +1,6 @@
 /**
  * @file custom_cushy_web_server.hpp
- * @brief CushyWebServer を継承し、HTMLルートとJSON POSTリクエストのハンドリングを追加したカスタムWebサーバークラスの定義
+ * @brief 派生クラスでWebサーバーのセットアップとfavicon、HTMLルートの処理をカスタマイズするヘッダ
  * @version 0.3.0
  * @date 2023-03-28
  *
@@ -16,6 +16,7 @@ class CustomCushyWebServer : public CushyWebServer {
 public:
 protected:
     bool setup_server(AsyncWebServer *server) override;
+    void handle_favicon_ico(AsyncWebServerRequest *request) override;
 
 private:
     void handle_html_root(AsyncWebServerRequest *request);

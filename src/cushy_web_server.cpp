@@ -23,7 +23,8 @@ const int THREAD_SEEK_INTERVAL_WIFI  = (10 * 1000);
 const int THREAD_RETRY_INTERVAL_WIFI = (5 * 1000);
 const int THREAD_INTERVAL_WIFI       = (25);
 
-volatile bool flag_list_reconnect            = false;
+volatile bool flag_list_reconnect_ap         = false;
+volatile bool flag_list_reconnect_sta        = false;
 volatile bool flag_thread_wifi_initialized   = false;
 volatile bool flag_thread_wifi_fin           = false;
 volatile bool flag_thread_server_initialized = false;
@@ -178,6 +179,10 @@ void thread_wifi(void *args)
                 set_mode(CushyWebServer::WEB_VIEWER_MODE::DISCONNECTED);
             }
             previous_mode = _mode;
+            if (true == flag_list_reconnect_ap) {
+                flag_list_reconnect_ap = false;
+                ctrl_web.reconnect_ap();
+            }
             if (false == connected_sta) {
                 // do nothing
             } else {
@@ -186,16 +191,18 @@ void thread_wifi(void *args)
                     if (err_begin < millis()) {
                         err_begin = millis() + (1000 * SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT);
                         ctrl_web.load_sta_settings(false);
-                        log_d("%s", "Retry to connect");
+                        flag_list_reconnect_sta = false;
                     }
                 } else {
                     while (false == flag_thread_wifi_fin) {
                         if (true != ctrl_web.is_connected_sta()) {
                             break;
                         }
-                        if (true == flag_list_reconnect) {
-                            flag_list_reconnect = false;
+                        if (true == flag_list_reconnect_sta) {
+                            flag_list_reconnect_sta = false;
                             ctrl_web.load_sta_settings(true);
+                        }
+                        if (true == flag_list_reconnect_ap) {
                             break;
                         }
                         vTaskDelay(THREAD_RETRY_INTERVAL_WIFI);
@@ -361,9 +368,13 @@ bool CushyWebServer::post_json(String url, String payload_json, JsonDocument *re
 //////////////////////////////////////////////////////////////
 // Getter and Setter
 //////////////////////////////////////////////////////////////
+void CushyWebServer::reconnect_ap()
+{
+    flag_list_reconnect_ap = true;
+}
 void CushyWebServer::reconnect_sta()
 {
-    flag_list_reconnect = true;
+    flag_list_reconnect_sta = true;
 }
 bool CushyWebServer::is_sntp_sync()
 {

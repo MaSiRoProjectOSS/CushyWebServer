@@ -42,10 +42,31 @@ void CustomCushyWebServer::handle_html_root(AsyncWebServerRequest *request)
     request->send(response);
 }
 
-bool CustomCushyWebServer::setup_server(AsyncWebServer *server)
+void CustomCushyWebServer::handle_json_post(AsyncWebServerRequest *request)
 {
-    server->on("/", std::bind(&CustomCushyWebServer::handle_html_root, this, std::placeholders::_1));
-    return true;
+    bool result      = false;
+    char buffer[255] = "";
+    try {
+        int len = request->args();
+        if (request->args() > 0) {
+            if (true == request->hasArg("id")) {
+                int value = 1000 + this->to_int(request->arg("id"));
+                sprintf(buffer, "{ \"value\": %d }", value);
+            }
+        } else {
+            sprintf(buffer, "{ \"length\": %d }", len);
+        }
+        result = true;
+    } catch (...) {
+        result = false;
+    }
+
+    std::string json = this->template_json_result(result, buffer, "response data");
+
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json; charset=utf-8", json.c_str());
+    response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_NO_CACHE);
+    response->addHeader("X-Content-Type-Options", "nosniff");
+    request->send(response);
 }
 
 void CustomCushyWebServer::handle_favicon_ico(AsyncWebServerRequest *request)
@@ -54,4 +75,11 @@ void CustomCushyWebServer::handle_favicon_ico(AsyncWebServerRequest *request)
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
+}
+
+bool CustomCushyWebServer::setup_server(AsyncWebServer *server)
+{
+    server->on("/", std::bind(&CustomCushyWebServer::handle_html_root, this, std::placeholders::_1));
+    server->on("/post", std::bind(&CustomCushyWebServer::handle_json_post, this, std::placeholders::_1));
+    return true;
 }

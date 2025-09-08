@@ -91,6 +91,7 @@ public:
     //////////////////////////////////////////////////////////////
     // Getter and Setter
     //////////////////////////////////////////////////////////////
+    void reconnect_ap();
     void reconnect_sta();
     bool is_sntp_sync();
     bool is_enable(NETWORK_INTERFACE interface);

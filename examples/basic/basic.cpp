@@ -7,8 +7,6 @@
  * @copyright Copyright (c) 2023 / MaSiRo Project.
  *
  */
-#include <Arduino.h>
-#include <M5Atom.h>
 #include <cushy_web_server.hpp>
 
 class CustomCushyWebServer : public CushyWebServer {
@@ -32,17 +30,7 @@ CustomCushyWebServer cushy;
 
 void setup()
 {
-    (void)M5.begin(true, false, true);
-    (void)M5.dis.begin();
-    (void)M5.dis.fillpix(CRGB::White);
-    bool result = false;
-    do {
-        result = cushy.begin();
-        if (false == result) {
-            delay(1000);
-        }
-    } while (false == result);
-    (void)M5.dis.fillpix(CRGB::Green);
+    cushy.begin();
 }
 
 void loop()

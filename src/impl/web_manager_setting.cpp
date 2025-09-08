@@ -138,10 +138,12 @@ WebManagerSetting::WebManagerSetting() : _error_count_spi(ERROR_COUNT_SPI_MAX), 
         ik[i] = (unsigned char)((buffer[i] + ik_shift) & 0xFF);
     }
 #endif
+#if SETTING_WIFI_STORAGE_SPI_FS
     if (true == SPIFFS.begin()) {
         this->_init_sta_setting(SPIFFS);
         SPIFFS.end();
     }
+#endif
     (void)this->set_ap_hostname(SETTING_WIFI_HOSTNAME);
     (void)this->set_sta_hostname(SETTING_WIFI_HOSTNAME);
     (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
@@ -181,6 +183,7 @@ bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::stri
         if (true == SPIFFS.begin()) {
             this->_save_settings_wifi(SPIFFS, enable, this->_enable_sta);
             if (true == enable) {
+                this->set_ap_hostname(hostname.c_str());
                 result = this->_save_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, ssid, pass, hostname);
             }
             SPIFFS.end();
@@ -252,7 +255,7 @@ bool WebManagerSetting::load_ap_settings()
         }
     }
 #else
-    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
     result = true;
 #endif
     return result;
@@ -655,8 +658,8 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
         }
     }
 #else
-    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
-    (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
+    (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
     result = true;
 #endif
     log_d("Load information : MODE[%s] SSID[%s] HOSTNAME[%s] filename[%s]",

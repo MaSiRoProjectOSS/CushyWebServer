@@ -176,8 +176,8 @@ void loop()
 | SETTING_THREAD_CORE_CUSHY_WEB_SERVER     |          (1) | スレッドを動作させているCore番号                                                   |
 | SETTING_THREAD_PRIORITY_SERVER           |          (5) | Webサーバー スレッドのプライオリティ(値が小さいほど優先度が低い)                   |
 | SETTING_THREAD_PRIORITY_WIFI             |          (2) | WiFi接続 スレッドのプライオリティ(値が小さいほど優先度が低い)                      |
-| SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI   |   (4096 * 2) | Webサーバー スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。 |
-| SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER |   (4096 * 2) | WiFi接続 スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。    |
+| SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI   |   (1024 * 3) | Webサーバー スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。 |
+| SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER |   (1024 * 8) | WiFi接続 スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。    |
 
 ## Requirement
 
@@ -185,11 +185,9 @@ This system uses the following libraries.
 
 * [m5stack/M5Atom](https://github.com/m5stack/M5Atom?utm_source=platformio&utm_medium=piohome)
 * [fastled/FastLED](https://github.com/Makuna/NeoPixelBus?utm_source=platformio&utm_medium=piohome)
-* [ayushsharma82/ElegantOTA](https://github.com/ayushsharma82/ElegantOTA)
 * [ESP32Async/ESPAsyncWebServer](https://registry.platformio.org/libraries/ESP32Async/ESPAsyncWebServer)
+* [ayushsharma82/ElegantOTA](https://github.com/ayushsharma82/ElegantOTA)
 * [bblanchon/ArduinoJson](https://github.com/bblanchon/ArduinoJson)
-* [suculent/AESLib](https://github.com/suculent/thinx-aes-lib)
-
 
 ## Changelog
 
@@ -201,25 +199,10 @@ It is listed [here](./Changelog).
 
 ## Support
 
-バグとかありましたら、下記に連絡を頂けると助かります。
-[Twitter:Master_Akari](https://twitter.com/Master_Akari)
+バグとかありましたら、Issueを書いてね。
 
 ## Roadmap
 
-* ファイルサイズのスリム化
-  * Ver.4.0以降は、M5ATOMだと容量圧迫により書き込み不可能（OTAなど削りHuge_appのみ動作）
-* Network ページ
-  * AP/STAの有効無効が設定出来るようにする。
-    * 両方を閉じるとアクセス不可になるため、どちらかが有効になるようにする。
-      * AP
-      * STA
-      * AP and STA
-  * STAは複数の接続優先度を持てるため、それを選択可能にする。
-* URL設定
-  * 公開しているＵＲＬは固定値のため、設定で変更可能にする。（ビルド時のみ）
-
-
-<!--
 Update irregularly.
 
 <div style="display: flex">
@@ -227,7 +210,6 @@ Update irregularly.
     <span style="">Next Update&nbsp;:&nbsp; </span>
     <span style="">No plans.</span>
 </div>
--->
 
 
 ## Contributing
@@ -246,6 +228,7 @@ We offer heartfelt thanks to the open-source community for the invaluable gifts 
 
 ---
 
+<div hidden>
 <!--
 Apply styles when markdown
 -->
@@ -315,3 +298,4 @@ h5::before {
     top: 8px;
 }
 </style>
+</div>

@@ -63,7 +63,7 @@ namespace Web
  * @brief Wifi HOSTNAME
  *
  */
-#define SETTING_WIFI_HOSTNAME ""
+#define SETTING_WIFI_HOSTNAME "CushyWebServer"
 #endif
 
 #ifndef SETTING_WIFI_SETTING_FILE
@@ -99,7 +99,7 @@ namespace Web
  * @brief Wifi SSID : AP mode
  *
  */
-#define SETTING_WIFI_AP_DEFAULT_SSID "CushyWebServer"
+#define SETTING_WIFI_AP_DEFAULT_SSID "CushyWebServerAP"
 #endif
 
 #ifndef SETTING_WIFI_AP_DEFAULT_PASSWORD
@@ -195,10 +195,10 @@ namespace Web
 //////////////////////////////////////////////////////////////
 // Task assigned
 #ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI
-#define SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI (4096 * 2)
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI (1024 * 3)
 #endif
 #ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER
-#define SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER (4096 * 4)
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER (1024 * 8)
 #endif
 // PRIORITY (0(LOW) - 25(height)))
 #ifndef SETTING_THREAD_PRIORITY_SERVER
