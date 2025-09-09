@@ -183,7 +183,7 @@ void thread_wifi(void *args)
                 flag_list_reconnect_ap = false;
                 ctrl_web.reconnect_ap();
             }
-            if (false == connected_sta) {
+            if ((false == connected_sta) && (false == flag_list_reconnect_sta)) {
                 // do nothing
             } else {
                 if (false == ctrl_web.reconnect_sta()) {
@@ -201,6 +201,7 @@ void thread_wifi(void *args)
                         if (true == flag_list_reconnect_sta) {
                             flag_list_reconnect_sta = false;
                             ctrl_web.load_sta_settings(true);
+                            break;
                         }
                         if (true == flag_list_reconnect_ap) {
                             break;
@@ -225,6 +226,8 @@ void thread_wifi(void *args)
 //////////////////////////////////////////////////////////////
 CushyWebServer::CushyWebServer()
 {
+    ctrl_web.set_callback_reconnect_ap(std::bind(&CushyWebServer::reconnect, this, NETWORK_INTERFACE::NW_IF_WIFI_AP));
+    ctrl_web.set_callback_reconnect_sta(std::bind(&CushyWebServer::reconnect, this, NETWORK_INTERFACE::NW_IF_WIFI_STA));
 }
 CushyWebServer::~CushyWebServer()
 {
@@ -373,11 +376,14 @@ void CushyWebServer::reconnect(NETWORK_INTERFACE interface)
     switch (interface) {
         case NETWORK_INTERFACE::NW_IF_WIFI_AP:
             flag_list_reconnect_ap = true;
+            log_d("Request reconnect : AP");
             break;
         case NETWORK_INTERFACE::NW_IF_WIFI_STA:
             flag_list_reconnect_sta = true;
+            log_d("Request reconnect : STA");
             break;
         default:
+            log_d("Request reconnect : Unknown");
             break;
     }
 }
@@ -439,6 +445,21 @@ bool CushyWebServer::get_information(NETWORK_INTERFACE interface, bool &enable, 
     return result;
 }
 
+bool CushyWebServer::is_connected(NETWORK_INTERFACE interface)
+{
+    bool result = false;
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            result = ctrl_web.is_connected_ap();
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            result = ctrl_web.is_connected_sta();
+            break;
+        default:
+            break;
+    }
+    return result;
+}
 bool CushyWebServer::is_enable(NETWORK_INTERFACE interface)
 {
     bool result = false;

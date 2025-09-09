@@ -104,6 +104,7 @@ public:
     //////////////////////////////////////////////////////////////
     bool is_sntp_sync();
     bool is_enable(NETWORK_INTERFACE interface);
+    bool is_connected(NETWORK_INTERFACE interface);
     void reconnect(NETWORK_INTERFACE interface);
     bool save_setting(NETWORK_INTERFACE interface, bool enable, std::string ssid, std::string pass, std::string hostname, int num = 0);
 

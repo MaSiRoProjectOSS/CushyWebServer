@@ -451,6 +451,16 @@ bool WebManagerSetting::_setup()
                 }
             }
 
+#if SETTING_FILE_ENABLE_ENCRYPTION
+            // File encryption process
+            this->_check_encryption(SPIFFS, SETTING_WIFI_AP_SETTING_FILE);
+            this->_check_encryption(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE);
+            for (int i = 0; i < SETTING_WIFI_STA_FILE_MAX; i++) {
+                char buffer[32];
+                sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, i);
+                this->_check_encryption(SPIFFS, buffer);
+            }
+#endif
             SPIFFS.end();
             this->_error_count_spi = this->ERROR_COUNT_SPI_MAX;
         } else {
@@ -623,12 +633,82 @@ String WebManagerSetting::file_readString(const char *path)
 // private function
 ////////////////////////////////////////////////////
 
+#if SETTING_FILE_ENABLE_ENCRYPTION
+bool WebManagerSetting::_check_encryption(fs::FS &fs, std::string file)
+{
+    bool result = false;
+#if SETTING_WIFI_STORAGE_SPI_FS
+    char buf[2 * INPUT_BUFFER_LIMIT] = { 0 };
+
+    if (true == SPIFFS.exists(file.c_str())) {
+        File dataFile = SPIFFS.open(file.c_str(), FILE_READ);
+        if (!dataFile) {
+            result = false;
+        } else {
+            result               = true;
+            bool flag_encryption = true;
+            bool flag_break      = false;
+            int line             = 1;
+            std::string ssid     = "";
+            std::string pass     = "";
+            std::string hostname = "";
+            while (dataFile.available()) {
+                String word = dataFile.readStringUntil('\n');
+                word.replace("\r", "");
+                word.replace("\n", "");
+
+                switch (line) {
+                    case 1:
+                        // ENCRYPTION
+                        if (0 < word.length()) {
+                            flag_encryption = !word.equals(WebManagerSetting::SETTING_FILE_HEADER);
+                            flag_break      = flag_encryption;
+                        }
+                        break;
+                    case 2:
+                        if (0 < word.length()) {
+                            ssid = buf;
+                        }
+                        break;
+                    case 3:
+                        if (0 < word.length()) {
+                            pass = buf;
+                        }
+                        break;
+                    case 4:
+                        if (0 < word.length()) {
+                            hostname = buf;
+                        }
+                        break;
+                    default:
+                        flag_break = true;
+                        break;
+                }
+                line++;
+                if (true == flag_break) {
+                    break;
+                }
+            }
+            dataFile.close();
+            if (true == flag_encryption) {
+                this->_save_information(fs, file, ssid, pass, hostname);
+            }
+        }
+    }
+#else
+    result = true;
+#endif
+    return result;
+}
+#endif
+
 bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mode_ap)
 {
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
 #if SETTING_FILE_ENABLE_ENCRYPTION
     char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
+    bool flag_encryption             = true;
 #endif
     char buf[2 * INPUT_BUFFER_LIMIT] = { 0 };
     if (true == SPIFFS.exists(file.c_str())) {
@@ -645,13 +725,38 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
                 word.replace("\r", "");
                 word.replace("\n", "");
 #if SETTING_FILE_ENABLE_ENCRYPTION
-                cbc_base64_to_text(ik, ia, word.c_str(), cip);
-                sprintf(buf, "%s", cip);
+                if (true == flag_encryption) {
+                    cbc_base64_to_text(ik, ia, word.c_str(), cip);
+                    sprintf(buf, "%s", cip);
+                } else {
+                    sprintf(buf, "%s", word.c_str());
+                }
 #else
                 sprintf(buf, "%s", word.c_str());
 #endif
                 switch (line) {
                     case 1:
+                        // ENCRYPTION
+#if SETTING_FILE_ENABLE_ENCRYPTION
+                        if (0 < word.length()) {
+                            flag_encryption = !word.equals(WebManagerSetting::SETTING_FILE_HEADER);
+                        }
+                        if (true == flag_encryption) {
+                            cbc_base64_to_text(ik, ia, word.c_str(), cip);
+                            sprintf(buf, "%s", cip);
+                            if (WebManagerSetting::SETTING_FILE_HEADER != buf) {
+                                flag_break = true;
+                            }
+                        }
+#else
+                        if (0 < word.length()) {
+                            if (false == word.equals(WebManagerSetting::SETTING_FILE_HEADER)) {
+                                flag_break = true;
+                            }
+                        }
+#endif
+                        break;
+                    case 2:
                         if (0 < word.length()) {
                             if (true == mode_ap) {
                                 this->_ap_ssid = buf;
@@ -660,7 +765,7 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
                             }
                         }
                         break;
-                    case 2:
+                    case 3:
                         if (0 < word.length()) {
                             if (true == mode_ap) {
                                 this->_ap_pass = buf;
@@ -669,7 +774,7 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
                             }
                         }
                         break;
-                    case 3:
+                    case 4:
                         if (0 < word.length()) {
                             if (true == mode_ap) {
                                 this->set_ap_hostname(buf);
@@ -695,6 +800,15 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
                 }
             }
             dataFile.close();
+#if SETTING_FILE_ENABLE_ENCRYPTION
+            if (false == flag_encryption) {
+                this->_save_information(fs,
+                                        file,
+                                        (true == mode_ap) ? this->_ap_ssid : this->_sta_ssid,
+                                        (true == mode_ap) ? this->_ap_pass : this->_sta_pass,
+                                        (true == mode_ap) ? this->_ap_hostname : this->_sta_hostname);
+            }
+#endif
         }
     }
 #else
@@ -725,6 +839,8 @@ bool WebManagerSetting::_save_information(fs::FS &fs, std::string file, std::str
         if (0 < pass.length()) {
             File dataFile = fs.open(file.c_str(), FILE_WRITE);
 #if SETTING_FILE_ENABLE_ENCRYPTION
+            cbc_base64(ik, ia, WebManagerSetting::SETTING_FILE_HEADER.c_str(), cip);
+            dataFile.printf("%s\n", (char *)cip);
             cbc_base64(ik, ia, ssid.c_str(), cip);
             dataFile.printf("%s\n", (char *)cip);
             cbc_base64(ik, ia, pass.c_str(), cip);
@@ -732,6 +848,7 @@ bool WebManagerSetting::_save_information(fs::FS &fs, std::string file, std::str
             cbc_base64(ik, ia, hostname.c_str(), cip);
             dataFile.printf("%s\n", (char *)cip);
 #else
+            dataFile.printf("%s\n", WebManagerSetting::SETTING_FILE_HEADER.c_str());
             dataFile.printf("%s\n", ssid.c_str());
             dataFile.printf("%s\n", pass.c_str());
             dataFile.printf("%s\n", hostname.c_str());
@@ -771,6 +888,7 @@ bool WebManagerSetting::_load_sta_setting(fs::FS &fs, bool clear)
     if (true == clear) {
         this->_sta_explored_index = 0;
     }
+    log_d("Load STA setting index[%d]", this->_sta_explored_index);
     //////////////////
     int count_up = this->_sta_explored_index;
 #if SETTING_WIFI_STORAGE_SPI_FS

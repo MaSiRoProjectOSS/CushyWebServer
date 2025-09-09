@@ -78,6 +78,15 @@ bool WebCommunication::begin()
     return this->_manager.begin();
 }
 
+void WebCommunication::set_callback_reconnect_ap(ReconnectApFunction callback)
+{
+    this->_callback_reconnect_ap = callback;
+}
+void WebCommunication::set_callback_reconnect_sta(ReconnectStaFunction callback)
+{
+    this->_callback_reconnect_sta = callback;
+}
+
 //////////////////////////////////////////////////////////////
 // AP settings
 //////////////////////////////////////////////////////////////
@@ -336,18 +345,8 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
         if (true == mode_ap) {
             log_d("Set AP mode: SSID[%s] HOSTNAME[%s] %s", ssid.c_str(), hostname.c_str(), state ? "Enable" : "Disable");
             this->save_ap_setting(state, ssid.c_str(), pass.c_str(), hostname.c_str());
-            if (false == state) {
-                this->_manager.disconnect_ap();
-            } else {
-                result = false;
-                if (0 < ssid.length()) {
-                    if (0 < pass.length()) {
-                        result = this->_manager.reconnect_ap(ssid.c_str(), pass.c_str(), false);
-                    }
-                }
-                if (false == result) {
-                    log_w("Not enough arguments.");
-                }
+            if (nullptr != _callback_reconnect_ap) {
+                this->_callback_reconnect_ap();
             }
         } else {
             this->_manager.set_sta_hostname(hostname.c_str());
@@ -356,19 +355,8 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
             }
             log_d("Set STA mode: SSID[%s] HOSTNAME[%s] NUM[%d] %s", ssid.c_str(), hostname.c_str(), num, state ? "Enable" : "Disable");
             this->save_sta_setting(state, ssid.c_str(), pass.c_str(), hostname.c_str(), num);
-
-            if (false == state) {
-                this->_manager.disconnect_sta();
-            } else {
-                result = false;
-                if (0 < ssid.length()) {
-                    if (0 < pass.length()) {
-                        result = this->_manager.reconnect_sta(ssid.c_str(), pass.c_str(), num, false);
-                    }
-                }
-                if (false == result) {
-                    log_w("Not enough arguments.");
-                }
+            if (nullptr != _callback_reconnect_sta) {
+                this->_callback_reconnect_sta();
             }
         }
     }

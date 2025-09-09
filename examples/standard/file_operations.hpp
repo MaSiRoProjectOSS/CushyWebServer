@@ -61,7 +61,8 @@ void listDir(const char *dirname, uint8_t levels)
 void readFile(fs::FS &fs, const char *path)
 {
     if (true == SPIFFS.begin()) {
-        File file = fs.open(path);
+        File file     = fs.open(path);
+        int bytesRead = file.size();
         Serial.printf("Reading file: %s[%d]\r\n", path, file.size());
 
         if (!file || file.isDirectory()) {
@@ -71,6 +72,11 @@ void readFile(fs::FS &fs, const char *path)
 
         while (file.available()) {
             Serial.write(file.read());
+            bytesRead--;
+            if (0 > bytesRead) {
+                Serial.println("** Too many data. **");
+                break;
+            }
         }
         file.close();
         SPIFFS.end();

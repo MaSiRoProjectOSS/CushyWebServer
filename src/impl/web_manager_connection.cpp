@@ -99,9 +99,13 @@ std::vector<WebManagerConnection::NetworkList> WebManagerConnection::get_wifi_li
     return list;
 }
 // AP MODE
+bool WebManagerConnection::is_connected_ap()
+{
+    return this->_connect_ap;
+}
 bool WebManagerConnection::is_enable_ap()
 {
-    return this->_connect_ap && this->_enable_ap;
+    return this->_enable_ap;
 }
 IPAddress WebManagerConnection::get_ip_address_ap()
 {
@@ -142,9 +146,13 @@ String WebManagerConnection::get_hostname_ap()
     }
 }
 // STA MODE
+bool WebManagerConnection::is_connected_sta()
+{
+    return this->_connect_sta;
+}
 bool WebManagerConnection::is_enable_sta()
 {
-    return this->_connect_sta && this->_enable_sta;
+    return this->_enable_sta;
 }
 IPAddress WebManagerConnection::get_ip_address_sta()
 {
@@ -189,7 +197,8 @@ bool WebManagerConnection::is_connected_sta(bool immediate)
                 status = WiFi.status();
                 switch (status) {
                     case wl_status_t::WL_CONNECTED:
-                        result = true;
+                        result             = true;
+                        this->_connect_sta = result;
                         break;
                     case wl_status_t::WL_SCAN_COMPLETED:
                     case wl_status_t::WL_IDLE_STATUS:
@@ -199,7 +208,8 @@ bool WebManagerConnection::is_connected_sta(bool immediate)
                     case wl_status_t::WL_NO_SHIELD:
                     case wl_status_t::WL_DISCONNECTED:
                     default:
-                        result = false;
+                        result             = false;
+                        this->_connect_sta = result;
                         break;
                 }
                 break;
@@ -257,16 +267,19 @@ bool WebManagerConnection::reconnect_ap(std::string ssid, std::string pass, bool
     if ("" == pass) {
         pass = this->_ap_pass;
     }
-    bool result = this->_reconnect_ap(ssid, pass, save);
-    if (false == result) {
-        if ((this->_ap_ssid != ssid) || (this->_ap_pass != pass)) {
-            result = this->_reconnect_ap(this->_ap_ssid, this->_ap_pass, false);
+    bool result = false;
+    if (false == this->is_enable_ap()) {
+        result = this->disconnect_ap();
+    } else {
+        result = this->_reconnect_ap(ssid, pass, save);
+        if (false == result) {
+            if ((this->_ap_ssid != ssid) || (this->_ap_pass != pass)) {
+                result = this->_reconnect_ap(this->_ap_ssid, this->_ap_pass, false);
+            }
         }
-    }
-    if (true == result) {
         this->_connect_ap = result;
     }
-    log_i("Connect result [A P]: %s", result ? "true" : "false");
+    log_d("Connect result [A P]: %s", result ? "true" : "false");
     return result;
 }
 bool WebManagerConnection::reconnect_sta(std::string ssid, std::string pass, int num, bool save)
@@ -277,17 +290,22 @@ bool WebManagerConnection::reconnect_sta(std::string ssid, std::string pass, int
     if ("" == pass) {
         pass = this->_sta_pass;
     }
-    bool result = this->_reconnect_sta(ssid, pass, num, save);
-    if (false == result) {
-        if ((this->_sta_ssid != ssid) || (this->_sta_pass != pass)) {
-            result = this->_reconnect_sta(this->_sta_ssid, this->_sta_pass, num, false);
+    bool result = false;
+    if (false == this->is_enable_sta()) {
+        result = this->disconnect_sta();
+    } else {
+        result = this->_reconnect_sta(ssid, pass, num, save);
+        if (false == result) {
+            if ((this->_sta_ssid != ssid) || (this->_sta_pass != pass)) {
+                result = this->_reconnect_sta(this->_sta_ssid, this->_sta_pass, num, false);
+            }
         }
+        if (true == result) {
+            this->_sta_explored_index = 0;
+        }
+        this->_connect_sta = result;
     }
-    if (true == result) {
-        this->_sta_explored_index = 0;
-        this->_connect_sta        = result;
-    }
-    log_i("Connect result [STA]: %s", result ? "true" : "false");
+    log_d("Connect result [STA]: %s", result ? "true" : "false");
     return result;
 }
 
@@ -314,7 +332,8 @@ bool WebManagerConnection::disconnect_ap()
             }
         }
     }
-    result = !this->is_connected_ap(true);
+    this->_connect_ap = false;
+    result            = !this->is_connected_ap(true);
     return result;
 }
 bool WebManagerConnection::disconnect_sta()
@@ -342,7 +361,8 @@ bool WebManagerConnection::disconnect_sta()
             }
         }
     }
-    result = !this->is_connected_sta(true);
+    this->_connect_sta = false;
+    result             = !this->is_connected_sta(true);
     return result;
 }
 

@@ -22,6 +22,17 @@ namespace Web
 class WebCommunication {
 public:
     //////////////////////////////////////////////////////////////
+    // Callback
+    //////////////////////////////////////////////////////////////
+#if CALLBACK_STYLE_USING
+    using ReconnectApFunction  = void (*)();
+    using ReconnectStaFunction = void (*)();
+#else
+    typedef std::function<void(void)> ReconnectApFunction;
+    typedef std::function<void(void)> ReconnectStaFunction;
+#endif
+
+    //////////////////////////////////////////////////////////////
     // Constructor and destructor
     //////////////////////////////////////////////////////////////
     WebCommunication();
@@ -34,6 +45,8 @@ public:
     AsyncWebServer *get_server();
     bool setup();
     bool begin();
+    void set_callback_reconnect_ap(ReconnectApFunction callback);
+    void set_callback_reconnect_sta(ReconnectStaFunction callback);
 
 public:
     //////////////////////////////////////////////////////////////
@@ -102,6 +115,8 @@ private:
     //////////////////////////////////////////////////////////////
     // private functions
     //////////////////////////////////////////////////////////////
+    ReconnectApFunction _callback_reconnect_ap;
+    ReconnectStaFunction _callback_reconnect_sta;
 
 private:
     WebManagerConnection _manager;

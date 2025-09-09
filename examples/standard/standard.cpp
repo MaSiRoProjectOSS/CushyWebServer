@@ -169,14 +169,16 @@ void loop()
                 String hostname = "";
                 String ip       = "";
                 cushy.get_information(CushyWebServer::NETWORK_INTERFACE::NW_IF_WIFI_AP, enable, ssid, hostname, ip);
-                Serial.printf("AP : [%s] SSID[%s] HOSTNAME[%s] IP[%s]\n", //
+                Serial.printf("AP : [%s:%s] SSID[%s] HOSTNAME[%s] IP[%s]\n", //
                               (true == enable) ? "Enabled" : "Disabled",
+                              cushy.is_connected(CushyWebServer::NETWORK_INTERFACE::NW_IF_WIFI_AP) ? "Connected" : "Disconnected",
                               ssid.c_str(),
                               hostname.c_str(),
                               ip.c_str());
                 cushy.get_information(CushyWebServer::NETWORK_INTERFACE::NW_IF_WIFI_STA, enable, ssid, hostname, ip);
-                Serial.printf("STA: [%s] SSID[%s] HOSTNAME[%s] IP[%s]\n", //
+                Serial.printf("STA: [%s:%s] SSID[%s] HOSTNAME[%s] IP[%s]\n", //
                               (true == enable) ? "Enabled" : "Disabled",
+                              cushy.is_connected(CushyWebServer::NETWORK_INTERFACE::NW_IF_WIFI_STA) ? "Connected" : "Disconnected",
                               ssid.c_str(),
                               hostname.c_str(),
                               ip.c_str());

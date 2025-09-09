@@ -68,6 +68,7 @@ public:
     bool reconnect_ap(std::string ssid, std::string pass, bool save);
     bool disconnect_ap();
     bool is_enable_ap();
+    bool is_connected_ap();
     IPAddress get_ip_address_ap();
     String get_ssid_ap();
     String get_hostname_ap();
@@ -78,6 +79,7 @@ public:
     bool reconnect_sta(std::string ssid, std::string pass, int num, bool save);
     bool disconnect_sta();
     bool is_enable_sta();
+    bool is_connected_sta();
     IPAddress get_ip_address_sta();
     String get_ssid_sta();
     String get_hostname_sta();

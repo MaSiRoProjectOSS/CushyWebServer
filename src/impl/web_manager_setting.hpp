@@ -70,10 +70,10 @@ protected:
     std::string _ap_ssid;
     std::string _ap_pass;
     int _sta_explored_index = 0;
-    bool _connect_ap        = SETTING_WIFI_AP_DEFAULT_ENABLE;
-    bool _connect_sta       = SETTING_WIFI_STA_DEFAULT_ENABLE;
-    bool _enable_ap         = false;
-    bool _enable_sta        = false;
+    bool _connect_ap        = false;
+    bool _connect_sta       = false;
+    bool _enable_ap         = SETTING_WIFI_AP_DEFAULT_ENABLE;
+    bool _enable_sta        = SETTING_WIFI_STA_DEFAULT_ENABLE;
 
     bool _setup();
     void set_ap_information(std::string ssid, std::string pass);
@@ -95,13 +95,17 @@ private:
     bool _load_sta_setting(fs::FS &fs, bool clear);
     bool _load_information(fs::FS &fs, std::string file, bool mode_ap);
     bool _save_information(fs::FS &fs, std::string file, std::string ssid, std::string pass, std::string hostname);
+#if SETTING_FILE_ENABLE_ENCRYPTION
+    bool _check_encryption(fs::FS &fs, std::string file);
+#endif
 
 private:
     bool _open_fs;
     int _error_count_spi;
 
 private:
-    int ERROR_COUNT_SPI_MAX = 3;
+    int ERROR_COUNT_SPI_MAX          = 3;
+    const String SETTING_FILE_HEADER = SETTING_WIFI_FILE_HEADER;
 };
 
 } // namespace Web

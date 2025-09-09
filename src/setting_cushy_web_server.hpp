@@ -114,6 +114,13 @@ namespace Web
 #define SETTING_WIFI_STA_DEFAULT_ENABLE (false)
 #endif
 
+#ifndef SETTING_WIFI_FILE_HEADER
+/**
+ * @brief Wifi settings file header
+ */
+#define SETTING_WIFI_FILE_HEADER "#SETTINGS"
+#endif
+
 #ifndef SETTING_WIFI_STA_CONNECTED_FILE
 /**
  * @brief Wifi settings file path : STA mode
