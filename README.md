@@ -176,7 +176,7 @@ void loop()
 | SETTING_THREAD_CORE_CUSHY_WEB_SERVER     |          (1) | スレッドを動作させているCore番号                                                   |
 | SETTING_THREAD_PRIORITY_SERVER           |          (5) | Webサーバー スレッドのプライオリティ(値が小さいほど優先度が低い)                   |
 | SETTING_THREAD_PRIORITY_WIFI             |          (2) | WiFi接続 スレッドのプライオリティ(値が小さいほど優先度が低い)                      |
-| SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI   |   (1024 * 3) | Webサーバー スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。 |
+| SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI   |   (1024 * 4) | Webサーバー スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。 |
 | SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER |   (1024 * 8) | WiFi接続 スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。    |
 
 ## Requirement
