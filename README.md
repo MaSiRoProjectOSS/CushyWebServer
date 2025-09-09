@@ -148,18 +148,26 @@ void loop()
 
 #### WiFi STAモード接続設定
 
-| define                                    |                デフォルト値 | 定義                                                                                                                        |
-| :---------------------------------------- | --------------------------: | :-------------------------------------------------------------------------------------------------------------------------- |
-| SETTING_WIFI_STA_DEFAULT_ENABLE           |                     (false) | STAモードで動作させる                                                                                                       |
-| SETTING_WIFI_STA_CONNECTED_FILE           |      "/config/wifi_sta.ini" | STAモードで最後に接続成功した接続情報の保存先                                                                               |
-| SETTING_WIFI_STA_FILE_PATTERN             | "/config/wifi_sta_%02d.ini" | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合に参照するWiFiリスト。indexは0～SETTING_WIFI_SETTING_LIST_MAXを参照する (*) |
-| SETTING_WIFI_STA_FILE_MAX                 |                         (5) | SETTING_WIFI_SETTING_LIST_FILEが許容するファイル数                                                                          |
-| SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT |                        (60) | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合のWiFi機器の探索時間[単位:秒,5秒以上推奨]                                   |
-| SETTING_WIFI_STA_LOOP_FILE                |                      (true) | 接続先がない場合は、ファイルリストの最初から探査する                                                                        |
-| SETTING_WIFI_STA_DEFAULT_SSID             |         "CushyWebServerSTA" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する                                                                          |
-| SETTING_WIFI_STA_DEFAULT_PASSWORD         |                 "password!" | パスワード<br>SPIFFSにファイルがない場合に動作する                                                                          |
+| define                                    |                デフォルト値 | 定義                                                                                                                         |
+| :---------------------------------------- | --------------------------: | :--------------------------------------------------------------------------------------------------------------------------- |
+| SETTING_WIFI_STA_DEFAULT_ENABLE           |                     (false) | STAモードで動作させる                                                                                                        |
+| SETTING_WIFI_STA_CONNECTED_FILE           |      "/config/wifi_sta.ini" | STAモードで最後に接続成功した接続情報の保存先                                                                                |
+| SETTING_WIFI_STA_FILE_PATTERN             | "/config/wifi_sta_%02d.ini" | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合に参照するWiFiリスト。indexは0～SETTING_WIFI_SETTING_LIST_MAXを参照する (*1) |
+| SETTING_WIFI_STA_FILE_MAX                 |                         (5) | SETTING_WIFI_SETTING_LIST_FILEが許容するファイル数                                                                           |
+| SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT |                        (60) | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合のWiFi機器の探索時間[単位:秒,5秒以上推奨]                                    |
+| SETTING_WIFI_STA_LOOP_FILE                |                      (true) | 接続先がない場合は、ファイルリストの最初から探査する                                                                         |
+| SETTING_WIFI_STA_DEFAULT_SSID             |         "CushyWebServerSTA" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する (*2)                                                                      |
+| SETTING_WIFI_STA_DEFAULT_PASSWORD         |                 "password!" | パスワード<br>SPIFFSにファイルがない場合に動作する (*2)                                                                      |
 
-*) SETTING_WIFI_SETTING_LIST_FILEが"/config/wifi_%02d.ini"の場合、/config/wifi_00.ini～/config/wifi_04.iniまでのファイルを参照する。
+*1) SETTING_WIFI_SETTING_LIST_FILEが"/config/wifi_%02d.ini"の場合、/config/wifi_00.ini～/config/wifi_04.iniまでのファイルを参照する。
+*2) "platformio.ini"でSSID/Passwordの設定例
+
+```ini
+build_flags =
+    -D ELEGANTOTA_USE_ASYNC_WEBSERVER=1
+    -D SETTING_WIFI_STA_DEFAULT_SSID="\"CushyWebServerSTA\""
+    -D SETTING_WIFI_STA_DEFAULT_PASSWORD="\"password!\""
+```
 
 #### WiFiの保存設定接続設定
 
