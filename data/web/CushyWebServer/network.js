@@ -202,27 +202,33 @@ if (!JS_NW) {
                 elem.classList.add("div_hide");
             }
         },
-        set_network_ap: function (id) {
-            JS_NW.set_network('ap', id);
+        set_network_ap: function () {
+            JS_NW.set_network('ap');
         },
-        set_network_sta: function (id) {
-            JS_NW.set_network('sta', id);
+        set_network_sta: function () {
+            JS_NW.set_network('sta');
         },
         set_network: function (id) {
             let mode = (id == "ap") ? 1 : 0;
             let num = (id == "ap") ? 0 : document.getElementById("radio_sta").elements["sta_select"].value;
             let state = document.getElementById("enable_" + id).checked ? 1 : 0;
-
-            JS_AJAX.post("/CushyWebServer/set?id=" +
-                document.getElementById("ssid_" + id).value
-                + "&pa=" +
-                document.getElementById("pass_" + id).value
-                + "&hostname=" +
-                document.getElementById("hostname_" + id).value
-                + "&ap=" + mode + "&num=" + num + "&state=" + state).then(
-                    ok => JS_NW._reception_message(ok)
-                    , error => console.error("error.status.messages")
-                );
+            let ssid = document.getElementById("ssid_" + id).value;
+            let pass = document.getElementById("pass_" + id).value;
+            let flag = true;
+            if ((1 == state) && (("" == ssid) || ("" == pass))) {
+                flag = false;
+            }
+            if (false === flag) {
+                alert("Please set the SSID or password.");
+            } else {
+                JS_AJAX.post("/CushyWebServer/set?id=" + ssid
+                    + "&pa=" + pass
+                    + "&hostname=" + document.getElementById("hostname_" + id).value
+                    + "&ap=" + mode + "&num=" + num + "&state=" + state).then(
+                        ok => JS_NW._reception_message(ok)
+                        , error => alert("Error: " + error.status.messages)
+                    );
+            }
         },
         select_list: function (id) {
             JS_NW.on_change();
