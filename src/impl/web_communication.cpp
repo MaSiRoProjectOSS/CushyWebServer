@@ -28,6 +28,8 @@ namespace Web
 #define WEB_HEADER_CACHE_CONTROL_LONGTIME   "max-age=31536000, immutable"
 #define WEB_HEADER_CACHE_CONTROL_NO_CACHE   "no-cache"
 
+#define STRING_BUFFER_LIMIT (255)
+
 //////////////////////////////////////////////////////////////
 // Constructor and destructor
 //////////////////////////////////////////////////////////////
@@ -232,7 +234,7 @@ String WebCommunication::file_readString(const char *path)
 void WebCommunication::handle_favicon_ico(AsyncWebServerRequest *request)
 {
 #if SETTING_DEFAULT_FAVICON
-    AsyncWebServerResponse *response = request->beginResponse(200, "image/x-icon", WEB_IMAGE_FAVICON_ICO, WEB_IMAGE_FAVICON_ICO_LEN);
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "image/x-icon", WEB_IMAGE_FAVICON_ICO, WEB_IMAGE_FAVICON_ICO_LEN);
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
@@ -318,7 +320,7 @@ void WebCommunication::handle_network_set(AsyncWebServerRequest *request)
                 if (true == request->hasArg("hostname")) {
                     hostname = request->arg("hostname");
                 } else {
-                    hostname = this->_manager.get_sta_list_hostname(num).c_str();
+                    hostname = String(this->_manager.get_sta_list_hostname(num).c_str());
                 }
                 if (true == request->hasArg("state")) {
                     state = (0 == this->to_int(request->arg("state"))) ? false : true;
@@ -426,7 +428,7 @@ void WebCommunication::handle_network_list_get(AsyncWebServerRequest *request)
 {
     bool result     = true;
     bool flag_start = true;
-    char buffer[255];
+    char buffer[STRING_BUFFER_LIMIT];
     int item_length                                      = -1;
     std::vector<WebManagerConnection::NetworkList> items = this->_manager.get_wifi_list(&item_length);
 
@@ -487,6 +489,8 @@ String WebCommunication::ip_to_string(IPAddress ip)
     res += String(((ip >> 8 * 3)) & 0xFF);
     return res;
 }
+
+#undef STRING_BUFFER_LIMIT
 
 } // namespace Web
 } // namespace MaSiRoProject
