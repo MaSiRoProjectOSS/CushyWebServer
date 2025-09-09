@@ -15,6 +15,35 @@ namespace MaSiRoProject
 namespace Web
 {
 //////////////////////////////////////////////////////////////
+// Adding Features
+//////////////////////////////////////////////////////////////
+
+#ifndef FEATURES_CUSHY_WEB_SERVER_OTA
+/**
+ * @brief OTA settings
+ */
+#define FEATURES_CUSHY_WEB_SERVER_OTA (1)
+#endif
+#ifndef FEATURES_SNTP_ENABLE
+/**
+ * @brief SNTP settings
+ */
+#define FEATURES_SNTP_ENABLE (0)
+#endif
+#ifndef FEATURES_WIFI_STORAGE_SPIFFS
+/**
+ * @brief Save Wi-Fi settings to SPIFFS
+ */
+#define FEATURES_WIFI_STORAGE_SPIFFS (1)
+#endif
+#ifndef FEATURES_FILE_ENABLE_ENCRYPTION
+/**
+ * @brief Encrypt stored files
+ */
+#define FEATURES_FILE_ENABLE_ENCRYPTION (1)
+#endif
+
+//////////////////////////////////////////////////////////////
 // WEB server settings
 //////////////////////////////////////////////////////////////
 
@@ -26,24 +55,12 @@ namespace Web
 // SNTP settings
 //////////////////////////////////////////////////////////////
 
-#ifndef SETTING_SNTP_ENABLE
-#define SETTING_SNTP_ENABLE (0)
-#endif
-
 #ifndef SETTING_SNTP_SERVER
 #define SETTING_SNTP_SERVER "pool.ntp.org"
 #endif
 
 #ifndef SETTING_SNTP_TIME_ZONE
 #define SETTING_SNTP_TIME_ZONE "UTC"
-#endif
-
-//////////////////////////////////////////////////////////////
-// OTA settings
-//////////////////////////////////////////////////////////////
-
-#ifndef CUSHY_WEB_SERVER_OTA
-#define CUSHY_WEB_SERVER_OTA (1)
 #endif
 
 //////////////////////////////////////////////////////////////
@@ -171,16 +188,8 @@ namespace Web
 #define SETTING_WIFI_STORAGE_SPI_FORMAT (true)
 #endif
 
-#ifndef SETTING_WIFI_STORAGE_SPI_FS
-#define SETTING_WIFI_STORAGE_SPI_FS (1)
-#endif
-
 #ifndef SETTING_WIFI_STORAGE_OVERRIDE
 #define SETTING_WIFI_STORAGE_OVERRIDE (0)
-#endif
-
-#ifndef SETTING_FILE_ENABLE_ENCRYPTION
-#define SETTING_FILE_ENABLE_ENCRYPTION (1)
 #endif
 
 //////////////////////////////////////////////////////////////

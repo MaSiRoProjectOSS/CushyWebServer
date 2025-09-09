@@ -13,7 +13,7 @@
 
 #include <AsyncTCP.h>
 #include <SPIFFS.h>
-#if CUSHY_WEB_SERVER_OTA
+#if FEATURES_CUSHY_WEB_SERVER_OTA
 #ifndef ELEGANTOTA_USE_ASYNC_WEBSERVER
 #error "Please define ELEGANTOTA_USE_ASYNC_WEBSERVER. ref https://docs.elegantota.pro/async-mode/"
 #endif
@@ -36,7 +36,7 @@ namespace Web
 WebCommunication::WebCommunication()
 {
     this->ctrl_server = new AsyncWebServer(SETTING_WIFI_PORT);
-#if CUSHY_WEB_SERVER_OTA
+#if FEATURES_CUSHY_WEB_SERVER_OTA
     ElegantOTA.begin(this->ctrl_server); // Start ElegantOTA
 #endif
 }

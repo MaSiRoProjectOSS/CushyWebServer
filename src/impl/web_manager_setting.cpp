@@ -23,7 +23,7 @@ static portMUX_TYPE mutex = portMUX_INITIALIZER_UNLOCKED;
 #define INPUT_BUFFER_LIMIT  (128 + 1)
 #define STRING_BUFFER_LIMIT (255)
 
-#if SETTING_FILE_ENABLE_ENCRYPTION
+#if FEATURES_FILE_ENABLE_ENCRYPTION
 //////////////////////////////////////////////////////////////
 // ENCRYPTION
 //////////////////////////////////////////////////////////////
@@ -130,7 +130,7 @@ int cbc_base64_to_text(const uint8_t key[32], const uint8_t iv[16], const char *
 //////////////////////////////////////////////////////////////
 WebManagerSetting::WebManagerSetting() : _error_count_spi(ERROR_COUNT_SPI_MAX), _open_fs(false)
 {
-#if SETTING_FILE_ENABLE_ENCRYPTION
+#if FEATURES_FILE_ENABLE_ENCRYPTION
     uint8_t base_mac[6];
     char base_mac_chr[18] = { 0 };
     char buffer[STRING_BUFFER_LIMIT];
@@ -141,7 +141,7 @@ WebManagerSetting::WebManagerSetting() : _error_count_spi(ERROR_COUNT_SPI_MAX), 
         ik[i] = (unsigned char)((buffer[i] + ik_shift) & 0xFF);
     }
 #endif
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     portENTER_CRITICAL(&mutex);
     if (true == SPIFFS.begin()) {
         this->_init_sta_setting(SPIFFS);
@@ -162,7 +162,7 @@ WebManagerSetting::WebManagerSetting() : _error_count_spi(ERROR_COUNT_SPI_MAX), 
 bool WebManagerSetting::set_ap_enable(bool flag)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     char buffer[STRING_BUFFER_LIMIT];
     if (true == this->_open_fs) {
         portENTER_CRITICAL(&mutex);
@@ -184,7 +184,7 @@ bool WebManagerSetting::set_ap_enable(bool flag)
 bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::string pass, std::string hostname)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     char buffer[STRING_BUFFER_LIMIT];
     if (true == this->_open_fs) {
         portENTER_CRITICAL(&mutex);
@@ -210,7 +210,7 @@ bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::stri
 bool WebManagerSetting::save_ap_information(std::string ssid, std::string pass, std::string hostname)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     if (true == this->_open_fs) {
         portENTER_CRITICAL(&mutex);
         if (true == SPIFFS.begin()) {
@@ -251,7 +251,7 @@ bool WebManagerSetting::save_ap_information(std::string ssid, std::string pass, 
 bool WebManagerSetting::load_ap_settings()
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     if (true == this->_open_fs) {
         portENTER_CRITICAL(&mutex);
         if (SPIFFS.begin()) {
@@ -278,7 +278,7 @@ bool WebManagerSetting::load_ap_settings()
 bool WebManagerSetting::set_sta_enable(bool flag)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     char buffer[STRING_BUFFER_LIMIT];
     if (true == this->_open_fs) {
         portENTER_CRITICAL(&mutex);
@@ -300,7 +300,7 @@ bool WebManagerSetting::set_sta_enable(bool flag)
 bool WebManagerSetting::save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     char buffer[STRING_BUFFER_LIMIT];
     if (true == this->_open_fs) {
         portENTER_CRITICAL(&mutex);
@@ -331,7 +331,7 @@ bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass,
 {
     bool result = false;
     char file_name[STRING_BUFFER_LIMIT];
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     if (true == this->_open_fs) {
         portENTER_CRITICAL(&mutex);
         if (true == SPIFFS.begin()) {
@@ -386,7 +386,7 @@ bool WebManagerSetting::load_sta_settings(bool clear)
 {
     bool result = false;
     //////////////////
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     portENTER_CRITICAL(&mutex);
     if (SPIFFS.begin()) {
         result = this->_load_sta_setting(SPIFFS, clear);
@@ -412,7 +412,7 @@ bool WebManagerSetting::_setup()
     (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
 
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     if (0 <= this->_error_count_spi) {
         // SPI FFS doing format if happened error
         portENTER_CRITICAL(&mutex);
@@ -451,7 +451,7 @@ bool WebManagerSetting::_setup()
                 }
             }
 
-#if SETTING_FILE_ENABLE_ENCRYPTION
+#if FEATURES_FILE_ENABLE_ENCRYPTION
             // File encryption process
             this->_check_encryption(SPIFFS, SETTING_WIFI_AP_SETTING_FILE);
             this->_check_encryption(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE);
@@ -491,7 +491,7 @@ bool WebManagerSetting::_setup()
 bool WebManagerSetting::_load_settings_wifi(fs::FS &fs)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     if (true == fs.exists(SETTING_WIFI_SETTING_FILE)) {
         File dataFile = fs.open(SETTING_WIFI_SETTING_FILE, FILE_READ);
         if (!dataFile) {
@@ -543,7 +543,7 @@ bool WebManagerSetting::_load_settings_wifi(fs::FS &fs)
 bool WebManagerSetting::_save_settings_wifi(fs::FS &fs, bool ap_mode, bool sta_mode)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     log_d("Save settings: AP[%s] STA[%s] %s", //
           (true == ap_mode) ? "True" : "False",
           (true == sta_mode) ? "True" : "False",
@@ -633,11 +633,11 @@ String WebManagerSetting::file_readString(const char *path)
 // private function
 ////////////////////////////////////////////////////
 
-#if SETTING_FILE_ENABLE_ENCRYPTION
+#if FEATURES_FILE_ENABLE_ENCRYPTION
 bool WebManagerSetting::_check_encryption(fs::FS &fs, std::string file)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     char buf[2 * INPUT_BUFFER_LIMIT] = { 0 };
 
     if (true == SPIFFS.exists(file.c_str())) {
@@ -705,8 +705,8 @@ bool WebManagerSetting::_check_encryption(fs::FS &fs, std::string file)
 bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mode_ap)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
-#if SETTING_FILE_ENABLE_ENCRYPTION
+#if FEATURES_WIFI_STORAGE_SPIFFS
+#if FEATURES_FILE_ENABLE_ENCRYPTION
     char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
     bool flag_encryption             = true;
 #endif
@@ -724,7 +724,7 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
                 String word = dataFile.readStringUntil('\n');
                 word.replace("\r", "");
                 word.replace("\n", "");
-#if SETTING_FILE_ENABLE_ENCRYPTION
+#if FEATURES_FILE_ENABLE_ENCRYPTION
                 if (true == flag_encryption) {
                     cbc_base64_to_text(ik, ia, word.c_str(), cip);
                     sprintf(buf, "%s", cip);
@@ -737,7 +737,7 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
                 switch (line) {
                     case 1:
                         // ENCRYPTION
-#if SETTING_FILE_ENABLE_ENCRYPTION
+#if FEATURES_FILE_ENABLE_ENCRYPTION
                         if (0 < word.length()) {
                             flag_encryption = !word.equals(WebManagerSetting::SETTING_FILE_HEADER);
                         }
@@ -800,7 +800,7 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
                 }
             }
             dataFile.close();
-#if SETTING_FILE_ENABLE_ENCRYPTION
+#if FEATURES_FILE_ENABLE_ENCRYPTION
             if (false == flag_encryption) {
                 this->_save_information(fs,
                                         file,
@@ -826,19 +826,19 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
 bool WebManagerSetting::_save_information(fs::FS &fs, std::string file, std::string ssid, std::string pass, std::string hostname)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     log_d("Save information : MODE[%s] SSID[%s] HOSTNAME[%s] filename[%s]", //
           (file == SETTING_WIFI_AP_SETTING_FILE) ? "A P" : "STA",
           ssid.c_str(),
           hostname.c_str(),
           file.c_str());
-#if SETTING_FILE_ENABLE_ENCRYPTION
+#if FEATURES_FILE_ENABLE_ENCRYPTION
     char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
 #endif
     if (0 < ssid.length()) {
         if (0 < pass.length()) {
             File dataFile = fs.open(file.c_str(), FILE_WRITE);
-#if SETTING_FILE_ENABLE_ENCRYPTION
+#if FEATURES_FILE_ENABLE_ENCRYPTION
             cbc_base64(ik, ia, WebManagerSetting::SETTING_FILE_HEADER.c_str(), cip);
             dataFile.printf("%s\n", (char *)cip);
             cbc_base64(ik, ia, ssid.c_str(), cip);
@@ -869,7 +869,7 @@ bool WebManagerSetting::_save_information(fs::FS &fs, std::string file, std::str
 }
 void WebManagerSetting::_init_sta_setting(fs::FS &fs)
 {
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     char buffer[STRING_BUFFER_LIMIT];
     for (int i = 0; i < SETTING_WIFI_STA_FILE_MAX; i++) {
         sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, i);
@@ -891,7 +891,7 @@ bool WebManagerSetting::_load_sta_setting(fs::FS &fs, bool clear)
     log_d("Load STA setting index[%d]", this->_sta_explored_index);
     //////////////////
     int count_up = this->_sta_explored_index;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
     char buffer[STRING_BUFFER_LIMIT];
     for (int i = this->_sta_explored_index; i < SETTING_WIFI_STA_FILE_MAX; i++) {
         count_up = i + 1;

@@ -52,7 +52,9 @@ void CustomCushyWebServer::handle_html_root(AsyncWebServerRequest *request)
     html += "</head>";
     html += "<body>";
     html += "<h1>Cushy Web Server</h1>";
+#if FEATURES_CUSHY_WEB_SERVER_OTA
     html += "<p><a href='/update' target='_self'>OTA</a></p>";
+#endif
     html += "<p><a href='/network' target='_self'>Network</a></p>";
     html += "</body>";
     html += "</html>";

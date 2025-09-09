@@ -13,11 +13,7 @@
 #include "../setting_cushy_web_server.hpp"
 
 #include <Arduino.h>
-#if SETTING_WIFI_STORAGE_SPI_FS
-#include <SPIFFS.h>
-#else
 #include <FS.h>
-#endif
 
 namespace MaSiRoProject
 {
@@ -95,7 +91,7 @@ private:
     bool _load_sta_setting(fs::FS &fs, bool clear);
     bool _load_information(fs::FS &fs, std::string file, bool mode_ap);
     bool _save_information(fs::FS &fs, std::string file, std::string ssid, std::string pass, std::string hostname);
-#if SETTING_FILE_ENABLE_ENCRYPTION
+#if FEATURES_FILE_ENABLE_ENCRYPTION
     bool _check_encryption(fs::FS &fs, std::string file);
 #endif
 

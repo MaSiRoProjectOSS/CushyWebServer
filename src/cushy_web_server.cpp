@@ -93,7 +93,7 @@ void thread_server(void *args)
             previous_mode = _mode;
             if (false == flag_once) {
                 flag_once = true;
-#if SETTING_SNTP_ENABLE
+#if FEATURES_SNTP_ENABLE
                 if (false == flag_sntp_sync) {
                     flag_sntp_sync = true;
                     configTzTime(SETTING_SNTP_TIME_ZONE, SETTING_SNTP_SERVER);
@@ -123,7 +123,7 @@ void thread_server(void *args)
 void thread_wifi(void *args)
 {
     unsigned long err_begin = millis() + (1000 * SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT);
-#if SETTING_SNTP_ENABLE
+#if FEATURES_SNTP_ENABLE
     bool flag_sntp_sync = false;
 #endif
     CushyWebServer::WEB_VIEWER_MODE previous_mode = CushyWebServer::WEB_VIEWER_MODE::NOT_INITIALIZED;
