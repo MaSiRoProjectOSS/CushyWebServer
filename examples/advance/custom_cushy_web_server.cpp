@@ -73,7 +73,7 @@ void CustomCushyWebServer::handle_json_post(AsyncWebServerRequest *request)
 
 void CustomCushyWebServer::handle_favicon_ico(AsyncWebServerRequest *request)
 {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, "image/x-icon", WEB_IMAGE_FAVICON_ICO, WEB_IMAGE_FAVICON_ICO_LEN);
+    AsyncWebServerResponse *response = request->beginResponse(200, "image/x-icon", WEB_IMAGE_FAVICON_ICO, WEB_IMAGE_FAVICON_ICO_LEN);
     response->addHeader("Cache-Control", WEB_HEADER_CACHE_CONTROL_LONGTIME);
     response->addHeader("X-Content-Type-Options", "nosniff");
     request->send(response);
