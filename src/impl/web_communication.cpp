@@ -214,16 +214,7 @@ std::string WebCommunication::template_json_result(bool result, std::string data
 }
 String WebCommunication::file_readString(const char *path)
 {
-    String word;
-    word.clear();
-    if (true == SPIFFS.begin()) {
-        File file   = SPIFFS.open(path, FILE_READ);
-        size_t size = file.size();
-        word        = file.readString();
-        file.close();
-        SPIFFS.end();
-    }
-    return word;
+    return this->_manager.file_readString(path);
 }
 
 //////////////////////////////////////////////////////////////

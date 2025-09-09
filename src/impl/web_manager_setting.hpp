@@ -40,6 +40,7 @@ public:
     int get_sta_list_selected();
     std::string get_sta_list_ssid(int index);
     std::string get_sta_list_hostname(int index);
+    String file_readString(const char *path);
 
 public:
     //////////////////////////////////////////////////////////////

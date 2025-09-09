@@ -11,6 +11,7 @@
 
 #include "../setting_cushy_web_server.hpp"
 
+#include <SPIFFS.h>
 #include <aes/esp_aes.h>
 #include <base64.h>
 
@@ -18,6 +19,7 @@ namespace MaSiRoProject
 {
 namespace Web
 {
+portMUX_TYPE mutex = portMUX_INITIALIZER_UNLOCKED;
 #define INPUT_BUFFER_LIMIT (128 + 1)
 
 #if SETTING_FILE_ENABLE_ENCRYPTION
@@ -139,10 +141,12 @@ WebManagerSetting::WebManagerSetting() : _error_count_spi(ERROR_COUNT_SPI_MAX), 
     }
 #endif
 #if SETTING_WIFI_STORAGE_SPI_FS
+    portENTER_CRITICAL_ISR(&mutex);
     if (true == SPIFFS.begin()) {
         this->_init_sta_setting(SPIFFS);
         SPIFFS.end();
     }
+    portEXIT_CRITICAL_ISR(&mutex);
 #endif
     (void)this->set_ap_hostname(SETTING_WIFI_HOSTNAME);
     (void)this->set_sta_hostname(SETTING_WIFI_HOSTNAME);
@@ -160,10 +164,12 @@ bool WebManagerSetting::set_ap_enable(bool flag)
 #if SETTING_WIFI_STORAGE_SPI_FS
     char buffer[255];
     if (true == this->_open_fs) {
+        portENTER_CRITICAL_ISR(&mutex);
         if (true == SPIFFS.begin()) {
             this->_save_settings_wifi(SPIFFS, flag, this->_enable_sta);
             SPIFFS.end();
         }
+        portEXIT_CRITICAL_ISR(&mutex);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -180,6 +186,7 @@ bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::stri
 #if SETTING_WIFI_STORAGE_SPI_FS
     char buffer[255];
     if (true == this->_open_fs) {
+        portENTER_CRITICAL_ISR(&mutex);
         if (true == SPIFFS.begin()) {
             this->_save_settings_wifi(SPIFFS, enable, this->_enable_sta);
             if (true == enable) {
@@ -188,6 +195,7 @@ bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::stri
             }
             SPIFFS.end();
         }
+        portEXIT_CRITICAL_ISR(&mutex);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -203,6 +211,7 @@ bool WebManagerSetting::save_ap_information(std::string ssid, std::string pass, 
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
     if (true == this->_open_fs) {
+        portENTER_CRITICAL_ISR(&mutex);
         if (true == SPIFFS.begin()) {
             bool force_write = false;
             if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
@@ -222,6 +231,7 @@ bool WebManagerSetting::save_ap_information(std::string ssid, std::string pass, 
                 pass = this->_ap_pass;
             }
         }
+        portEXIT_CRITICAL_ISR(&mutex);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -242,12 +252,14 @@ bool WebManagerSetting::load_ap_settings()
     bool result = false;
 #if SETTING_WIFI_STORAGE_SPI_FS
     if (true == this->_open_fs) {
+        portENTER_CRITICAL_ISR(&mutex);
         if (SPIFFS.begin()) {
             if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
                 result = this->_load_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, true);
             }
             SPIFFS.end();
         }
+        portEXIT_CRITICAL_ISR(&mutex);
     } else {
         if (0 > this->_error_count_spi) {
             (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
@@ -268,10 +280,12 @@ bool WebManagerSetting::set_sta_enable(bool flag)
 #if SETTING_WIFI_STORAGE_SPI_FS
     char buffer[255];
     if (true == this->_open_fs) {
+        portENTER_CRITICAL_ISR(&mutex);
         if (true == SPIFFS.begin()) {
             this->_save_settings_wifi(SPIFFS, this->_enable_ap, flag);
             SPIFFS.end();
         }
+        portEXIT_CRITICAL_ISR(&mutex);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -288,6 +302,7 @@ bool WebManagerSetting::save_sta_setting(bool enable, std::string ssid, std::str
 #if SETTING_WIFI_STORAGE_SPI_FS
     char buffer[255];
     if (true == this->_open_fs) {
+        portENTER_CRITICAL_ISR(&mutex);
         if (true == SPIFFS.begin()) {
             this->_save_settings_wifi(SPIFFS, this->_enable_ap, enable);
             if (0 <= num) {
@@ -300,6 +315,7 @@ bool WebManagerSetting::save_sta_setting(bool enable, std::string ssid, std::str
             }
             SPIFFS.end();
         }
+        portEXIT_CRITICAL_ISR(&mutex);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -316,6 +332,7 @@ bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass,
     char file_name[255];
 #if SETTING_WIFI_STORAGE_SPI_FS
     if (true == this->_open_fs) {
+        portENTER_CRITICAL_ISR(&mutex);
         if (true == SPIFFS.begin()) {
             bool force_write = false;
             if (0 <= num) {
@@ -350,6 +367,7 @@ bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass,
                 pass = this->_sta_pass;
             }
         }
+        portEXIT_CRITICAL_ISR(&mutex);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -369,10 +387,12 @@ bool WebManagerSetting::load_sta_settings(bool clear)
     //////////////////
 #if SETTING_WIFI_STORAGE_SPI_FS
     char buffer[255];
+    portENTER_CRITICAL_ISR(&mutex);
     if (SPIFFS.begin()) {
         result = this->_load_sta_setting(SPIFFS, clear);
         SPIFFS.end();
     }
+    portEXIT_CRITICAL_ISR(&mutex);
 #endif
     //////////////////
     if (false == result) {
@@ -395,6 +415,7 @@ bool WebManagerSetting::_setup()
 #if SETTING_WIFI_STORAGE_SPI_FS
     if (0 <= this->_error_count_spi) {
         // SPI FFS doing format if happened error
+        portENTER_CRITICAL_ISR(&mutex);
         if (true == SPIFFS.begin(SETTING_WIFI_STORAGE_SPI_FORMAT)) {
 #if SETTING_WIFI_STORAGE_OVERRIDE
             this->_save_settings_wifi(SPIFFS, SETTING_WIFI_AP_DEFAULT_ENABLE, SETTING_WIFI_STA_DEFAULT_ENABLE);
@@ -435,12 +456,15 @@ bool WebManagerSetting::_setup()
         } else {
             this->_error_count_spi--;
         }
+        portEXIT_CRITICAL_ISR(&mutex);
         this->_open_fs = result;
     } else {
         // override setting information
         this->_open_fs = false;
         //result         = this->save_information(this->_ssid, this->_pass, this->_mode_ap, this->_auto_default_setting);
     }
+#else
+    result = true;
 #endif
 
     log_d("%s", ((true == result) ? "Setup was successful." : "Setup failed."));
@@ -577,6 +601,22 @@ std::string WebManagerSetting::get_sta_list_hostname(int index)
         }
     }
     return this->_sta_hostname;
+}
+
+String WebManagerSetting::file_readString(const char *path)
+{
+    String word;
+    word.clear();
+    portENTER_CRITICAL_ISR(&mutex);
+    if (true == SPIFFS.begin()) {
+        File file   = SPIFFS.open(path, FILE_READ);
+        size_t size = file.size();
+        word        = file.readString();
+        file.close();
+        SPIFFS.end();
+    }
+    portEXIT_CRITICAL_ISR(&mutex);
+    return word;
 }
 
 ////////////////////////////////////////////////////
