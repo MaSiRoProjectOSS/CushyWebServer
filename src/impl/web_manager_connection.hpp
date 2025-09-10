@@ -1,7 +1,6 @@
 /**
  * @file web_manager_connection.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief APモードおよびSTAモードのWiFi接続とネットワーク設定を管理し、スキャン・接続・設定を行います。
  * @version 0.0.1
  * @date 2023-03-12
  *
@@ -60,10 +59,8 @@ public:
     bool begin();
     std::vector<NetworkList> get_wifi_list(int *length);
     bool make_wifi_list();
-    bool is_connected(bool immediate = true);
-#if 0
-    //bool reconnect_default(bool save);
-#endif
+    bool is_connected_sta(bool immediate = true);
+    bool is_connected_ap(bool immediate = true);
 
 public:
     void config_address_ap(IPAddress ip, IPAddress subnet, IPAddress gateway = INADDR_NONE);
@@ -71,8 +68,10 @@ public:
     bool reconnect_ap(std::string ssid, std::string pass, bool save);
     bool disconnect_ap();
     bool is_enable_ap();
+    bool is_connected_ap();
     IPAddress get_ip_address_ap();
-    const char *get_ssid_ap();
+    String get_ssid_ap();
+    String get_hostname_ap();
 
 public:
     void config_address_sta(IPAddress ip, IPAddress subnet, IPAddress gateway = INADDR_NONE);
@@ -80,10 +79,12 @@ public:
     bool reconnect_sta(std::string ssid, std::string pass, int num, bool save);
     bool disconnect_sta();
     bool is_enable_sta();
+    bool is_connected_sta();
     IPAddress get_ip_address_sta();
-    const char *get_ssid_sta();
+    String get_ssid_sta();
+    String get_hostname_sta();
 
-    void list_reconnect_sta();
+    void reconnect_sta();
 
 private:
     int _get_rssi_as_quality(int rssi);

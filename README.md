@@ -49,6 +49,11 @@ lib_deps =
 	m5stack/M5Atom@^0.1.0
 	fastled/FastLED@^3.5.0
 	https://github.com/MaSiRoProjectOSS/CushyWebServer
+lib_ignore =
+  RPAsyncTCP
+  ESPAsyncTCP
+lib_compat_mode = strict
+lib_ldf_mode = chain
 build_flags =
 	-D ELEGANTOTA_USE_ASYNC_WEBSERVER=1
 ```
@@ -115,15 +120,15 @@ void loop()
 
 | define                 |   デフォルト値 | 定義                        |
 | :--------------------- | -------------: | :-------------------------- |
-| SETTING_SNTP_ENABLE    |            (0) | (1)の場合はSNTPを有効にする |
+| FEATURES_SNTP_ENABLE   |            (0) | (1)の場合はSNTPを有効にする |
 | SETTING_SNTP_SERVER    | "pool.ntp.org" | 接続するSNTPサーバ名        |
 | SETTING_SNTP_TIME_ZONE |          "UTC" | タイムゾーン                |
 
 #### OTA設定
 
-| define               | デフォルト値 | 定義                                                                                                  |
-| :------------------- | -----------: | :---------------------------------------------------------------------------------------------------- |
-| CUSHY_WEB_SERVER_OTA |          (1) | (1)の場合は```http://(アドレス)/update```でOTA機能が使用可能。<br>OTAを使わない場合などに切り離せる。 |
+| define                        | デフォルト値 | 定義                                                                                                  |
+| :---------------------------- | -----------: | :---------------------------------------------------------------------------------------------------- |
+| FEATURES_CUSHY_WEB_SERVER_OTA |          (1) | (1)の場合は```http://(アドレス)/update```でOTA機能が使用可能。<br>OTAを使わない場合などに切り離せる。 |
 
 #### WebServer 設定
 
@@ -138,40 +143,49 @@ void loop()
 | :------------------------------- | --------------------: | :------------------------------------------------- |
 | SETTING_WIFI_AP_DEFAULT_ENABLE   |                (true) | APモードで動作させる                               |
 | SETTING_WIFI_AP_SETTING_FILE     | "/config/wifi_ap.ini" | APモードのWiFiの接続情報の保存先                   |
-| SETTING_WIFI_AP_DEFAULT_SSID     |      "CushyWebServer" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する |
+| SETTING_WIFI_AP_DEFAULT_SSID     |    "CushyWebServerAP" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する |
 | SETTING_WIFI_AP_DEFAULT_PASSWORD |           "password!" | パスワード<br>SPIFFSにファイルがない場合に動作する |
 
 #### WiFi STAモード接続設定
 
-| define                                    |                デフォルト値 | 定義                                                                                                                        |
-| :---------------------------------------- | --------------------------: | :-------------------------------------------------------------------------------------------------------------------------- |
-| SETTING_WIFI_STA_DEFAULT_ENABLE           |                     (false) | STAモードで動作させる                                                                                                       |
-| SETTING_WIFI_STA_CONNECTED_FILE           |      "/config/wifi_sta.ini" | STAモードで最後に接続成功した接続情報の保存先                                                                               |
-| SETTING_WIFI_STA_FILE_PATTERN             | "/config/wifi_sta_%02d.ini" | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合に参照するWiFiリスト。indexは0～SETTING_WIFI_SETTING_LIST_MAXを参照する (*) |
-| SETTING_WIFI_STA_FILE_MAX                 |                         (5) | SETTING_WIFI_SETTING_LIST_FILEが許容するファイル数                                                                          |
-| SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT |                        (60) | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合のWiFi機器の探索時間[単位:秒,5秒以上推奨]                                   |
-| SETTING_WIFI_STA_LOOP_FILE                |                      (true) | 接続先がない場合は、ファイルリストの最初から探査する                                                                        |
-| SETTING_WIFI_STA_DEFAULT_SSID             |            "CushyWebServer" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する                                                                          |
-| SETTING_WIFI_STA_DEFAULT_PASSWORD         |                 "password!" | パスワード<br>SPIFFSにファイルがない場合に動作する                                                                          |
+| define                                    |                デフォルト値 | 定義                                                                                                                         |
+| :---------------------------------------- | --------------------------: | :--------------------------------------------------------------------------------------------------------------------------- |
+| SETTING_WIFI_STA_DEFAULT_ENABLE           |                     (false) | STAモードで動作させる                                                                                                        |
+| SETTING_WIFI_STA_CONNECTED_FILE           |      "/config/wifi_sta.ini" | STAモードで最後に接続成功した接続情報の保存先                                                                                |
+| SETTING_WIFI_STA_FILE_PATTERN             | "/config/wifi_sta_%02d.ini" | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合に参照するWiFiリスト。indexは0～SETTING_WIFI_SETTING_LIST_MAXを参照する (*1) |
+| SETTING_WIFI_STA_FILE_MAX                 |                         (5) | SETTING_WIFI_SETTING_LIST_FILEが許容するファイル数                                                                           |
+| SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT |                        (60) | SETTING_WIFI_MODE_AUTO_TRANSITIONSが(true)の場合のWiFi機器の探索時間[単位:秒,5秒以上推奨]                                    |
+| SETTING_WIFI_STA_LOOP_FILE                |                      (true) | 接続先がない場合は、ファイルリストの最初から探査する                                                                         |
+| SETTING_WIFI_STA_DEFAULT_SSID             |         "CushyWebServerSTA" | SSIDの名前<br>SPIFFSにファイルがない場合に動作する (*2)                                                                      |
+| SETTING_WIFI_STA_DEFAULT_PASSWORD         |                 "password!" | パスワード<br>SPIFFSにファイルがない場合に動作する (*2)                                                                      |
 
-*) SETTING_WIFI_SETTING_LIST_FILEが"/config/wifi_%02d.ini"の場合、/config/wifi_00.ini～/config/wifi_04.iniまでのファイルを参照する。
+*1) SETTING_WIFI_SETTING_LIST_FILEが"/config/wifi_%02d.ini"の場合、/config/wifi_00.ini～/config/wifi_04.iniまでのファイルを参照する。
+*2) "platformio.ini"でSSID/Passwordの設定例
+
+```ini
+build_flags =
+    -D ELEGANTOTA_USE_ASYNC_WEBSERVER=1
+    -D SETTING_WIFI_STA_DEFAULT_SSID="\"CushyWebServerSTA\""
+    -D SETTING_WIFI_STA_DEFAULT_PASSWORD="\"password!\""
+```
 
 #### WiFiの保存設定接続設定
 
 | define                          | デフォルト値 | 定義                                                                            |
 | :------------------------------ | -----------: | :------------------------------------------------------------------------------ |
 | SETTING_WIFI_STORAGE_OVERRIDE   |          (0) | (1)の場合は起動時にSPIFFSの値を無視してバイナリの情報で接続先情報を上書きする。 |
-| SETTING_WIFI_STORAGE_SPI_FS     |          (1) | (1)の場合はSPIFFSに接続先情報を保持し、再起動時はそのファイルを参照する。       |
+| FEATURES_WIFI_STORAGE_SPIFFS    |          (1) | (1)の場合はSPIFFSに接続先情報を保持し、再起動時はそのファイルを参照する。       |
 | SETTING_WIFI_STORAGE_SPI_FORMAT |       (true) | (1)の場合はSPIFFSがフォーマットされてない場合はフォーマットする                 |
 
 #### スレッド動作設定
 
-| define                            | デフォルト値 | 定義                                                                   |
-| :-------------------------------- | -----------: | :--------------------------------------------------------------------- |
-| SETTING_THREAD_CORE_WIFI          |          (1) | スレッドを動作させているCore番号                                       |
-| SETTING_THREAD_PRIORITY           |          (5) | スレッドのプライオリティ(値が小さいほど優先度が低い)                   |
-| SETTING_THREAD_TASK_ASSIGNED_SIZE |   (4096 * 2) | スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。 |
-
+| define                                   | デフォルト値 | 定義                                                                               |
+| :--------------------------------------- | -----------: | :--------------------------------------------------------------------------------- |
+| SETTING_THREAD_CORE_CUSHY_WEB_SERVER     |          (1) | スレッドを動作させているCore番号                                                   |
+| SETTING_THREAD_PRIORITY_SERVER           |          (5) | Webサーバー スレッドのプライオリティ(値が小さいほど優先度が低い)                   |
+| SETTING_THREAD_PRIORITY_WIFI             |          (2) | WiFi接続 スレッドのプライオリティ(値が小さいほど優先度が低い)                      |
+| SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI   |   (1024 * 4) | Webサーバー スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。 |
+| SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER |   (1024 * 8) | WiFi接続 スレッドのサイズ<br>スレッドの容量不足で落ちる場合は増やしてください。    |
 
 ## Requirement
 
@@ -179,12 +193,9 @@ This system uses the following libraries.
 
 * [m5stack/M5Atom](https://github.com/m5stack/M5Atom?utm_source=platformio&utm_medium=piohome)
 * [fastled/FastLED](https://github.com/Makuna/NeoPixelBus?utm_source=platformio&utm_medium=piohome)
+* [ESP32Async/ESPAsyncWebServer](https://registry.platformio.org/libraries/ESP32Async/ESPAsyncWebServer)
 * [ayushsharma82/ElegantOTA](https://github.com/ayushsharma82/ElegantOTA)
-* [ottowinter/ESPAsyncWebServer-esphome](https://registry.platformio.org/libraries/ottowinter/ESPAsyncWebServer-esphome)
-* [ottowinter/ESPAsyncTCP-esphome](https://registry.platformio.org/libraries/ottowinter/ESPAsyncTCP-esphome)
 * [bblanchon/ArduinoJson](https://github.com/bblanchon/ArduinoJson)
-* [suculent/AESLib](https://github.com/suculent/thinx-aes-lib)
-
 
 ## Changelog
 
@@ -196,25 +207,10 @@ It is listed [here](./Changelog).
 
 ## Support
 
-バグとかありましたら、下記に連絡を頂けると助かります。
-[Twitter:Master_Akari](https://twitter.com/Master_Akari)
+バグとかありましたら、Issueを書いてね。
 
 ## Roadmap
 
-* ファイルサイズのスリム化
-  * Ver.4.0以降は、M5ATOMだと容量圧迫により書き込み不可能（OTAなど削りHuge_appのみ動作）
-* Network ページ
-  * AP/STAの有効無効が設定出来るようにする。
-    * 両方を閉じるとアクセス不可になるため、どちらかが有効になるようにする。
-      * AP
-      * STA
-      * AP and STA
-  * STAは複数の接続優先度を持てるため、それを選択可能にする。
-* URL設定
-  * 公開しているＵＲＬは固定値のため、設定で変更可能にする。（ビルド時のみ）
-
-
-<!--
 Update irregularly.
 
 <div style="display: flex">
@@ -222,7 +218,6 @@ Update irregularly.
     <span style="">Next Update&nbsp;:&nbsp; </span>
     <span style="">No plans.</span>
 </div>
--->
 
 
 ## Contributing
@@ -241,6 +236,7 @@ We offer heartfelt thanks to the open-source community for the invaluable gifts 
 
 ---
 
+<div hidden style="display: none">
 <!--
 Apply styles when markdown
 -->
@@ -310,3 +306,4 @@ h5::before {
     top: 8px;
 }
 </style>
+</div>

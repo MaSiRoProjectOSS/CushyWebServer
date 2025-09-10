@@ -2,6 +2,37 @@
 
 ---
 
+## Ver.0.5.0
+
+* Updated dependent libraries
+  * For ESP32
+    * ESP32Async/ESPAsyncWebServer
+* Improved WiFi reconnection logic
+* Fixed bug in AP/STA configuration handling
+* Updated documentation for new features
+  * FEATURES_CUSHY_WEB_SERVER_OTA
+  * FEATURES_SNTP_ENABLE
+  * FEATURES_WIFI_STORAGE_SPIFFS
+  * FEATURES_FILE_ENABLE_ENCRYPTION
+
+## Ver.0.4.3
+
+* Updated dependent libraries for ElegantOTA
+  * For ESP32
+    * mathieucarbou/ESPAsyncWebServer
+    * mathieucarbou/AsyncTCP
+  * For ESP8266
+    * mathieucarbou/ESPAsyncWebServer
+    * mathieucarbou/esphome-ESPAsyncTCP
+  * For RP2040+W
+    * mathieucarbou/ESPAsyncWebServer
+    * khoih-prog/AsyncTCP_RP2040W
+
+## Ver.0.4.2
+
+* Change encryption method.
+* Changed the way AP and STA are configured.
+
 ## Ver.0.4.1
 
 * AP mode is enabled by default, STA is disabled by default.

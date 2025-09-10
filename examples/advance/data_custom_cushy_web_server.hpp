@@ -1,7 +1,6 @@
 /**
  * @file data_custom_cushy_web_server.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief Favicon画像データ（バイナリ配列）を定義するヘッダファイル
  * @version 0.3.0
  * @date 2023-03-28
  *

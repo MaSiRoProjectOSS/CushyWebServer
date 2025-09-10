@@ -1,7 +1,6 @@
 /**
  * @file web_setting.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief CushyWebServerの各種設定（WiFi, SNTP, OTA, ストレージ, スレッド等）の定義をまとめたヘッダファイル
  * @version 0.0.1
  * @date 2023-03-12
  *
@@ -10,6 +9,39 @@
  */
 #ifndef WEB_SETTING_HPP
 #define WEB_SETTING_HPP
+
+namespace MaSiRoProject
+{
+namespace Web
+{
+//////////////////////////////////////////////////////////////
+// Adding Features
+//////////////////////////////////////////////////////////////
+
+#ifndef FEATURES_CUSHY_WEB_SERVER_OTA
+/**
+ * @brief OTA settings
+ */
+#define FEATURES_CUSHY_WEB_SERVER_OTA (1)
+#endif
+#ifndef FEATURES_SNTP_ENABLE
+/**
+ * @brief SNTP settings
+ */
+#define FEATURES_SNTP_ENABLE (0)
+#endif
+#ifndef FEATURES_WIFI_STORAGE_SPIFFS
+/**
+ * @brief Save Wi-Fi settings to SPIFFS
+ */
+#define FEATURES_WIFI_STORAGE_SPIFFS (1)
+#endif
+#ifndef FEATURES_FILE_ENABLE_ENCRYPTION
+/**
+ * @brief Encrypt stored files
+ */
+#define FEATURES_FILE_ENABLE_ENCRYPTION (1)
+#endif
 
 //////////////////////////////////////////////////////////////
 // WEB server settings
@@ -23,10 +55,6 @@
 // SNTP settings
 //////////////////////////////////////////////////////////////
 
-#ifndef SETTING_SNTP_ENABLE
-#define SETTING_SNTP_ENABLE (0)
-#endif
-
 #ifndef SETTING_SNTP_SERVER
 #define SETTING_SNTP_SERVER "pool.ntp.org"
 #endif
@@ -36,31 +64,28 @@
 #endif
 
 //////////////////////////////////////////////////////////////
-// OTA settings
-//////////////////////////////////////////////////////////////
-
-#ifndef CUSHY_WEB_SERVER_OTA
-#define CUSHY_WEB_SERVER_OTA (1)
-#endif
-
-//////////////////////////////////////////////////////////////
 // Server settings
 //////////////////////////////////////////////////////////////
 
 #ifndef SETTING_WIFI_PORT
 /**
- * @brief Specify Wifi port
- *
+ * @brief Wifi port
  */
 #define SETTING_WIFI_PORT (80)
 #endif
 
 #ifndef SETTING_WIFI_HOSTNAME
 /**
- * @brief Specify Wifi HOSTNAME
- *
+ * @brief Wifi HOSTNAME
  */
-#define SETTING_WIFI_HOSTNAME ""
+#define SETTING_WIFI_HOSTNAME "CushyWebServer"
+#endif
+
+#ifndef SETTING_WIFI_SETTING_FILE
+/**
+ * @brief Wifi settings file path
+ */
+#define SETTING_WIFI_SETTING_FILE "/config/wifi_settings.ini"
 #endif
 
 //////////////////////////////////////////////////////////////
@@ -69,32 +94,28 @@
 
 #ifndef SETTING_WIFI_AP_DEFAULT_ENABLE
 /**
- * @brief Specify Wifi mode : AP mode
- *
+ * @brief Wifi mode : AP mode
  */
 #define SETTING_WIFI_AP_DEFAULT_ENABLE (true)
 #endif
 
 #ifndef SETTING_WIFI_AP_SETTING_FILE
 /**
- * @brief Specify Wifi settings file path
- *
+ * @brief Wifi settings file path : AP mode
  */
 #define SETTING_WIFI_AP_SETTING_FILE "/config/wifi_ap.ini"
 #endif
 
 #ifndef SETTING_WIFI_AP_DEFAULT_SSID
 /**
- * @brief Specify Wifi SSID : AP mode
- *
+ * @brief Wifi SSID : AP mode
  */
-#define SETTING_WIFI_AP_DEFAULT_SSID "CushyWebServer"
+#define SETTING_WIFI_AP_DEFAULT_SSID "CushyWebServerAP"
 #endif
 
 #ifndef SETTING_WIFI_AP_DEFAULT_PASSWORD
 /**
- * @brief Specify Wifi password : AP mode
- *
+ * @brief Wifi password : AP mode
  */
 #define SETTING_WIFI_AP_DEFAULT_PASSWORD "password!"
 #endif
@@ -105,16 +126,21 @@
 
 #ifndef SETTING_WIFI_STA_DEFAULT_ENABLE
 /**
- * @brief Specify Wifi mode : STA mode
- *
+ * @brief Wifi mode : STA mode
  */
 #define SETTING_WIFI_STA_DEFAULT_ENABLE (false)
 #endif
 
+#ifndef SETTING_WIFI_FILE_HEADER
+/**
+ * @brief Wifi settings file header
+ */
+#define SETTING_WIFI_FILE_HEADER "#SETTINGS"
+#endif
+
 #ifndef SETTING_WIFI_STA_CONNECTED_FILE
 /**
- * @brief Specify Wifi settings file path
- *
+ * @brief Wifi settings file path : STA mode
  */
 #define SETTING_WIFI_STA_CONNECTED_FILE "/config/wifi_sta.ini"
 #endif
@@ -122,7 +148,6 @@
 #ifndef SETTING_WIFI_STA_FILE_PATTERN
 /**
  * @brief WiFi configuration file list pattern
- *
  */
 #define SETTING_WIFI_STA_FILE_PATTERN "/config/wifi_sta_%02d.ini"
 #endif
@@ -130,7 +155,6 @@
 #ifndef SETTING_WIFI_STA_FILE_MAX
 /**
  * @brief Number of WiFi configuration file list
- *
  */
 #define SETTING_WIFI_STA_FILE_MAX (5)
 #endif
@@ -138,27 +162,20 @@
 #ifndef SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT
 /**
  * @brief Time to wait for transition [unit:s]
- *
  */
 #define SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT (60)
 #endif
 
-#ifndef SETTING_WIFI_STA_LOOP_FILE
-#define SETTING_WIFI_STA_LOOP_FILE (true)
-#endif
-
 #ifndef SETTING_WIFI_STA_DEFAULT_SSID
 /**
- * @brief Specify Wifi SSID : STA mode
- *
+ * @brief Wifi SSID : STA mode
  */
-#define SETTING_WIFI_STA_DEFAULT_SSID "CushyWebServer"
+#define SETTING_WIFI_STA_DEFAULT_SSID "CushyWebServerSTA"
 #endif
 
 #ifndef SETTING_WIFI_STA_DEFAULT_PASSWORD
 /**
- * @brief Specify Wifi password : STA mode
- *
+ * @brief Wifi password : STA mode
  */
 #define SETTING_WIFI_STA_DEFAULT_PASSWORD "password!"
 #endif
@@ -171,29 +188,21 @@
 #define SETTING_WIFI_STORAGE_SPI_FORMAT (true)
 #endif
 
-#ifndef SETTING_WIFI_STORAGE_SPI_FS
-#define SETTING_WIFI_STORAGE_SPI_FS (1)
-#endif
-
 #ifndef SETTING_WIFI_STORAGE_OVERRIDE
 #define SETTING_WIFI_STORAGE_OVERRIDE (0)
 #endif
 
 //////////////////////////////////////////////////////////////
 // Thread settings
-// (0(LOW) - 25(height)))
 //////////////////////////////////////////////////////////////
-
+// Task assigned
 #ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI
-#define SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI (4096 * 2)
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI (1024 * 4)
 #endif
 #ifndef SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER
-#define SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER (4096 * 2)
+#define SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER (1024 * 8)
 #endif
-
-#ifndef SETTING_THREAD_CORE_WIFI
-#define SETTING_THREAD_CORE_WIFI (1)
-#endif
+// PRIORITY (0(LOW) - 25(height)))
 #ifndef SETTING_THREAD_PRIORITY_SERVER
 #define SETTING_THREAD_PRIORITY_SERVER (5)
 #endif
@@ -201,4 +210,11 @@
 #define SETTING_THREAD_PRIORITY_WIFI (2)
 #endif
 
+// CORE
+#ifndef SETTING_THREAD_CORE_CUSHY_WEB_SERVER
+#define SETTING_THREAD_CORE_CUSHY_WEB_SERVER (1)
+#endif
+
+} // namespace Web
+} // namespace MaSiRoProject
 #endif

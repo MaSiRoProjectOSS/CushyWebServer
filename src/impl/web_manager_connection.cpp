@@ -1,7 +1,6 @@
 /**
  * @file web_manager_connection.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief WiFi接続管理（AP/STAモード切替、接続・切断、ネットワーク情報取得など）を行うクラスの実装
  * @version 0.0.1
  * @date 2023-03-12
  *
@@ -99,32 +98,92 @@ std::vector<WebManagerConnection::NetworkList> WebManagerConnection::get_wifi_li
     }
     return list;
 }
-bool WebManagerConnection::is_enable_ap()
+// AP MODE
+bool WebManagerConnection::is_connected_ap()
 {
     return this->_connect_ap;
 }
+bool WebManagerConnection::is_enable_ap()
+{
+    return this->_enable_ap;
+}
 IPAddress WebManagerConnection::get_ip_address_ap()
 {
-    return WiFi.softAPIP();
+    try {
+        if (true == this->is_enable_ap()) {
+            return WiFi.softAPIP();
+        } else {
+            return INADDR_NONE;
+        }
+    } catch (...) {
+        return INADDR_NONE;
+    }
 }
-const char *WebManagerConnection::get_ssid_ap()
+String WebManagerConnection::get_ssid_ap()
 {
-    return this->_ap_ssid.c_str();
+    try {
+        if (true == this->is_enable_ap()) {
+            return String(WiFi.softAPSSID());
+        } else {
+            return String("");
+        }
+    } catch (...) {
+        return String("");
+    }
 }
-bool WebManagerConnection::is_enable_sta()
+String WebManagerConnection::get_hostname_ap()
+{
+    try {
+        if (true == this->is_enable_ap()) {
+            char buf[100];
+            sprintf(buf, "%s", WiFi.softAPgetHostname());
+            return String(buf);
+        } else {
+            return String("");
+        }
+    } catch (...) {
+        return String("");
+    }
+}
+// STA MODE
+bool WebManagerConnection::is_connected_sta()
 {
     return this->_connect_sta;
 }
+bool WebManagerConnection::is_enable_sta()
+{
+    return this->_enable_sta;
+}
 IPAddress WebManagerConnection::get_ip_address_sta()
 {
-    return WiFi.localIP();
+    if (true == this->is_enable_sta()) {
+        return WiFi.localIP();
+    } else {
+        return INADDR_NONE;
+    }
 }
-const char *WebManagerConnection::get_ssid_sta()
+String WebManagerConnection::get_ssid_sta()
 {
-    return this->_sta_ssid.c_str();
+    if (true == this->is_enable_sta()) {
+        return this->_sta_ssid.c_str();
+    } else {
+        return String("");
+    }
+}
+String WebManagerConnection::get_hostname_sta()
+{
+    try {
+        if (true == this->is_enable_sta()) {
+            return WiFi.getHostname();
+        } else {
+            return String("");
+        }
+    } catch (...) {
+        return String("");
+    }
 }
 
-bool WebManagerConnection::is_connected(bool immediate)
+bool WebManagerConnection::is_connected_sta(bool immediate)
 {
     static unsigned long next_time = 0;
     static bool result             = false;
@@ -138,24 +197,44 @@ bool WebManagerConnection::is_connected(bool immediate)
                 status = WiFi.status();
                 switch (status) {
                     case wl_status_t::WL_CONNECTED:
+                        result             = true;
+                        this->_connect_sta = result;
+                        break;
                     case wl_status_t::WL_SCAN_COMPLETED:
                     case wl_status_t::WL_IDLE_STATUS:
-                        result = true;
-                        break;
                     case wl_status_t::WL_CONNECTION_LOST:
                     case wl_status_t::WL_CONNECT_FAILED:
                     case wl_status_t::WL_NO_SSID_AVAIL:
                     case wl_status_t::WL_NO_SHIELD:
                     case wl_status_t::WL_DISCONNECTED:
                     default:
-                        result = false;
+                        result             = false;
+                        this->_connect_sta = result;
                         break;
                 }
                 break;
-
             case wifi_mode_t::WIFI_MODE_AP:
             default:
+                result = false;
+                break;
+        }
+    }
+    return result;
+}
+bool WebManagerConnection::is_connected_ap(bool immediate)
+{
+    static unsigned long next_time = 0;
+    static bool result             = false;
+    if ((true == immediate) || (next_time < millis())) {
+        next_time        = millis() + this->CONNECTION_CHECK_INTERVAL;
+        wifi_mode_t mode = WiFi.getMode();
+        switch (mode) {
+            case wifi_mode_t::WIFI_MODE_AP:
+            case wifi_mode_t::WIFI_MODE_APSTA:
                 result = true;
+                break;
+            case wifi_mode_t::WIFI_MODE_STA:
+            default:
                 break;
         }
     }
@@ -167,7 +246,8 @@ bool WebManagerConnection::is_connected(bool immediate)
 ////////////////////////////////////////////////////
 bool WebManagerConnection::begin()
 {
-    this->set_hostname(SETTING_WIFI_HOSTNAME);
+    this->set_ap_hostname(SETTING_WIFI_HOSTNAME);
+    this->set_sta_hostname(SETTING_WIFI_HOSTNAME);
     return this->_setup();
 }
 
@@ -179,12 +259,6 @@ bool WebManagerConnection::reconnect_sta(bool save)
 {
     return this->reconnect_sta(this->_sta_ssid, this->_sta_pass, -1, save);
 }
-#if 0
-bool WebManagerConnection::reconnect_default(bool save)
-{
-    return this->reconnect(SETTING_WIFI_SSID_DEFAULT, SETTING_WIFI_PASS_DEFAULT, SETTING_WIFI_MODE_AP, SETTING_WIFI_MODE_AUTO_TRANSITIONS, save);
-}
-#endif
 bool WebManagerConnection::reconnect_ap(std::string ssid, std::string pass, bool save)
 {
     if ("" == ssid) {
@@ -193,15 +267,19 @@ bool WebManagerConnection::reconnect_ap(std::string ssid, std::string pass, bool
     if ("" == pass) {
         pass = this->_ap_pass;
     }
-    bool result = this->_reconnect_ap(ssid, pass, save);
-    if (false == result) {
-        if ((this->_ap_ssid != ssid) || (this->_ap_pass != pass)) {
-            result = this->_reconnect_ap(this->_ap_ssid, this->_ap_pass, false);
+    bool result = false;
+    if (false == this->is_enable_ap()) {
+        result = this->disconnect_ap();
+    } else {
+        result = this->_reconnect_ap(ssid, pass, save);
+        if (false == result) {
+            if ((this->_ap_ssid != ssid) || (this->_ap_pass != pass)) {
+                result = this->_reconnect_ap(this->_ap_ssid, this->_ap_pass, false);
+            }
         }
-    }
-    if (true == result) {
         this->_connect_ap = result;
     }
+    log_d("Connect result [A P]: %s", result ? "true" : "false");
     return result;
 }
 bool WebManagerConnection::reconnect_sta(std::string ssid, std::string pass, int num, bool save)
@@ -212,44 +290,41 @@ bool WebManagerConnection::reconnect_sta(std::string ssid, std::string pass, int
     if ("" == pass) {
         pass = this->_sta_pass;
     }
-    bool result = this->_reconnect_sta(ssid, pass, save, num);
-    if (false == result) {
-        if ((this->_sta_ssid != ssid) || (this->_sta_pass != pass)) {
-            result = this->_reconnect_sta(this->_sta_ssid, this->_sta_pass, num, false);
+    bool result = false;
+    if (false == this->is_enable_sta()) {
+        result = this->disconnect_sta();
+    } else {
+        result = this->_reconnect_sta(ssid, pass, num, save);
+        if (false == result) {
+            if ((this->_sta_ssid != ssid) || (this->_sta_pass != pass)) {
+                result = this->_reconnect_sta(this->_sta_ssid, this->_sta_pass, num, false);
+            }
         }
+        if (true == result) {
+            this->_sta_explored_index = 0;
+        }
+        this->_connect_sta = result;
     }
-    if (true == result) {
-        this->_sta_explored_index = 0;
-        this->_connect_sta        = result;
-    }
+    log_d("Connect result [STA]: %s", result ? "true" : "false");
     return result;
 }
 
 bool WebManagerConnection::disconnect_ap()
 {
+    log_i("Disconnect: AP");
     bool result      = true;
     wifi_mode_t mode = WiFi.getMode();
     switch (mode) {
         case wifi_mode_t::WIFI_MODE_AP:
-            result = WiFi.softAPdisconnect();
-            break;
-        case wifi_mode_t::WIFI_MODE_STA:
-            if (true == WiFi.isConnected()) {
-                result = WiFi.disconnect();
-            }
-            break;
-
         case wifi_mode_t::WIFI_MODE_APSTA:
             result = WiFi.softAPdisconnect();
-            if (true == WiFi.isConnected()) {
-                result = WiFi.disconnect();
-            }
+            break;
         default:
             break;
     }
     if (false == result) {
         int countdown = this->CONNECTION_TIMEOUT_MS;
-        while (true == this->is_connected(true)) {
+        while (true == this->is_connected_ap(true)) {
             delay(this->CONNECTION_TIMEOUT_INTERVAL);
             countdown -= this->CONNECTION_TIMEOUT_INTERVAL;
             if (0 >= countdown) {
@@ -257,34 +332,28 @@ bool WebManagerConnection::disconnect_ap()
             }
         }
     }
-    result = !this->is_connected(true);
+    this->_connect_ap = false;
+    result            = !this->is_connected_ap(true);
     return result;
 }
 bool WebManagerConnection::disconnect_sta()
 {
+    log_i("Disconnect: STA");
     bool result      = true;
     wifi_mode_t mode = WiFi.getMode();
     switch (mode) {
-        case wifi_mode_t::WIFI_MODE_AP:
-            result = WiFi.softAPdisconnect();
-            break;
         case wifi_mode_t::WIFI_MODE_STA:
+        case wifi_mode_t::WIFI_MODE_APSTA:
             if (true == WiFi.isConnected()) {
                 result = WiFi.disconnect();
             }
             break;
-
-        case wifi_mode_t::WIFI_MODE_APSTA:
-            result = WiFi.softAPdisconnect();
-            if (true == WiFi.isConnected()) {
-                result = WiFi.disconnect();
-            }
         default:
             break;
     }
     if (false == result) {
         int countdown = this->CONNECTION_TIMEOUT_MS;
-        while (true == this->is_connected(true)) {
+        while (true == this->is_connected_sta(true)) {
             delay(this->CONNECTION_TIMEOUT_INTERVAL);
             countdown -= this->CONNECTION_TIMEOUT_INTERVAL;
             if (0 >= countdown) {
@@ -292,7 +361,8 @@ bool WebManagerConnection::disconnect_sta()
             }
         }
     }
-    result = !this->is_connected(true);
+    this->_connect_sta = false;
+    result             = !this->is_connected_sta(true);
     return result;
 }
 
@@ -317,20 +387,18 @@ bool WebManagerConnection::_reconnect_ap(std::string ssid, std::string pass, boo
 {
     bool result = true;
     (void)this->disconnect_ap();
-    if ("" != this->_hostname) {
-        WiFi.setHostname(this->_hostname.c_str());
-    }
     if (true == this->_config_ap.flag_set) {
         result = WiFi.softAPConfig(this->_config_ap.local_ip, this->_config_ap.gateway, this->_config_ap.subnet);
     }
     if (true == result) {
         result = WiFi.softAP(ssid.c_str(), pass.c_str());
+        WiFi.softAPsetHostname(this->_ap_hostname.c_str());
     }
     if (true == result) {
         if (true == save) {
-            (void)this->save_information_ap(ssid, pass, this->_hostname);
+            (void)this->save_ap_information(ssid, pass, this->_ap_hostname);
         } else {
-            (void)this->set_information_ap(ssid, pass, this->_hostname);
+            (void)this->set_ap_information(ssid, pass);
         }
     }
     return result;
@@ -340,29 +408,27 @@ bool WebManagerConnection::_reconnect_sta(std::string ssid, std::string pass, in
 {
     bool result = true;
     (void)this->disconnect_sta();
-    if ("" != this->_hostname) {
-        WiFi.setHostname(this->_hostname.c_str());
-    }
+    WiFi.setHostname(this->_sta_hostname.c_str());
     if (true == this->_config_sta.flag_set) {
         result = WiFi.config(this->_config_sta.local_ip, this->_config_sta.gateway, this->_config_sta.subnet);
     }
     if (true == result) {
         WiFi.begin(ssid.c_str(), pass.c_str());
         int countdown = this->CONNECTION_TIMEOUT_MS;
-        while (false == this->is_connected(true)) {
+        while (false == this->is_connected_sta(true)) {
             delay(this->CONNECTION_TIMEOUT_INTERVAL);
             countdown -= this->CONNECTION_TIMEOUT_INTERVAL;
             if (0 >= countdown) {
                 break;
             }
         }
-        result = this->is_connected(true);
+        result = this->is_connected_sta(true);
     }
     if (true == result) {
         if (true == save) {
-            (void)this->save_information_sta(ssid, pass, this->_hostname, num);
+            (void)this->save_sta_information(ssid, pass, this->_sta_hostname, num);
         } else {
-            (void)this->set_information_sta(ssid, pass, this->_hostname);
+            (void)this->set_sta_information(ssid, pass);
         }
     }
     return result;

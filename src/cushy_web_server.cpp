@@ -1,7 +1,6 @@
 /**
  * @file CushyWebServer.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief Wi-Fi/AP接続管理とWebサーバの制御、各種コールバック・設定・通信処理を行うクラスの実装
  * @version 0.0.1
  * @date 2023-03-22
  *
@@ -24,7 +23,8 @@ const int THREAD_SEEK_INTERVAL_WIFI  = (10 * 1000);
 const int THREAD_RETRY_INTERVAL_WIFI = (5 * 1000);
 const int THREAD_INTERVAL_WIFI       = (25);
 
-volatile bool flag_list_reconnect            = false;
+volatile bool flag_list_reconnect_ap         = false;
+volatile bool flag_list_reconnect_sta        = false;
 volatile bool flag_thread_wifi_initialized   = false;
 volatile bool flag_thread_wifi_fin           = false;
 volatile bool flag_thread_server_initialized = false;
@@ -93,7 +93,7 @@ void thread_server(void *args)
             previous_mode = _mode;
             if (false == flag_once) {
                 flag_once = true;
-#if SETTING_SNTP_ENABLE
+#if FEATURES_SNTP_ENABLE
                 if (false == flag_sntp_sync) {
                     flag_sntp_sync = true;
                     configTzTime(SETTING_SNTP_TIME_ZONE, SETTING_SNTP_SERVER);
@@ -123,7 +123,7 @@ void thread_server(void *args)
 void thread_wifi(void *args)
 {
     unsigned long err_begin = millis() + (1000 * SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT);
-#if SETTING_SNTP_ENABLE
+#if FEATURES_SNTP_ENABLE
     bool flag_sntp_sync = false;
 #endif
     CushyWebServer::WEB_VIEWER_MODE previous_mode = CushyWebServer::WEB_VIEWER_MODE::NOT_INITIALIZED;
@@ -153,6 +153,10 @@ void thread_wifi(void *args)
         try {
             bool connected_ap  = ctrl_web.is_enable_ap();
             bool connected_sta = ctrl_web.is_enable_sta();
+            if ((false == connected_ap) && (false == connected_sta)) {
+                ctrl_web.set_ap_enable(true);
+                connected_ap = ctrl_web.is_enable_ap();
+            }
             if ((true == connected_ap) && (true == connected_sta)) {
                 if (previous_mode != _mode) {
                     log_d("%s", "connect mode : AP and STA");
@@ -175,7 +179,11 @@ void thread_wifi(void *args)
                 set_mode(CushyWebServer::WEB_VIEWER_MODE::DISCONNECTED);
             }
             previous_mode = _mode;
-            if (false == ctrl_web.is_enable_sta()) {
+            if (true == flag_list_reconnect_ap) {
+                flag_list_reconnect_ap = false;
+                ctrl_web.reconnect_ap();
+            }
+            if ((false == connected_sta) && (false == flag_list_reconnect_sta)) {
                 // do nothing
             } else {
                 if (false == ctrl_web.reconnect_sta()) {
@@ -183,16 +191,19 @@ void thread_wifi(void *args)
                     if (err_begin < millis()) {
                         err_begin = millis() + (1000 * SETTING_WIFI_STA_AUTO_TRANSITIONS_TIMEOUT);
                         ctrl_web.load_sta_settings(false);
-                        log_d("%s", "Retry to connect");
+                        flag_list_reconnect_sta = false;
                     }
                 } else {
                     while (false == flag_thread_wifi_fin) {
-                        if (true != ctrl_web.is_connected()) {
+                        if (true != ctrl_web.is_connected_sta()) {
                             break;
                         }
-                        if (true == flag_list_reconnect) {
-                            flag_list_reconnect = false;
+                        if (true == flag_list_reconnect_sta) {
+                            flag_list_reconnect_sta = false;
                             ctrl_web.load_sta_settings(true);
+                            break;
+                        }
+                        if (true == flag_list_reconnect_ap) {
                             break;
                         }
                         vTaskDelay(THREAD_RETRY_INTERVAL_WIFI);
@@ -209,9 +220,14 @@ void thread_wifi(void *args)
 ///////////////////////////////////////////////////////////////////////////////////////////////
 #pragma endregion
 
-///////////////////////////////////////////////////////////////////////////////////////////////
+#pragma region class_CushyWebServer
+//////////////////////////////////////////////////////////////
+// Constructor and destructor
+//////////////////////////////////////////////////////////////
 CushyWebServer::CushyWebServer()
 {
+    ctrl_web.set_callback_reconnect_ap(std::bind(&CushyWebServer::reconnect, this, NETWORK_INTERFACE::NW_IF_WIFI_AP));
+    ctrl_web.set_callback_reconnect_sta(std::bind(&CushyWebServer::reconnect, this, NETWORK_INTERFACE::NW_IF_WIFI_STA));
 }
 CushyWebServer::~CushyWebServer()
 {
@@ -219,6 +235,9 @@ CushyWebServer::~CushyWebServer()
     flag_thread_wifi_fin   = true;
 }
 
+//////////////////////////////////////////////////////////////
+// Begin and callback settings
+//////////////////////////////////////////////////////////////
 bool CushyWebServer::begin()
 {
     bool result = false;
@@ -233,15 +252,15 @@ bool CushyWebServer::begin()
                                             SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI,
                                             NULL,
                                             SETTING_THREAD_PRIORITY_WIFI,
-                                            &this->_task_handle,
-                                            SETTING_THREAD_CORE_WIFI);
+                                            &this->_task_handle_wifi,
+                                            SETTING_THREAD_CORE_CUSHY_WEB_SERVER);
                     xTaskCreatePinnedToCore(thread_server, //
                                             THREAD_NAME_SERVER,
                                             SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER,
                                             NULL,
                                             SETTING_THREAD_PRIORITY_SERVER,
-                                            &this->_task_handle,
-                                            SETTING_THREAD_CORE_WIFI);
+                                            &this->_task_handle_server,
+                                            SETTING_THREAD_CORE_CUSHY_WEB_SERVER);
                 }
                 result = true;
             }
@@ -252,51 +271,6 @@ bool CushyWebServer::begin()
     }
     return result;
 }
-
-bool CushyWebServer::setup_server(AsyncWebServer *server)
-{
-    return true;
-}
-AsyncWebServer *CushyWebServer::get_server()
-{
-    return ctrl_web.get_server();
-}
-void CushyWebServer::list_reconnect_sta()
-{
-    flag_list_reconnect = true;
-}
-
-bool CushyWebServer::is_enable_ap()
-{
-    return ctrl_web.is_enable_ap();
-}
-IPAddress CushyWebServer::get_ip_address_ap()
-{
-    return ctrl_web.get_ip_address_ap();
-}
-const char *CushyWebServer::get_ssid_ap()
-{
-    return ctrl_web.get_ssid_ap();
-}
-
-bool CushyWebServer::is_enable_sta()
-{
-    return ctrl_web.is_enable_sta();
-}
-IPAddress CushyWebServer::get_ip_address_sta()
-{
-    return ctrl_web.get_ip_address_sta();
-}
-const char *CushyWebServer::get_ssid_sta()
-{
-    return ctrl_web.get_ssid_sta();
-}
-
-void CushyWebServer::handle_favicon_ico(AsyncWebServerRequest *request)
-{
-    ctrl_web.handle_favicon_ico(request);
-}
-
 void CushyWebServer::set_callback_mode(ModeFunction callback)
 {
     _callback_mode = callback;
@@ -309,77 +283,26 @@ void CushyWebServer::set_callback_sync_completed(SyncCompletedFunction callback)
 {
     _callback_sync_completed = callback;
 }
-CushyWebServer::WEB_VIEWER_MODE CushyWebServer::get_mode()
+
+//////////////////////////////////////////////////////////////
+// Virtual functions
+//////////////////////////////////////////////////////////////
+bool CushyWebServer::setup_server(AsyncWebServer *server)
 {
-    return _mode;
+    return true;
 }
-/////////////////////////////////
-// value conversion
-/////////////////////////////////
-String CushyWebServer::ip_to_string(IPAddress ip)
+void CushyWebServer::handle_favicon_ico(AsyncWebServerRequest *request)
 {
-    String res = "";
-    for (int i = 0; i < 3; i++) {
-        res += String((ip >> (8 * i)) & 0xFF) + ".";
-    }
-    res += String(((ip >> 8 * 3)) & 0xFF);
-    return res;
+    ctrl_web.handle_favicon_ico(request);
 }
-byte CushyWebServer::to_byte(String data)
+void CushyWebServer::handle_not_found(AsyncWebServerRequest *request)
 {
-    if (true != data.isEmpty()) {
-        int value = std::stoi(data.c_str());
-        return (byte)(value);
-    } else {
-        return 0;
-    }
-}
-unsigned long CushyWebServer::to_ulong(String data)
-{
-    if (true != data.isEmpty()) {
-        unsigned long value = std::stoul(data.c_str());
-        return value;
-    } else {
-        return 0;
-    }
-}
-int CushyWebServer::to_int(String data)
-{
-    if (true != data.isEmpty()) {
-        int value = std::stoi(data.c_str());
-        return value;
-    } else {
-        return 0;
-    }
-}
-String CushyWebServer::file_readString(const char *path)
-{
-    return ctrl_web.file_readString(path);
-}
-std::string CushyWebServer::template_json_result(bool result, std::string data, std::string message)
-{
-    return ctrl_web.template_json_result(result, data, message);
+    ctrl_web.handle_not_found(request);
 }
 
-/////////////////////////////////////////
-// get member valuable
-/////////////////////////////////////////
-time_t CushyWebServer::millis_to_time(unsigned long ms)
-{
-    return t0 + (long)(((long long)ms - (long long)t1) / 1000);
-}
-bool CushyWebServer::is_sntp_sync()
-{
-    return flag_sntp_sync;
-}
-UBaseType_t CushyWebServer::get_stack_size()
-{
-    return SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER;
-}
-UBaseType_t CushyWebServer::get_stack_high_water_mark()
-{
-    return uxTaskGetStackHighWaterMark(this->_task_handle);
-}
+//////////////////////////////////////////////////////////////
+// Post functions
+//////////////////////////////////////////////////////////////
 
 bool CushyWebServer::post_json(String url, String payload_json, String *reply)
 {
@@ -444,3 +367,209 @@ bool CushyWebServer::post_json(String url, String payload_json, JsonDocument *re
     }
     return result;
 }
+
+//////////////////////////////////////////////////////////////
+// Getter and Setter
+//////////////////////////////////////////////////////////////
+void CushyWebServer::reconnect(NETWORK_INTERFACE interface)
+{
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            flag_list_reconnect_ap = true;
+            log_d("Request reconnect : AP");
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            flag_list_reconnect_sta = true;
+            log_d("Request reconnect : STA");
+            break;
+        default:
+            log_d("Request reconnect : Unknown");
+            break;
+    }
+}
+bool CushyWebServer::is_sntp_sync()
+{
+    return flag_sntp_sync;
+}
+bool CushyWebServer::set_enable(NETWORK_INTERFACE interface, bool flag)
+{
+    bool result = false;
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            result = ctrl_web.set_ap_enable(flag);
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            result = ctrl_web.set_sta_enable(flag);
+            break;
+        default:
+            break;
+    }
+    return result;
+}
+bool CushyWebServer::save_setting(NETWORK_INTERFACE interface, bool enable, std::string ssid, std::string pass, std::string hostname, int num)
+{
+    bool result = false;
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            result = ctrl_web.save_ap_setting(enable, ssid, pass, hostname);
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            result = ctrl_web.save_sta_setting(enable, ssid, pass, hostname, num);
+            break;
+        default:
+            break;
+    }
+    return result;
+}
+bool CushyWebServer::get_information(NETWORK_INTERFACE interface, bool &enable, String &ssid, String &hostname, String &ip)
+{
+    bool result = false;
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            enable   = ctrl_web.is_enable_ap();
+            ssid     = ctrl_web.get_ssid_ap();
+            hostname = ctrl_web.get_hostname_ap();
+            ip       = ctrl_web.ip_to_string(ctrl_web.get_ip_address_ap()).c_str();
+            result   = true;
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            enable   = ctrl_web.is_enable_sta();
+            ssid     = ctrl_web.get_ssid_sta();
+            hostname = ctrl_web.get_hostname_sta();
+            ip       = ctrl_web.ip_to_string(ctrl_web.get_ip_address_sta()).c_str();
+            result   = true;
+            break;
+        default:
+            break;
+    }
+    return result;
+}
+
+bool CushyWebServer::is_connected(NETWORK_INTERFACE interface)
+{
+    bool result = false;
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            result = ctrl_web.is_connected_ap();
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            result = ctrl_web.is_connected_sta();
+            break;
+        default:
+            break;
+    }
+    return result;
+}
+bool CushyWebServer::is_enable(NETWORK_INTERFACE interface)
+{
+    bool result = false;
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            result = ctrl_web.is_enable_ap();
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            result = ctrl_web.is_enable_sta();
+            break;
+        default:
+            break;
+    }
+    return result;
+}
+IPAddress CushyWebServer::get_ip_address(NETWORK_INTERFACE interface)
+{
+    IPAddress result(127, 0, 0, 1);
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            result = ctrl_web.get_ip_address_ap();
+            break;
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            result = ctrl_web.get_ip_address_sta();
+            break;
+        default:
+            break;
+    }
+    return result;
+}
+String CushyWebServer::get_ssid(NETWORK_INTERFACE interface)
+{
+    switch (interface) {
+        case NETWORK_INTERFACE::NW_IF_WIFI_AP:
+            return ctrl_web.get_ssid_ap();
+        case NETWORK_INTERFACE::NW_IF_WIFI_STA:
+            return ctrl_web.get_ssid_sta();
+        default:
+            return "";
+    }
+}
+CushyWebServer::WEB_VIEWER_MODE CushyWebServer::get_mode()
+{
+    return _mode;
+}
+time_t CushyWebServer::millis_to_time(unsigned long ms)
+{
+    return t0 + (long)(((long long)ms - (long long)t1) / 1000);
+}
+
+//////////////////////////////////////////////////////////////
+// Stack function
+//////////////////////////////////////////////////////////////
+UBaseType_t CushyWebServer::get_stack_size_wifi()
+{
+    return SETTING_THREAD_TASK_ASSIGNED_SIZE_WIFI;
+}
+UBaseType_t CushyWebServer::get_stack_high_water_mark_wifi()
+{
+    return uxTaskGetStackHighWaterMark(this->_task_handle_wifi);
+}
+UBaseType_t CushyWebServer::get_stack_size_server()
+{
+    return SETTING_THREAD_TASK_ASSIGNED_SIZE_SERVER;
+}
+UBaseType_t CushyWebServer::get_stack_high_water_mark_server()
+{
+    return uxTaskGetStackHighWaterMark(this->_task_handle_server);
+}
+
+//////////////////////////////////////////////////////////////
+// Protected functions
+//////////////////////////////////////////////////////////////
+String CushyWebServer::ip_to_string(IPAddress ip)
+{
+    return ctrl_web.ip_to_string(ip);
+}
+byte CushyWebServer::to_byte(String data)
+{
+    if (true != data.isEmpty()) {
+        int value = std::stoi(data.c_str());
+        return (byte)(value);
+    } else {
+        return 0;
+    }
+}
+int CushyWebServer::to_int(String data)
+{
+    return ctrl_web.to_int(data);
+}
+unsigned long CushyWebServer::to_ulong(String data)
+{
+    if (true != data.isEmpty()) {
+        unsigned long value = std::stoul(data.c_str());
+        return value;
+    } else {
+        return 0;
+    }
+}
+String CushyWebServer::file_readString(const char *path)
+{
+    return ctrl_web.file_readString(path);
+}
+std::string CushyWebServer::template_json_result(bool result, std::string data, std::string message)
+{
+    return ctrl_web.template_json_result(result, data, message);
+}
+AsyncWebServer *CushyWebServer::get_server()
+{
+    return ctrl_web.get_server();
+}
+
+#pragma endregion

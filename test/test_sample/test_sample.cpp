@@ -1,7 +1,6 @@
 /**
  * @file test_sample.cpp
- * @author Akari-mobility (masiro.to.akari@gmail.com)
- * @brief
+ * @brief Unityテストフレームワークを用いて、セットアップとループ処理の基本的なテストを実行するサンプルコード
  * @version 0.0.1
  * @date 2023-03-07
  *

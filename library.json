@@ -1,6 +1,6 @@
 {
     "name": "CushyWebServer",
-    "version": "0.4.1",
+    "version": "0.5.0",
     "description": "Equipped with Web server related functions for ESP32",
     "keywords": "M5Stack, M5Atom, OTA, WebServer",
     "homepage": "https://github.com/MaSiRoProjectOSS/CushyWebServer",
@@ -17,12 +17,12 @@
     "frameworks": "arduino",
     "platforms": "espressif32",
     "dependencies": {
-        "ottowinter/ESPAsyncWebServer-esphome": "^3.0.0",
-        "ottowinter/ESPAsyncTCP-esphome": "^1.2.3",
-        "ayushsharma82/ElegantOTA": "^3.1.0",
-        "bblanchon/ArduinoJson": "^6.21.1",
+        "ESP32Async/ESPAsyncWebServer": "^3.8.0",
+        "ayushsharma82/ElegantOTA": "^3.1.4",
+        "bblanchon/ArduinoJson": "^7.4.2",
         "suculent/AESLib": "^2.3.6"
     },
+    "libArchive": true,
     "headers": "cushy_web_server.hpp",
     "examples": [
         {
@@ -33,38 +33,22 @@
             ]
         },
         {
-            "name": "check_stack_size",
-            "base": "examples/check_stack_size",
-            "files": [
-                "check_stack_size.cpp"
-            ]
-        },
-        {
-            "name": "mode_notification",
-            "base": "examples/mode_notification",
+            "name": "standard",
+            "base": "examples/standard",
             "files": [
                 "custom_cushy_web_server.cpp",
                 "custom_cushy_web_server.hpp",
-                "mode_notification.cpp"
+                "standard.cpp"
             ]
         },
         {
-            "name": "original_favicon",
-            "base": "examples/original_favicon",
+            "name": "advance",
+            "base": "examples/advance",
             "files": [
                 "custom_cushy_web_server.cpp",
                 "custom_cushy_web_server.hpp",
                 "data_custom_cushy_web_server.hpp",
-                "original_favicon.cpp"
-            ]
-        },
-        {
-            "name": "post_json",
-            "base": "examples/post_json",
-            "files": [
-                "custom_cushy_web_server.cpp",
-                "custom_cushy_web_server.hpp",
-                "post_json.cpp"
+                "advance.cpp"
             ]
         }
     ],

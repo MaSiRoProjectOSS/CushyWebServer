@@ -1,7 +1,6 @@
 /**
  * @file web_communication.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief AP/STAネットワーク設定やWebページ処理を提供します。
  * @version 0.0.1
  * @date 2023-03-12
  *
@@ -20,40 +19,86 @@ namespace MaSiRoProject
 {
 namespace Web
 {
-
 class WebCommunication {
 public:
+    //////////////////////////////////////////////////////////////
+    // Callback
+    //////////////////////////////////////////////////////////////
+#if CALLBACK_STYLE_USING
+    using ReconnectApFunction  = void (*)();
+    using ReconnectStaFunction = void (*)();
+#else
+    typedef std::function<void(void)> ReconnectApFunction;
+    typedef std::function<void(void)> ReconnectStaFunction;
+#endif
+
+    //////////////////////////////////////////////////////////////
+    // Constructor and destructor
+    //////////////////////////////////////////////////////////////
     WebCommunication();
     ~WebCommunication();
 
 public:
+    //////////////////////////////////////////////////////////////
+    // Setup functions
+    //////////////////////////////////////////////////////////////
     AsyncWebServer *get_server();
     bool setup();
     bool begin();
+    void set_callback_reconnect_ap(ReconnectApFunction callback);
+    void set_callback_reconnect_sta(ReconnectStaFunction callback);
+
+public:
+    //////////////////////////////////////////////////////////////
+    // AP settings
+    //////////////////////////////////////////////////////////////
     bool reconnect_ap();
-    bool reconnect_sta();
-
-    // bool load_default(bool save);
-    bool is_connected(bool immediate = true);
-    std::string template_json_result(bool result, std::string data = "", std::string message = "");
-
-public:
-    bool is_enable_ap();
     IPAddress get_ip_address_ap();
-    const char *get_ssid_ap();
+    bool is_connected_ap(bool immediate = true);
+    bool is_enable_ap();
+    String get_ssid_ap();
+    String get_hostname_ap();
 
-    bool is_enable_sta();
-    IPAddress get_ip_address_sta();
-    const char *get_ssid_sta();
-    void list_reconnect_sta();
-    void load_sta_settings(bool clear);
+    bool set_ap_enable(bool flag);
+    bool save_ap_setting(bool enable, std::string ssid, std::string pass, std::string hostname);
 
 public:
+    //////////////////////////////////////////////////////////////
+    // STA settings
+    //////////////////////////////////////////////////////////////
+    bool reconnect_sta();
+    IPAddress get_ip_address_sta();
+    bool is_connected_sta(bool immediate = true);
+    bool is_enable_sta();
+    String get_ssid_sta();
+    String get_hostname_sta();
+
+    void load_sta_settings(bool clear);
+    bool set_sta_enable(bool flag);
+    bool save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num);
+
+public:
+    //////////////////////////////////////////////////////////////
+    // Convert functions
+    //////////////////////////////////////////////////////////////
+    String ip_to_string(IPAddress ip);
+    int to_int(String data);
+    //////////////////////////////////////////////////////////////
+    // template functions
+    //////////////////////////////////////////////////////////////
+    std::string template_json_result(bool result, std::string data = "", std::string message = "");
     String file_readString(const char *path);
+
+    //////////////////////////////////////////////////////////////
+    // Functions that are expected to be overwritten
+    //////////////////////////////////////////////////////////////
     void handle_favicon_ico(AsyncWebServerRequest *request);
+    void handle_not_found(AsyncWebServerRequest *request);
 
 private:
-    void handle_not_found(AsyncWebServerRequest *request);
+    //////////////////////////////////////////////////////////////
+    // web page handle
+    //////////////////////////////////////////////////////////////
     void handle_js_ajax(AsyncWebServerRequest *request);
     void handle_css_general(AsyncWebServerRequest *request);
 
@@ -63,12 +108,15 @@ private:
 
     void handle_network_set(AsyncWebServerRequest *request);
     void handle_network_get(AsyncWebServerRequest *request);
-    void handle_network_get_list(AsyncWebServerRequest *request);
-    void handle_network_make_list(AsyncWebServerRequest *request);
+    void handle_network_list_get(AsyncWebServerRequest *request);
+    void handle_network_list_make(AsyncWebServerRequest *request);
 
 private:
-    int to_int(String data);
-    bool _flag_save = true;
+    //////////////////////////////////////////////////////////////
+    // private functions
+    //////////////////////////////////////////////////////////////
+    ReconnectApFunction _callback_reconnect_ap;
+    ReconnectStaFunction _callback_reconnect_sta;
 
 private:
     WebManagerConnection _manager;

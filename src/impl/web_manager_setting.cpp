@@ -1,7 +1,6 @@
 /**
  * @file web_manager_setting.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief WiFi設定（AP/STAモード）の管理・保存・読み込み・暗号化を行うクラスの実装
  * @version 0.0.1
  * @date 2023-03-12
  *
@@ -12,139 +11,359 @@
 
 #include "../setting_cushy_web_server.hpp"
 
-#if SETTING_WIFI_STORAGE_SPI_FS
 #include <SPIFFS.h>
-#endif
-#include "AESLib.h"
+#include <aes/esp_aes.h>
+#include <base64.h>
 
 namespace MaSiRoProject
 {
 namespace Web
 {
+#define INPUT_BUFFER_LIMIT  (128 + 1)
+#define STRING_BUFFER_LIMIT (255)
 
-AESLib aesLib;
-
-#define INPUT_BUFFER_LIMIT (128 + 1)
-byte ia[N_BLOCK] = { 0x2F, 0x7E, 0x25, 0x66, 0x38, 0xB4, 0xA1, 0x47, 0x43, 0x90, 0xF1, 0x83, 0x54, 0xF1, 0x33, 0x8B };
-char ik[]        = { 0x0A };
-int ik_len       = 0;
-
-uint16_t en_text(char *msg, uint16_t msgLen, char iv[], int iv_len, byte key[N_BLOCK], byte &text)
-{
-    unsigned char ciphertext[2 * INPUT_BUFFER_LIMIT] = { 0 };
-    unsigned char base64[50]                         = { 0 };
-    base64_encode((char *)base64, iv, iv_len);
-    int length                      = aesLib.encrypt((byte *)msg, msgLen, ciphertext, key, N_BLOCK, (byte *)base64);
-    unsigned char base64encoded[50] = { 0 };
-    base64_encode((char *)base64encoded, (char *)ciphertext, length);
-    sprintf((char *)&text, "%s", base64encoded);
-    return length;
-}
-uint16_t de_text(byte msg[], uint16_t msgLen, char iv[], int iv_len, byte key[N_BLOCK], byte &text)
-{
-    unsigned char cleartext[INPUT_BUFFER_LIMIT] = { 0 };
-    unsigned char base64[50]                    = { 0 };
-    base64_encode((char *)base64, iv, iv_len);
-    unsigned char base64encoded[50] = { 0 };
-    int b_len                       = base64_decode((char *)base64encoded, (char *)msg, msgLen);
-    uint16_t length                 = aesLib.decrypt(base64encoded, b_len, cleartext, key, N_BLOCK, (byte *)base64);
-    cleartext[length]               = 0x00;
-    sprintf((char *)&text, "%s", (char *)cleartext);
-    return length;
-}
-
-WebManagerSetting::WebManagerSetting()
-{
-    uint8_t baseMac[6];
-    char baseMacChr[18] = { 0 };
-
-    esp_read_mac(baseMac, ESP_MAC_WIFI_STA);
-    sprintf(baseMacChr, "%02X:%02X:%02X:%02X:%02X:%02X", baseMac[0], baseMac[1], baseMac[2], baseMac[3], baseMac[4], baseMac[5]);
-    for (int i = 0; (i < 18) & (i < N_BLOCK); i++) {
-        ia[i] = (byte)baseMacChr[i];
-    }
-    ik_len = sprintf(ik, "sta%sap%s", SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_SSID);
-    aesLib.set_paddingmode((paddingMode)0);
-    this->_hostname = "";
-    (void)this->_default_information_ap();
-    (void)this->_default_information_sta();
-    this->_open_fs = false;
-}
-
-bool WebManagerSetting::_setup()
-{
-    (void)this->_default_information_ap();
-    (void)this->_default_information_sta();
-
-    bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
-    if (0 <= this->_error_count_spi) {
-        // SPI FFS doing format if happened error
-        if (true == SPIFFS.begin(SETTING_WIFI_STORAGE_SPI_FORMAT)) {
-#if SETTING_WIFI_STORAGE_OVERRIDE
-            this->_save_information(SETTING_WIFI_AP_SETTING_FILE, SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
-            this->_save_information(SETTING_WIFI_STA_CONNECTED_FILE, SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+// Semaphore for SPIFFS
+#if FEATURES_WIFI_STORAGE_SPIFFS
+static SemaphoreHandle_t xMutex_SPIFFS = xSemaphoreCreateMutex();
+const TickType_t xTicksToWait_SPIFFS   = 0;
 #endif
-            if (true == this->_connect_ap) {
-                if (false == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
-                    this->_save_information(SETTING_WIFI_AP_SETTING_FILE, SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
-                }
-                if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
-                    // load setting information from file
-                    result = this->_load_information(SETTING_WIFI_AP_SETTING_FILE, true);
-                }
-            }
-            if (true == this->_connect_sta) {
-                if (true == SPIFFS.exists(SETTING_WIFI_STA_CONNECTED_FILE)) {
-                    // load setting information from file
-                    result = this->_load_information(SETTING_WIFI_STA_CONNECTED_FILE, false);
-                } else {
-                    // save setting information because File is not exists
-                    result = this->_load_sta_setting(true);
-                    while (false == result) {
-                        result = this->_load_sta_setting(false);
-                    }
-                }
-            }
 
-            SPIFFS.end();
-        } else {
-            this->_error_count_spi--;
+#if FEATURES_FILE_ENABLE_ENCRYPTION
+//////////////////////////////////////////////////////////////
+// ENCRYPTION
+//////////////////////////////////////////////////////////////
+#define N_BLOCK (32)
+
+const uint8_t ia[16]      = { 0x2F, 0x7E, 0x25, 0x66, 0x38, 0xB4, 0xA1, 0x47, 0x43, 0x90, 0xF1, 0x83, 0x54, 0xF1, 0x33, 0x8B };
+unsigned char ik_shift    = 0xA0;
+unsigned char ik[N_BLOCK] = { 0x0A };
+int ik_len                = 0;
+
+inline unsigned char lookup_b64(char c)
+{
+    if (c >= 'A' && c <= 'Z')
+        return c - 'A';
+    if (c >= 'a' && c <= 'z')
+        return c - 71;
+    if (c >= '0' && c <= '9')
+        return c + 4;
+    if (c == '+')
+        return 62;
+    if (c == '/')
+        return 63;
+    return -1;
+}
+
+inline int decode_base64(uint8_t *output, const char *input, int inputLen)
+{
+    int i      = 0;
+    int j      = 0;
+    int decLen = 0;
+    unsigned char a4[4];
+
+    while (inputLen--) {
+        if (*input == '=') {
+            break;
         }
-        this->_open_fs = result;
-    } else {
-        // override setting information
-        this->_open_fs = false;
-        //result         = this->save_information(this->_ssid, this->_pass, this->_mode_ap, this->_auto_default_setting);
+
+        a4[i++] = *(input++);
+        if (i == 4) {
+            for (i = 0; i < 4; i++) {
+                a4[i] = lookup_b64(a4[i]);
+            }
+            output[decLen++] = (a4[0] << 2) + ((a4[1] & 0x30) >> 4);
+            output[decLen++] = ((a4[1] & 0xf) << 4) + ((a4[2] & 0x3c) >> 2);
+            output[decLen++] = ((a4[2] & 0x3) << 6) + a4[3];
+
+            i = 0;
+        }
+    }
+    if (0 != i) {
+        for (j = i; j < 4; j++) {
+            a4[j] = '\0';
+        }
+        for (j = 0; j < 4; j++) {
+            a4[j] = lookup_b64(a4[j]);
+        }
+        output[decLen++] = (a4[0] << 2) + ((a4[1] & 0x30) >> 4);
+        output[decLen++] = ((a4[1] & 0xf) << 4) + ((a4[2] & 0x3c) >> 2);
+        output[decLen++] = ((a4[2] & 0x3) << 6) + a4[3];
+    }
+    output[decLen] = '\0';
+    return decLen;
+}
+
+int cbc_base64(const uint8_t key[32], const uint8_t iv[16], const char *plaintext, char *encrypted)
+{
+    char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
+    esp_aes_context context;
+    uint8_t iv_buff[16];
+    uint8_t *output;
+    memcpy(iv_buff, iv, sizeof(iv_buff));
+
+    esp_aes_init(&context);
+    esp_aes_setkey(&context, key, 256);
+    int len = ((strlen(plaintext) / 16) + 1) * 16;
+    esp_aes_crypt_cbc(&context, ESP_AES_ENCRYPT, len, iv_buff, (const unsigned char *)plaintext, (unsigned char *)cip);
+    esp_aes_free(&context);
+
+    String base = base64::encode((const uint8_t *)cip, len);
+    sprintf(encrypted, "%s", base.c_str());
+    return len;
+}
+
+int cbc_base64_to_text(const uint8_t key[32], const uint8_t iv[16], const char *encrypted, char *plaintext)
+{
+    esp_aes_context context;
+    uint8_t iv_buff[16];
+    uint8_t b_text[2 * INPUT_BUFFER_LIMIT];
+    memcpy(iv_buff, iv, sizeof(iv_buff));
+    decode_base64(b_text, encrypted, strlen(encrypted));
+
+    esp_aes_init(&context);
+    esp_aes_setkey(&context, key, 256);
+    int len = ((strlen(encrypted) / 16) + 1) * 16;
+    esp_aes_crypt_cbc(&context, ESP_AES_DECRYPT, len, iv_buff, b_text, (uint8_t *)plaintext);
+    esp_aes_free(&context);
+
+    return len;
+}
+#endif
+
+//////////////////////////////////////////////////////////////
+// Constructor
+//////////////////////////////////////////////////////////////
+WebManagerSetting::WebManagerSetting() : _error_count_spi(ERROR_COUNT_SPI_MAX), _open_fs(false)
+{
+#if FEATURES_FILE_ENABLE_ENCRYPTION
+    uint8_t base_mac[6];
+    char base_mac_chr[18] = { 0 };
+    char buffer[STRING_BUFFER_LIMIT];
+    esp_read_mac(base_mac, ESP_MAC_WIFI_STA);
+    sprintf(base_mac_chr, "%02X%02X%02X%02X%02X%02X", base_mac[0], base_mac[1], base_mac[2], base_mac[3], base_mac[4], base_mac[5]);
+    ik_len = sprintf(buffer, "%s-sta%sap%s", base_mac_chr, SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_SSID);
+    for (int i = 0; (i < ik_len) & (i < N_BLOCK); i++) {
+        ik[i] = (unsigned char)((buffer[i] + ik_shift) & 0xFF);
     }
 #endif
-    log_d("%s", ((true == result) ? "Setup was successful." : "Setup failed."));
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
+    if (true == SPIFFS.begin()) {
+        this->_init_sta_setting(SPIFFS);
+        SPIFFS.end();
+    }
+    xSemaphoreGive(xMutex_SPIFFS);
+#endif
+    (void)this->set_ap_hostname(SETTING_WIFI_HOSTNAME);
+    (void)this->set_sta_hostname(SETTING_WIFI_HOSTNAME);
+    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
+    (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
+}
 
+//////////////////////////////////////////////////////////////
+// Public function
+//////////////////////////////////////////////////////////////
+// AP mode
+bool WebManagerSetting::set_ap_enable(bool flag)
+{
+    bool result = false;
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    char buffer[STRING_BUFFER_LIMIT];
+    if (true == this->_open_fs) {
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
+        if (true == SPIFFS.begin()) {
+            this->_save_settings_wifi(SPIFFS, flag, this->_enable_sta);
+            SPIFFS.end();
+        }
+        xSemaphoreGive(xMutex_SPIFFS);
+    } else {
+        if (0 > this->_error_count_spi) {
+            result = true;
+        }
+    }
+#else
+    result = true;
+#endif
     return result;
 }
-
-bool WebManagerSetting::save_information_sta(std::string ssid, std::string pass, std::string hostname, int num)
+bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::string pass, std::string hostname)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    char buffer[STRING_BUFFER_LIMIT];
     if (true == this->_open_fs) {
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
+        if (true == SPIFFS.begin()) {
+            this->_save_settings_wifi(SPIFFS, enable, this->_enable_sta);
+            if (true == enable) {
+                this->set_ap_hostname(hostname.c_str());
+                result = this->_save_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, ssid, pass, hostname);
+            }
+            SPIFFS.end();
+        }
+        xSemaphoreGive(xMutex_SPIFFS);
+    } else {
+        if (0 > this->_error_count_spi) {
+            result = true;
+        }
+    }
+#else
+    result = true;
+#endif
+    return result;
+}
+bool WebManagerSetting::save_ap_information(std::string ssid, std::string pass, std::string hostname)
+{
+    bool result = false;
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    if (true == this->_open_fs) {
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
         if (true == SPIFFS.begin()) {
             bool force_write = false;
-            if (true == SPIFFS.exists(SETTING_WIFI_STA_CONNECTED_FILE)) {
-                this->_load_information(SETTING_WIFI_STA_CONNECTED_FILE, false);
+            if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
+                this->_load_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, true);
             } else {
                 force_write = true;
             }
-            if ((true == force_write) //
-                || (this->_sta_ssid != ssid) || (this->_sta_pass != pass)) {
+            if ((true == force_write)                                   //
+                || (this->_ap_ssid != ssid) || (this->_ap_pass != pass) //
+            ) {
                 force_write = false;
+                result      = _save_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, ssid, pass, hostname);
+            }
+            SPIFFS.end();
+            if (true == force_write) {
+                ssid = this->_ap_ssid;
+                pass = this->_ap_pass;
+            }
+        }
+        xSemaphoreGive(xMutex_SPIFFS);
+    } else {
+        if (0 > this->_error_count_spi) {
+            result = true;
+        }
+    }
+#else
+    ssid   = SETTING_WIFI_AP_DEFAULT_SSID;
+    pass   = SETTING_WIFI_AP_DEFAULT_PASSWORD;
+    result = true;
+#endif
+    (void)this->set_ap_hostname(hostname);
+    (void)this->set_ap_information(ssid, pass);
 
-                result = this->_save_information(SETTING_WIFI_STA_CONNECTED_FILE, ssid, pass, hostname);
-                if (0 <= num) {
-                    if (num < SETTING_WIFI_STA_FILE_MAX) {
-                        char buffer[255];
-                        sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, num);
-                        this->_save_information(buffer, ssid, pass, hostname);
+    return result;
+}
+bool WebManagerSetting::load_ap_settings()
+{
+    bool result = false;
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    if (true == this->_open_fs) {
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
+        if (SPIFFS.begin()) {
+            if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
+                result = this->_load_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, true);
+            }
+            SPIFFS.end();
+        }
+        xSemaphoreGive(xMutex_SPIFFS);
+    } else {
+        if (0 > this->_error_count_spi) {
+            (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
+            result = true;
+        }
+    }
+#else
+    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
+    result = true;
+#endif
+    return result;
+}
+
+// STA mode
+bool WebManagerSetting::set_sta_enable(bool flag)
+{
+    bool result = false;
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    char buffer[STRING_BUFFER_LIMIT];
+    if (true == this->_open_fs) {
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
+        if (true == SPIFFS.begin()) {
+            this->_save_settings_wifi(SPIFFS, this->_enable_ap, flag);
+            SPIFFS.end();
+        }
+        xSemaphoreGive(xMutex_SPIFFS);
+    } else {
+        if (0 > this->_error_count_spi) {
+            result = true;
+        }
+    }
+#else
+    result = true;
+#endif
+    return result;
+}
+bool WebManagerSetting::save_sta_setting(bool enable, std::string ssid, std::string pass, std::string hostname, int num)
+{
+    bool result = false;
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    char buffer[STRING_BUFFER_LIMIT];
+    if (true == this->_open_fs) {
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
+        if (true == SPIFFS.begin()) {
+            this->_save_settings_wifi(SPIFFS, this->_enable_ap, enable);
+            if (0 <= num) {
+                if (num < SETTING_WIFI_STA_FILE_MAX) {
+                    sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, num);
+                    result                        = this->_save_information(SPIFFS, buffer, ssid, pass, hostname);
+                    this->_sta_list_ssid[num]     = ssid;
+                    this->_sta_list_hostname[num] = hostname;
+                }
+            }
+            SPIFFS.end();
+        }
+        xSemaphoreGive(xMutex_SPIFFS);
+    } else {
+        if (0 > this->_error_count_spi) {
+            result = true;
+        }
+    }
+#else
+    result = true;
+#endif
+    return result;
+}
+bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass, std::string hostname, int num)
+{
+    bool result = false;
+    char file_name[STRING_BUFFER_LIMIT];
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    if (true == this->_open_fs) {
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
+        if (true == SPIFFS.begin()) {
+            bool force_write = false;
+            if (0 <= num) {
+                if (num < SETTING_WIFI_STA_FILE_MAX) {
+                    sprintf(file_name, SETTING_WIFI_STA_FILE_PATTERN, num);
+                    this->_load_information(SPIFFS, file_name, false);
+                    if ((this->_sta_ssid != ssid) || (this->_sta_pass != pass) || (this->_sta_hostname != hostname)) {
+                        this->_save_information(SPIFFS, file_name, ssid, pass, hostname);
+                        this->_sta_list_ssid[num]     = ssid;
+                        this->_sta_list_hostname[num] = hostname;
+                    }
+                }
+            }
+            if (0 < ssid.length()) {
+                if (0 < pass.length()) {
+                    if (true == SPIFFS.exists(SETTING_WIFI_STA_CONNECTED_FILE)) {
+                        this->_load_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, false);
+                    } else {
+                        force_write = true;
+                    }
+                    if ((true == force_write) //
+                        || (this->_sta_ssid != ssid) || (this->_sta_pass != pass) || (this->_sta_hostname != hostname)) {
+                        force_write = false;
+
+                        result = this->_save_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, ssid, pass, hostname);
                     }
                 }
             }
@@ -154,151 +373,395 @@ bool WebManagerSetting::save_information_sta(std::string ssid, std::string pass,
                 pass = this->_sta_pass;
             }
         }
+        xSemaphoreGive(xMutex_SPIFFS);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
         }
     }
 #else
+    ssid   = SETTING_WIFI_STA_DEFAULT_SSID;
+    pass   = SETTING_WIFI_STA_DEFAULT_PASSWORD;
     result = true;
 #endif
-    (void)this->_set_information_sta(ssid, pass, this->_hostname);
+    (void)this->set_sta_information(ssid, pass);
     return result;
 }
-bool WebManagerSetting::save_information_ap(std::string ssid, std::string pass, std::string hostname)
-{
-    bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
-    if (true == this->_open_fs) {
-        if (true == SPIFFS.begin()) {
-            bool force_write = false;
-            if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
-                this->_load_information(SETTING_WIFI_AP_SETTING_FILE, true);
-            } else {
-                force_write = true;
-            }
-            if ((true == force_write)                                   //
-                || (this->_ap_ssid != ssid) || (this->_ap_pass != pass) //
-            ) {
-                force_write = false;
-                result      = _save_information(SETTING_WIFI_AP_SETTING_FILE, ssid, pass, hostname);
-            }
-            SPIFFS.end();
-            if (true == force_write) {
-                ssid = this->_ap_ssid;
-                pass = this->_ap_pass;
-            }
-        }
-    } else {
-        if (0 > this->_error_count_spi) {
-            result = true;
-        }
-    }
-#else
-    result = true;
-#endif
-    (void)this->_set_information_ap(ssid, pass, hostname);
-    return result;
-}
-bool WebManagerSetting::load_information_ap()
-{
-    bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
-    if (true == this->_open_fs) {
-        if (SPIFFS.begin()) {
-            if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
-                result = this->_load_information(SETTING_WIFI_AP_SETTING_FILE, true);
-            }
-            SPIFFS.end();
-        }
-    } else {
-        if (0 > this->_error_count_spi) {
-            result = this->_default_information_ap();
-        }
-    }
-#else
-    result = this->_default_information_ap();
-#endif
-    return result;
-}
-
 bool WebManagerSetting::load_sta_settings(bool clear)
 {
     bool result = false;
     //////////////////
-#if SETTING_WIFI_STORAGE_SPI_FS
-    char buffer[255];
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
     if (SPIFFS.begin()) {
-        result = this->_load_sta_setting(clear);
+        result = this->_load_sta_setting(SPIFFS, clear);
         SPIFFS.end();
     }
+    xSemaphoreGive(xMutex_SPIFFS);
 #endif
     //////////////////
     if (false == result) {
-        result = this->_default_information_sta();
+        (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
+        result = true;
     }
 
     return result;
 }
 
-void WebManagerSetting::set_information_ap(std::string ssid, std::string pass, std::string hostname)
+//////////////////////////////////////////////////////////////
+// Protected function
+//////////////////////////////////////////////////////////////
+bool WebManagerSetting::_setup()
 {
-    this->_set_information_ap(ssid, pass, hostname);
-}
-void WebManagerSetting::set_information_sta(std::string ssid, std::string pass, std::string hostname)
-{
-    this->_set_information_sta(ssid, pass, hostname);
+    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
+    (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
+
+    bool result = false;
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    if (0 <= this->_error_count_spi) {
+        // SPI FFS doing format if happened error
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
+        if (true == SPIFFS.begin(SETTING_WIFI_STORAGE_SPI_FORMAT)) {
+#if SETTING_WIFI_STORAGE_OVERRIDE
+            this->_save_settings_wifi(SPIFFS, SETTING_WIFI_AP_DEFAULT_ENABLE, SETTING_WIFI_STA_DEFAULT_ENABLE);
+            this->_save_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+            this->_save_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+#endif
+
+            // WiFi Settings
+            if (false == SPIFFS.exists(SETTING_WIFI_SETTING_FILE)) {
+                this->_save_settings_wifi(SPIFFS, SETTING_WIFI_AP_DEFAULT_ENABLE, SETTING_WIFI_STA_DEFAULT_ENABLE);
+            } else {
+                this->_load_settings_wifi(SPIFFS);
+            }
+
+            // AP Mode settings
+            if (false == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
+                this->_save_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+            }
+            if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
+                result = this->_load_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, true);
+            }
+
+            // STA Mode settings
+            if (false == SPIFFS.exists(SETTING_WIFI_STA_CONNECTED_FILE)) {
+                this->_save_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
+            }
+            if (true == SPIFFS.exists(SETTING_WIFI_STA_CONNECTED_FILE)) {
+                result = this->_load_information(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE, false);
+            } else {
+                result = this->_load_sta_setting(SPIFFS, true);
+                while (false == result) {
+                    result = this->_load_sta_setting(SPIFFS, false);
+                }
+            }
+
+#if FEATURES_FILE_ENABLE_ENCRYPTION
+            // File encryption process
+            this->_check_encryption(SPIFFS, SETTING_WIFI_AP_SETTING_FILE);
+            this->_check_encryption(SPIFFS, SETTING_WIFI_STA_CONNECTED_FILE);
+            for (int i = 0; i < SETTING_WIFI_STA_FILE_MAX; i++) {
+                char buffer[32];
+                sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, i);
+                this->_check_encryption(SPIFFS, buffer);
+            }
+#endif
+            SPIFFS.end();
+            this->_error_count_spi = this->ERROR_COUNT_SPI_MAX;
+        } else {
+            this->_error_count_spi--;
+        }
+        xSemaphoreGive(xMutex_SPIFFS);
+        this->_open_fs = result;
+    } else {
+        // override setting information
+        this->_open_fs = false;
+        //result         = this->save_information(this->_ssid, this->_pass, this->_mode_ap, this->_auto_default_setting);
+    }
+#else
+    result = true;
+#endif
+
+    log_d("%s", ((true == result) ? "Setup was successful." : "Setup failed."));
+    return result;
 }
 
-void WebManagerSetting::set_hostname(std::string hostname)
+//////////////////////////////////////////////////////////////
+// Private function
+//////////////////////////////////////////////////////////////
+
+// ---------------------------------------------------------//
+// WiFi settings
+// ---------------------------------------------------------//
+bool WebManagerSetting::_load_settings_wifi(fs::FS &fs)
 {
-    this->_hostname = (std::string)hostname;
+    bool result = false;
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    if (true == fs.exists(SETTING_WIFI_SETTING_FILE)) {
+        File dataFile = fs.open(SETTING_WIFI_SETTING_FILE, FILE_READ);
+        if (!dataFile) {
+            result = false;
+        } else {
+            bool flag_break = false;
+            int line        = 1;
+            result          = true;
+
+            while (dataFile.available()) {
+                String word = dataFile.readStringUntil('\n');
+                word.replace("\r", "");
+                word.replace("\n", "");
+                switch (line) {
+                    case 1:
+                        if (0 < word.length()) {
+                            this->_enable_ap = (word.equals("1")) ? true : false;
+                        }
+                        break;
+                    case 2:
+                        if (0 < word.length()) {
+                            this->_enable_sta = (word.equals("1")) ? true : false;
+                        }
+                        break;
+
+                    default:
+                        flag_break = true;
+                        break;
+                }
+                line++;
+                if (true == flag_break) {
+                    break;
+                }
+            }
+            dataFile.close();
+        }
+    }
+#else
+    this->_enable_ap  = SETTING_WIFI_AP_DEFAULT_ENABLE;
+    this->_enable_sta = SETTING_WIFI_STA_DEFAULT_ENABLE;
+    result            = true;
+#endif
+    log_d("Load settings: %s : AP[%s] STA[%s]", //
+          SETTING_WIFI_SETTING_FILE,
+          (true == this->_enable_ap) ? "True" : "False",
+          (true == this->_enable_sta) ? "True" : "False");
+    return result;
+}
+bool WebManagerSetting::_save_settings_wifi(fs::FS &fs, bool ap_mode, bool sta_mode)
+{
+    bool result = false;
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    log_d("Save settings: AP[%s] STA[%s] %s", //
+          (true == ap_mode) ? "True" : "False",
+          (true == sta_mode) ? "True" : "False",
+          SETTING_WIFI_SETTING_FILE);
+    File dataFile = fs.open(SETTING_WIFI_SETTING_FILE, FILE_WRITE);
+    dataFile.printf("%d\n", (ap_mode ? 1 : 0));
+    dataFile.printf("%d\n", (sta_mode ? 1 : 0));
+    dataFile.close();
+    result = true;
+#else
+    result = true;
+#endif
+    this->_enable_ap  = ap_mode;
+    this->_enable_sta = sta_mode;
+    return result;
+}
+
+//////////////////////////////////////////////////////////////
+//
+//////////////////////////////////////////////////////////////
+
+void WebManagerSetting::set_ap_information(const std::string ssid, const std::string pass)
+{
+    this->_ap_ssid = (std::string)ssid;
+    this->_ap_pass = (std::string)pass;
+    log_v("Set information : MODE[A P] SSID[%s]", this->_ap_ssid.c_str());
+}
+void WebManagerSetting::set_sta_information(const std::string ssid, const std::string pass)
+{
+    this->_sta_ssid = (std::string)ssid;
+    this->_sta_pass = (std::string)pass;
+    log_v("Set information : MODE[STA] SSID[%s]", this->_sta_ssid.c_str());
+}
+
+void WebManagerSetting::set_ap_hostname(std::string hostname)
+{
+    this->_ap_hostname = (std::string)hostname;
+}
+void WebManagerSetting::set_sta_hostname(std::string hostname)
+{
+    this->_sta_hostname = (std::string)hostname;
+}
+int WebManagerSetting::get_sta_list_selected()
+{
+    if (true == _enable_sta) {
+        return this->_sta_list_selected;
+    } else {
+        return -1;
+    }
+}
+std::string WebManagerSetting::get_sta_list_ssid(int index)
+{
+    if (0 <= index) {
+        if (index < SETTING_WIFI_STA_FILE_MAX) {
+            return this->_sta_list_ssid[index];
+        }
+    }
+    return "";
+}
+std::string WebManagerSetting::get_sta_list_hostname(int index)
+{
+    if (0 <= index) {
+        if (index < SETTING_WIFI_STA_FILE_MAX) {
+            return this->_sta_list_hostname[index];
+        }
+    }
+    return this->_sta_hostname;
+}
+
+String WebManagerSetting::file_readString(const char *path)
+{
+    String word;
+    word.clear();
+    xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
+    if (true == SPIFFS.begin()) {
+        File file   = SPIFFS.open(path, FILE_READ);
+        size_t size = file.size();
+        word        = file.readString();
+        file.close();
+        SPIFFS.end();
+    }
+    xSemaphoreGive(xMutex_SPIFFS);
+    return word;
 }
 
 ////////////////////////////////////////////////////
 // private function
 ////////////////////////////////////////////////////
-void WebManagerSetting::_set_information_ap(std::string ssid, std::string pass, std::string hostname)
-{
-    this->_ap_ssid  = (std::string)ssid;
-    this->_ap_pass  = (std::string)pass;
-    this->_hostname = (std::string)hostname;
 
-    log_d("Set information : MODE[A P] SSID[%s]", this->_sta_ssid.c_str());
-}
-void WebManagerSetting::_set_information_sta(std::string ssid, std::string pass, std::string hostname)
-{
-    this->_sta_ssid = (std::string)ssid;
-    this->_sta_pass = (std::string)pass;
-    this->_hostname = (std::string)hostname;
-
-    log_d("Set information : MODE[STA] SSID[%s]", this->_ap_ssid.c_str());
-}
-
-bool WebManagerSetting::_load_information(std::string file, bool mode_ap)
+#if FEATURES_FILE_ENABLE_ENCRYPTION
+bool WebManagerSetting::_check_encryption(fs::FS &fs, std::string file)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
-    unsigned char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
-    char buf[2 * INPUT_BUFFER_LIMIT]          = { 0 };
-    uint16_t len;
-    log_v("load file: %s", file.c_str());
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    char buf[2 * INPUT_BUFFER_LIMIT] = { 0 };
+
     if (true == SPIFFS.exists(file.c_str())) {
         File dataFile = SPIFFS.open(file.c_str(), FILE_READ);
         if (!dataFile) {
             result = false;
         } else {
-            int type = 0;
-            result   = true;
+            result               = true;
+            bool flag_encryption = true;
+            bool flag_break      = false;
+            int line             = 1;
+            std::string ssid     = "";
+            std::string pass     = "";
+            std::string hostname = "";
+            while (dataFile.available()) {
+                String word = dataFile.readStringUntil('\n');
+                word.replace("\r", "");
+                word.replace("\n", "");
+
+                switch (line) {
+                    case 1:
+                        // ENCRYPTION
+                        if (0 < word.length()) {
+                            flag_encryption = !word.equals(WebManagerSetting::SETTING_FILE_HEADER);
+                            flag_break      = flag_encryption;
+                        }
+                        break;
+                    case 2:
+                        if (0 < word.length()) {
+                            ssid = buf;
+                        }
+                        break;
+                    case 3:
+                        if (0 < word.length()) {
+                            pass = buf;
+                        }
+                        break;
+                    case 4:
+                        if (0 < word.length()) {
+                            hostname = buf;
+                        }
+                        break;
+                    default:
+                        flag_break = true;
+                        break;
+                }
+                line++;
+                if (true == flag_break) {
+                    break;
+                }
+            }
+            dataFile.close();
+            if (true == flag_encryption) {
+                this->_save_information(fs, file, ssid, pass, hostname);
+            }
+        }
+    }
+#else
+    result = true;
+#endif
+    return result;
+}
+#endif
+
+bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mode_ap)
+{
+    bool result = false;
+#if FEATURES_WIFI_STORAGE_SPIFFS
+#if FEATURES_FILE_ENABLE_ENCRYPTION
+    char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
+    bool flag_encryption             = true;
+#endif
+    char buf[2 * INPUT_BUFFER_LIMIT] = { 0 };
+    if (true == SPIFFS.exists(file.c_str())) {
+        File dataFile = SPIFFS.open(file.c_str(), FILE_READ);
+        if (!dataFile) {
+            result = false;
+        } else {
+            bool flag_break = false;
+            int line        = 1;
+            result          = true;
             // int totalBytes = dataFile.size();
             while (dataFile.available()) {
                 String word = dataFile.readStringUntil('\n');
                 word.replace("\r", "");
                 word.replace("\n", "");
-                len = de_text((byte *)word.c_str(), word.length(), ik, ik_len, ia, *cip);
-                sprintf(buf, "%s", cip);
-                switch (type) {
-                    case 0:
+#if FEATURES_FILE_ENABLE_ENCRYPTION
+                if (true == flag_encryption) {
+                    cbc_base64_to_text(ik, ia, word.c_str(), cip);
+                    sprintf(buf, "%s", cip);
+                } else {
+                    sprintf(buf, "%s", word.c_str());
+                }
+#else
+                sprintf(buf, "%s", word.c_str());
+#endif
+                switch (line) {
+                    case 1:
+                        // ENCRYPTION
+#if FEATURES_FILE_ENABLE_ENCRYPTION
+                        if (0 < word.length()) {
+                            flag_encryption = !word.equals(WebManagerSetting::SETTING_FILE_HEADER);
+                        }
+                        if (true == flag_encryption) {
+                            cbc_base64_to_text(ik, ia, word.c_str(), cip);
+                            sprintf(buf, "%s", cip);
+                            if (WebManagerSetting::SETTING_FILE_HEADER != buf) {
+                                flag_break = true;
+                            }
+                        }
+#else
+                        if (0 < word.length()) {
+                            if (false == word.equals(WebManagerSetting::SETTING_FILE_HEADER)) {
+                                flag_break = true;
+                            }
+                        }
+#endif
+                        break;
+                    case 2:
                         if (0 < word.length()) {
                             if (true == mode_ap) {
                                 this->_ap_ssid = buf;
@@ -307,7 +770,7 @@ bool WebManagerSetting::_load_information(std::string file, bool mode_ap)
                             }
                         }
                         break;
-                    case 1:
+                    case 3:
                         if (0 < word.length()) {
                             if (true == mode_ap) {
                                 this->_ap_pass = buf;
@@ -316,106 +779,150 @@ bool WebManagerSetting::_load_information(std::string file, bool mode_ap)
                             }
                         }
                         break;
-                    case 2:
+                    case 4:
                         if (0 < word.length()) {
                             if (true == mode_ap) {
-                                this->_hostname = "";
+                                this->set_ap_hostname(buf);
                             } else {
-                                this->_hostname = buf;
+                                this->set_sta_hostname(buf);
                             }
                         } else {
-                            this->_hostname = "";
+                            if (true == mode_ap) {
+                                this->set_ap_hostname("");
+                            } else {
+                                this->set_sta_hostname("");
+                            }
                         }
                         break;
 
                     default:
+                        flag_break = true;
                         break;
                 }
-                type++;
-                if (2 < type) {
+                line++;
+                if (true == flag_break) {
                     break;
                 }
             }
             dataFile.close();
+#if FEATURES_FILE_ENABLE_ENCRYPTION
+            if (false == flag_encryption) {
+                this->_save_information(fs,
+                                        file,
+                                        (true == mode_ap) ? this->_ap_ssid : this->_sta_ssid,
+                                        (true == mode_ap) ? this->_ap_pass : this->_sta_pass,
+                                        (true == mode_ap) ? this->_ap_hostname : this->_sta_hostname);
+            }
+#endif
         }
     }
 #else
-    this->_default_information();
+    (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
+    (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
     result = true;
 #endif
-    log_d("Load information : MODE[%s] SSID[%s] HOSTNAME[%s]",
-          (true == mode_ap) ? "AP" : "STA",
+    log_d("Load information : MODE[%s] SSID[%s] HOSTNAME[%s] filename[%s]",
+          (true == mode_ap) ? "A P" : "STA",
           (true == mode_ap) ? this->_ap_ssid.c_str() : this->_sta_ssid.c_str(),
-          (true == mode_ap) ? "" : this->_hostname.c_str());
-
+          (true == mode_ap) ? this->_ap_hostname.c_str() : this->_sta_hostname.c_str(),
+          file.c_str());
     return result;
 }
-bool WebManagerSetting::_save_information(std::string file, std::string ssid, std::string pass, std::string hostname)
+bool WebManagerSetting::_save_information(fs::FS &fs, const std::string file, const std::string ssid, const std::string pass, const std::string hostname)
 {
     bool result = false;
-#if SETTING_WIFI_STORAGE_SPI_FS
-    log_d("Save information");
-    unsigned char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
-    uint16_t len;
-    File dataFile = SPIFFS.open(file.c_str(), FILE_WRITE);
-    len           = en_text((char *)ssid.c_str(), ssid.length(), ik, ik_len, ia, *cip);
-    dataFile.printf("%s\n", (char *)cip);
-    len = en_text((char *)pass.c_str(), pass.length(), ik, ik_len, ia, *cip);
-    dataFile.printf("%s\n", (char *)cip);
-    len = en_text((char *)hostname.c_str(), hostname.length(), ik, ik_len, ia, *cip);
-    dataFile.printf("%s\n", (char *)cip);
-    dataFile.close();
-    result = true;
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    log_d("Save information : MODE[%s] SSID[%s] HOSTNAME[%s] filename[%s]", //
+          (file == SETTING_WIFI_AP_SETTING_FILE) ? "A P" : "STA",
+          ssid.c_str(),
+          hostname.c_str(),
+          file.c_str());
+#if FEATURES_FILE_ENABLE_ENCRYPTION
+    char cip[2 * INPUT_BUFFER_LIMIT] = { 0 };
+#endif
+    if (0 < ssid.length()) {
+        if (0 < pass.length()) {
+            File dataFile = fs.open(file.c_str(), FILE_WRITE);
+#if FEATURES_FILE_ENABLE_ENCRYPTION
+            cbc_base64(ik, ia, WebManagerSetting::SETTING_FILE_HEADER.c_str(), cip);
+            dataFile.printf("%s\n", (char *)cip);
+            cbc_base64(ik, ia, ssid.c_str(), cip);
+            dataFile.printf("%s\n", (char *)cip);
+            cbc_base64(ik, ia, pass.c_str(), cip);
+            dataFile.printf("%s\n", (char *)cip);
+            cbc_base64(ik, ia, hostname.c_str(), cip);
+            dataFile.printf("%s\n", (char *)cip);
+#else
+            dataFile.printf("%s\n", WebManagerSetting::SETTING_FILE_HEADER.c_str());
+            dataFile.printf("%s\n", ssid.c_str());
+            dataFile.printf("%s\n", pass.c_str());
+            dataFile.printf("%s\n", hostname.c_str());
+#endif
+            dataFile.close();
+            result = true;
+        }
+    }
+    if (false == result) {
+        fs.remove(file.c_str());
+        result = true;
+    }
+
 #else
     result = true;
 #endif
     return result;
 }
-bool WebManagerSetting::_default_information_sta()
+void WebManagerSetting::_init_sta_setting(fs::FS &fs)
 {
-    (void)this->_set_information_sta(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
-    return true;
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    char buffer[STRING_BUFFER_LIMIT];
+    for (int i = 0; i < SETTING_WIFI_STA_FILE_MAX; i++) {
+        sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, i);
+        if (true == fs.exists(buffer)) {
+            if (true == this->_load_information(fs, buffer, false)) {
+                this->_sta_list_ssid[i]     = this->_sta_ssid;
+                this->_sta_list_hostname[i] = this->_sta_hostname;
+            }
+        }
+    }
+#endif
 }
-bool WebManagerSetting::_default_information_ap()
-{
-    (void)this->_set_information_ap(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD, SETTING_WIFI_HOSTNAME);
-    return true;
-}
-bool WebManagerSetting::_load_sta_setting(bool clear)
+bool WebManagerSetting::_load_sta_setting(fs::FS &fs, bool clear)
 {
     bool result = false;
     if (true == clear) {
         this->_sta_explored_index = 0;
     }
+    log_d("Load STA setting index[%d]", this->_sta_explored_index);
     //////////////////
     int count_up = this->_sta_explored_index;
-#if SETTING_WIFI_STORAGE_SPI_FS
-    char buffer[255];
+#if FEATURES_WIFI_STORAGE_SPIFFS
+    char buffer[STRING_BUFFER_LIMIT];
     for (int i = this->_sta_explored_index; i < SETTING_WIFI_STA_FILE_MAX; i++) {
+        count_up = i + 1;
         sprintf(buffer, SETTING_WIFI_STA_FILE_PATTERN, i);
-        if (true == SPIFFS.exists(buffer)) {
-            result = this->_load_information(buffer, false);
+        if (true == fs.exists(buffer)) {
+            result = this->_load_information(fs, buffer, false);
+            if (true == result) {
+                this->_sta_list_ssid[i]     = this->_sta_ssid;
+                this->_sta_list_hostname[i] = this->_sta_hostname;
+                this->_sta_list_selected    = i;
+            }
             break;
         }
-        count_up++;
     }
 #endif
-    if (SETTING_WIFI_STA_FILE_MAX >= this->_sta_explored_index) {
-        this->_sta_explored_index = count_up + 1;
-    }
-    //////////////////
-#if SETTING_WIFI_STA_LOOP_FILE
+    this->_sta_explored_index = count_up;
     if (false == result) {
-        result = this->_load_sta_setting(true);
-    }
-#endif
-    //////////////////
-    if (false == result) {
-        result = this->_default_information_sta();
+        (void)this->set_sta_information(SETTING_WIFI_STA_DEFAULT_SSID, SETTING_WIFI_STA_DEFAULT_PASSWORD);
+        this->_sta_explored_index = 0;
+        result                    = true;
     }
 
     return result;
 }
+
+#undef STRING_BUFFER_LIMIT
 
 } // namespace Web
 } // namespace MaSiRoProject

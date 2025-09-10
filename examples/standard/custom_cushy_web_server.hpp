@@ -1,7 +1,6 @@
 /**
  * @file custom_cushy_web_server.hpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief CushyWebServer を継承し、HTMLルートとJSON POSTリクエストのハンドリングを追加したカスタムWebサーバークラスの定義
  * @version 0.3.0
  * @date 2023-03-28
  *
@@ -17,10 +16,10 @@ class CustomCushyWebServer : public CushyWebServer {
 public:
 protected:
     bool setup_server(AsyncWebServer *server) override;
-    void handle_favicon_ico(AsyncWebServerRequest *request) override;
 
 private:
     void handle_html_root(AsyncWebServerRequest *request);
+    void handle_json_post(AsyncWebServerRequest *request);
 };
 
 #endif

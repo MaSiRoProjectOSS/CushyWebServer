@@ -1,7 +1,6 @@
 /**
  * @file custom_cushy_web_server.cpp
- * @author Akari (masiro.to.akari@gmail.com)
- * @brief
+ * @brief CushyWebServer の JSON POST と HTML ルート応答のカスタム HTTP ハンドラを実装します。
  * @version 0.3.0
  * @date 2023-03-28
  *
@@ -48,12 +47,14 @@ void CustomCushyWebServer::handle_html_root(AsyncWebServerRequest *request)
     html += "<head>";
     html += "<meta charset='UTF-8'>";
     html += "<meta name='viewport' content='width=device-width, initial-scale=1.0'>";
-    html += "<link href='/general.css' rel='stylesheet' type='text/css' media='all'>";
+    html += "<link href='/CushyWebServer/general.css' rel='stylesheet' type='text/css' media='all'>";
     html += "<title>Cushy Web Server</title>";
     html += "</head>";
     html += "<body>";
     html += "<h1>Cushy Web Server</h1>";
+#if FEATURES_CUSHY_WEB_SERVER_OTA
     html += "<p><a href='/update' target='_self'>OTA</a></p>";
+#endif
     html += "<p><a href='/network' target='_self'>Network</a></p>";
     html += "</body>";
     html += "</html>";
