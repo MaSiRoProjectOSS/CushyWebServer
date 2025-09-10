@@ -7,6 +7,13 @@
 * Updated dependent libraries
   * For ESP32
     * ESP32Async/ESPAsyncWebServer
+* Improved WiFi reconnection logic
+* Fixed bug in AP/STA configuration handling
+* Updated documentation for new features
+  * FEATURES_CUSHY_WEB_SERVER_OTA
+  * FEATURES_SNTP_ENABLE
+  * FEATURES_WIFI_STORAGE_SPIFFS
+  * FEATURES_FILE_ENABLE_ENCRYPTION
 
 ## Ver.0.4.3
 

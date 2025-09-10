@@ -72,8 +72,8 @@ protected:
     bool _enable_sta        = SETTING_WIFI_STA_DEFAULT_ENABLE;
 
     bool _setup();
-    void set_ap_information(std::string ssid, std::string pass);
-    void set_sta_information(std::string ssid, std::string pass);
+    void set_ap_information(const std::string ssid, const std::string pass);
+    void set_sta_information(const std::string ssid, const std::string pass);
 
     int _sta_list_selected                                    = -1;
     std::string _sta_list_ssid[SETTING_WIFI_STA_FILE_MAX]     = { "" };
@@ -90,7 +90,7 @@ private:
     void _init_sta_setting(fs::FS &fs);
     bool _load_sta_setting(fs::FS &fs, bool clear);
     bool _load_information(fs::FS &fs, std::string file, bool mode_ap);
-    bool _save_information(fs::FS &fs, std::string file, std::string ssid, std::string pass, std::string hostname);
+    bool _save_information(fs::FS &fs, std::string file, const std::string ssid, const std::string pass, const std::string hostname);
 #if FEATURES_FILE_ENABLE_ENCRYPTION
     bool _check_encryption(fs::FS &fs, std::string file);
 #endif

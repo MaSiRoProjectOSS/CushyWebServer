@@ -44,6 +44,7 @@ WebCommunication::~WebCommunication()
 {
     if (nullptr != this->ctrl_server) {
         this->ctrl_server->end();
+        delete this->ctrl_server;
     }
 }
 

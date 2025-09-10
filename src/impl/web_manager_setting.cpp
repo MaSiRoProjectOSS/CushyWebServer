@@ -19,9 +19,14 @@ namespace MaSiRoProject
 {
 namespace Web
 {
-static portMUX_TYPE mutex = portMUX_INITIALIZER_UNLOCKED;
 #define INPUT_BUFFER_LIMIT  (128 + 1)
 #define STRING_BUFFER_LIMIT (255)
+
+// Semaphore for SPIFFS
+#if FEATURES_WIFI_STORAGE_SPIFFS
+static SemaphoreHandle_t xMutex_SPIFFS = xSemaphoreCreateMutex();
+const TickType_t xTicksToWait_SPIFFS   = 0;
+#endif
 
 #if FEATURES_FILE_ENABLE_ENCRYPTION
 //////////////////////////////////////////////////////////////
@@ -142,12 +147,12 @@ WebManagerSetting::WebManagerSetting() : _error_count_spi(ERROR_COUNT_SPI_MAX), 
     }
 #endif
 #if FEATURES_WIFI_STORAGE_SPIFFS
-    portENTER_CRITICAL(&mutex);
+    xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
     if (true == SPIFFS.begin()) {
         this->_init_sta_setting(SPIFFS);
         SPIFFS.end();
     }
-    portEXIT_CRITICAL(&mutex);
+    xSemaphoreGive(xMutex_SPIFFS);
 #endif
     (void)this->set_ap_hostname(SETTING_WIFI_HOSTNAME);
     (void)this->set_sta_hostname(SETTING_WIFI_HOSTNAME);
@@ -165,12 +170,12 @@ bool WebManagerSetting::set_ap_enable(bool flag)
 #if FEATURES_WIFI_STORAGE_SPIFFS
     char buffer[STRING_BUFFER_LIMIT];
     if (true == this->_open_fs) {
-        portENTER_CRITICAL(&mutex);
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
         if (true == SPIFFS.begin()) {
             this->_save_settings_wifi(SPIFFS, flag, this->_enable_sta);
             SPIFFS.end();
         }
-        portEXIT_CRITICAL(&mutex);
+        xSemaphoreGive(xMutex_SPIFFS);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -187,7 +192,7 @@ bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::stri
 #if FEATURES_WIFI_STORAGE_SPIFFS
     char buffer[STRING_BUFFER_LIMIT];
     if (true == this->_open_fs) {
-        portENTER_CRITICAL(&mutex);
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
         if (true == SPIFFS.begin()) {
             this->_save_settings_wifi(SPIFFS, enable, this->_enable_sta);
             if (true == enable) {
@@ -196,7 +201,7 @@ bool WebManagerSetting::save_ap_setting(bool enable, std::string ssid, std::stri
             }
             SPIFFS.end();
         }
-        portEXIT_CRITICAL(&mutex);
+        xSemaphoreGive(xMutex_SPIFFS);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -212,7 +217,7 @@ bool WebManagerSetting::save_ap_information(std::string ssid, std::string pass, 
     bool result = false;
 #if FEATURES_WIFI_STORAGE_SPIFFS
     if (true == this->_open_fs) {
-        portENTER_CRITICAL(&mutex);
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
         if (true == SPIFFS.begin()) {
             bool force_write = false;
             if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
@@ -232,7 +237,7 @@ bool WebManagerSetting::save_ap_information(std::string ssid, std::string pass, 
                 pass = this->_ap_pass;
             }
         }
-        portEXIT_CRITICAL(&mutex);
+        xSemaphoreGive(xMutex_SPIFFS);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -253,14 +258,14 @@ bool WebManagerSetting::load_ap_settings()
     bool result = false;
 #if FEATURES_WIFI_STORAGE_SPIFFS
     if (true == this->_open_fs) {
-        portENTER_CRITICAL(&mutex);
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
         if (SPIFFS.begin()) {
             if (true == SPIFFS.exists(SETTING_WIFI_AP_SETTING_FILE)) {
                 result = this->_load_information(SPIFFS, SETTING_WIFI_AP_SETTING_FILE, true);
             }
             SPIFFS.end();
         }
-        portEXIT_CRITICAL(&mutex);
+        xSemaphoreGive(xMutex_SPIFFS);
     } else {
         if (0 > this->_error_count_spi) {
             (void)this->set_ap_information(SETTING_WIFI_AP_DEFAULT_SSID, SETTING_WIFI_AP_DEFAULT_PASSWORD);
@@ -281,12 +286,12 @@ bool WebManagerSetting::set_sta_enable(bool flag)
 #if FEATURES_WIFI_STORAGE_SPIFFS
     char buffer[STRING_BUFFER_LIMIT];
     if (true == this->_open_fs) {
-        portENTER_CRITICAL(&mutex);
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
         if (true == SPIFFS.begin()) {
             this->_save_settings_wifi(SPIFFS, this->_enable_ap, flag);
             SPIFFS.end();
         }
-        portEXIT_CRITICAL(&mutex);
+        xSemaphoreGive(xMutex_SPIFFS);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -303,7 +308,7 @@ bool WebManagerSetting::save_sta_setting(bool enable, std::string ssid, std::str
 #if FEATURES_WIFI_STORAGE_SPIFFS
     char buffer[STRING_BUFFER_LIMIT];
     if (true == this->_open_fs) {
-        portENTER_CRITICAL(&mutex);
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
         if (true == SPIFFS.begin()) {
             this->_save_settings_wifi(SPIFFS, this->_enable_ap, enable);
             if (0 <= num) {
@@ -316,7 +321,7 @@ bool WebManagerSetting::save_sta_setting(bool enable, std::string ssid, std::str
             }
             SPIFFS.end();
         }
-        portEXIT_CRITICAL(&mutex);
+        xSemaphoreGive(xMutex_SPIFFS);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -333,7 +338,7 @@ bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass,
     char file_name[STRING_BUFFER_LIMIT];
 #if FEATURES_WIFI_STORAGE_SPIFFS
     if (true == this->_open_fs) {
-        portENTER_CRITICAL(&mutex);
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
         if (true == SPIFFS.begin()) {
             bool force_write = false;
             if (0 <= num) {
@@ -368,7 +373,7 @@ bool WebManagerSetting::save_sta_information(std::string ssid, std::string pass,
                 pass = this->_sta_pass;
             }
         }
-        portEXIT_CRITICAL(&mutex);
+        xSemaphoreGive(xMutex_SPIFFS);
     } else {
         if (0 > this->_error_count_spi) {
             result = true;
@@ -387,12 +392,12 @@ bool WebManagerSetting::load_sta_settings(bool clear)
     bool result = false;
     //////////////////
 #if FEATURES_WIFI_STORAGE_SPIFFS
-    portENTER_CRITICAL(&mutex);
+    xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
     if (SPIFFS.begin()) {
         result = this->_load_sta_setting(SPIFFS, clear);
         SPIFFS.end();
     }
-    portEXIT_CRITICAL(&mutex);
+    xSemaphoreGive(xMutex_SPIFFS);
 #endif
     //////////////////
     if (false == result) {
@@ -415,7 +420,7 @@ bool WebManagerSetting::_setup()
 #if FEATURES_WIFI_STORAGE_SPIFFS
     if (0 <= this->_error_count_spi) {
         // SPI FFS doing format if happened error
-        portENTER_CRITICAL(&mutex);
+        xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
         if (true == SPIFFS.begin(SETTING_WIFI_STORAGE_SPI_FORMAT)) {
 #if SETTING_WIFI_STORAGE_OVERRIDE
             this->_save_settings_wifi(SPIFFS, SETTING_WIFI_AP_DEFAULT_ENABLE, SETTING_WIFI_STA_DEFAULT_ENABLE);
@@ -466,7 +471,7 @@ bool WebManagerSetting::_setup()
         } else {
             this->_error_count_spi--;
         }
-        portEXIT_CRITICAL(&mutex);
+        xSemaphoreGive(xMutex_SPIFFS);
         this->_open_fs = result;
     } else {
         // override setting information
@@ -565,13 +570,13 @@ bool WebManagerSetting::_save_settings_wifi(fs::FS &fs, bool ap_mode, bool sta_m
 //
 //////////////////////////////////////////////////////////////
 
-void WebManagerSetting::set_ap_information(std::string ssid, std::string pass)
+void WebManagerSetting::set_ap_information(const std::string ssid, const std::string pass)
 {
     this->_ap_ssid = (std::string)ssid;
     this->_ap_pass = (std::string)pass;
     log_v("Set information : MODE[A P] SSID[%s]", this->_ap_ssid.c_str());
 }
-void WebManagerSetting::set_sta_information(std::string ssid, std::string pass)
+void WebManagerSetting::set_sta_information(const std::string ssid, const std::string pass)
 {
     this->_sta_ssid = (std::string)ssid;
     this->_sta_pass = (std::string)pass;
@@ -617,7 +622,7 @@ String WebManagerSetting::file_readString(const char *path)
 {
     String word;
     word.clear();
-    portENTER_CRITICAL(&mutex);
+    xSemaphoreTake(xMutex_SPIFFS, xTicksToWait_SPIFFS);
     if (true == SPIFFS.begin()) {
         File file   = SPIFFS.open(path, FILE_READ);
         size_t size = file.size();
@@ -625,7 +630,7 @@ String WebManagerSetting::file_readString(const char *path)
         file.close();
         SPIFFS.end();
     }
-    portEXIT_CRITICAL(&mutex);
+    xSemaphoreGive(xMutex_SPIFFS);
     return word;
 }
 
@@ -823,7 +828,7 @@ bool WebManagerSetting::_load_information(fs::FS &fs, std::string file, bool mod
           file.c_str());
     return result;
 }
-bool WebManagerSetting::_save_information(fs::FS &fs, std::string file, std::string ssid, std::string pass, std::string hostname)
+bool WebManagerSetting::_save_information(fs::FS &fs, const std::string file, const std::string ssid, const std::string pass, const std::string hostname)
 {
     bool result = false;
 #if FEATURES_WIFI_STORAGE_SPIFFS
