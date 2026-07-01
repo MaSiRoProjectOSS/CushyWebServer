@@ -17,10 +17,9 @@
     "frameworks": "arduino",
     "platforms": "espressif32",
     "dependencies": {
-        "ESP32Async/ESPAsyncWebServer": "^3.8.0",
-        "ayushsharma82/ElegantOTA": "^3.1.4",
-        "bblanchon/ArduinoJson": "^7.4.2",
-        "suculent/AESLib": "^2.3.6"
+        "ESP32Async/ESPAsyncWebServer": "^3.11.2",
+        "ayushsharma82/ElegantOTA": "^3.1.7",
+        "bblanchon/ArduinoJson": "^7.4.3"
     },
     "libArchive": true,
     "headers": "cushy_web_server.hpp",
